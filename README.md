@@ -35,12 +35,22 @@ Tower :
         
 
     Chaque tour a une spécificité :
-        
         Basic => rien a toucher
         Sniper => sa stat Range qui va increase 
         Canon =>  sa stat Attack speed qui va increase
         Freezing => qui va affecter le stat speed de l'ennemy touché => donc un getter sur les stats des ennemy ?
         Antiair => faire un test pour voir si l'ennemy le plus proche a sa stat fly = true, si c'est le cas, on le tire dessus sinon non
 
-Enemy :
-    
+# Réunion du 11 février
+
+Class :
+    Map :
+    Entity :
+        - Enemy
+        - Projectile
+        - Tower
+    Session : Map Physique , Map Entity, Tower, 
+    Option :
+    Map Physique (Tour) => QuadTree 
+    Map Entity (Enemy)=> QuadTree
+     
