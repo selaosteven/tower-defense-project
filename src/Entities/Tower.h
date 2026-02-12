@@ -9,20 +9,25 @@
 
 
 class Tower {
-protected:
+private:
     // Stats de chaque tours
-    double range; // Range
-    double damage; // Damage
-    double as; // Attack Speed 
-    double rs; // Rotation Speed
-    std::unique_ptr<Projectile> proj; // Classe Projectile 
-    std::string type; // Type de la tour
-    int id; 
-    static int compteur;
+    float range_; // Range
+    float damage_; // Damage
+    float as_; // Attack Speed 
+    float rs_; // Rotation Speed
+    Projectile proj_; // Classe Projectile 
+    std::string type_; // Type de la tour
+    int id_; 
+    static int compteur_;
 
 public:
-    Tower(double range, double damage, double as, double rs, Projectile proj, std::string type); // Constructeur
-    int getId() const; // Getter ID
+    Tower(float range, float damage, float as, float rs, Projectile proj, std::string type); // Constructeur
+    inline float getRange() const {return range_;} // Getter Range
+    inline float getDamage() const {return damage_;} // Getter Damage
+    inline float getAs() const {return as_;} // Getter Attack Speed
+    inline float getRs() const {return rs_;} // Getter Rotation Speed
+    inline std::string getType() const {return type_;} // Getter Type
+    inline int getId() const {return id_;} // Getter ID
 };
 
 #endif

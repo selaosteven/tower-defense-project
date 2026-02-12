@@ -4,10 +4,10 @@
 class Enemy{
 protected:
     // Stats de chaque ennemies
-    double lp; // Life Point
-    double speed; // Speed
-    double resistance; // Resistance
-    bool fly; // Fly
+    double lp_; // Life Point
+    double speed_; // Speed
+    double resistance_; // Resistance
+    bool fly_; // Fly
    
 public:
     Enemy(double lp, double speed, double resistance, bool fly); // constructeur

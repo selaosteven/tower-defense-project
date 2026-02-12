@@ -1,11 +1,14 @@
 #include "Tower.h"
 
-int Tower::compteur = 0;
+int Tower::compteur_ = 0;
 
 // Constructeur
-Tower::Tower(double range, double damage, double as, double rs, Projectile proj, std::string type) : 
-range(range), damage(damage), as(as), rs(rs),type(type),id(compteur++) {} 
-
-int Tower::getId() const {
-    return id;
-}
+Tower::Tower(float range,float damage, float as,  float rs, Projectile proj, std::string type) : 
+    range_{range}, 
+    damage_{damage}, 
+    as_{as}, 
+    rs_{rs},
+    proj_{proj},
+    type_{type},
+    id_{compteur_++} 
+    {} 
