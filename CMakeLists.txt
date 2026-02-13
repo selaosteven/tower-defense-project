@@ -13,7 +13,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # Liste des fichiers sources
 # Note : main.cpp est attendu selon le README
-file(GLOB SRC_FILES */*.cpp)
+file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(TowerDefense ${SRC_FILES})
 
 target_include_directories(TowerDefense PRIVATE ${SDL2_INCLUDE_DIRS})
