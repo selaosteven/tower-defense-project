@@ -5,7 +5,7 @@
 
 class Entity{
 protected:
-    std::vector<float,2> position; // Vecteur de position
+    std::array<float,2> position; // Vecteur de position
     float orientation; // Angle degré
     Animation anim; // Animation d'une entité
 public:

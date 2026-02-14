@@ -1,9 +1,14 @@
 #ifndef SESSION_H
 #define SESSION_H
 
+#include <Map.h>
+#include <MapEntity.h>
+#include <Tower.h>
+#include <Enemy.h>
+
 class Session {
 private:
-    MapPhysique mapPhysique_;
+    MapEntity mapEntity_;
     Map map_;
     std::vector<Tower> lst_tower_;
     std::vector<Enemy> lst_enemy_;    
