@@ -15,7 +15,7 @@ private:
 public:
     MapEntity(std::vector<Entity> lst,std::vector<std::string> map);
 
-    std::vector<Entity> allWithinRange(std::array<float,2> center,float range);
+    std::vector<Entity> allWithinRange(Point center,float range);
 };
 
 #endif
