@@ -1,5 +1,5 @@
+#include "QuadTree/QuadTree.h"
 #include "MapEntity.h"
-#include "QuadTree.h"
 
 using namespace std;
 

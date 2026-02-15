@@ -1,12 +1,12 @@
 #ifndef QUADTREE_H
 #define QUADTREE_H
-
-#include "Rectangle.h"
-#include "Point.h"
-#include "Entity.h"
 #include <memory>
 #include <vector>
 #include <iostream>
+
+#include "QuadTree/Rectangle.h"
+#include "QuadTree/Point.h"
+#include "Entities/Entity.h"
 
 class QuadTree {
 private:
