@@ -11,10 +11,10 @@ QuadTree::QuadTree(Rectangle boundary) :
     {}
 
 void QuadTree::subDivide(){
-    int x_box = boundary_.getX();
-    int y_box = boundary_.getY();
-    int w_box = boundary_.getW();
-    int h_box = boundary_.getH();
+    float x_box = boundary_.getX();
+    float y_box = boundary_.getY();
+    float w_box = boundary_.getW();
+    float h_box = boundary_.getH();
 
     Rectangle tl{x_box - w_box / 4 , y_box - h_box / 4 , w_box / 2 , h_box / 2}; // Top Right 
     Rectangle tr{x_box + w_box / 4 , y_box - h_box / 4 , w_box / 2 , h_box / 2}; // Top left 
@@ -42,7 +42,6 @@ void QuadTree::subDivide(){
 
 }
 
-
 void QuadTree::insert(Point point){
 
     if(!boundary_.contains(point)){ // les cordoonnées du points n'appartient pas au rectangle
@@ -50,7 +49,7 @@ void QuadTree::insert(Point point){
     }
 
     // Si jamais il n'y a aucun point dans le rectangle et qu'il n'est pas déjà divisé, on l'insere dans la liste des points 
-    if(points_.size() < capacity_ && !divided_) {
+    if(points_.size() < capacity_ && !divided_) {      
         points_.push_back(point); 
         return;
     } 
@@ -102,6 +101,9 @@ std::vector<Point> QuadTree::query(Point center, float range){
 
     }
 
+    // for(Point p : res){
+    //     std::cout << "X : " << p.getX() << " Y : " << p.getY() << std::endl;
+    // }
     return res;
 }
 

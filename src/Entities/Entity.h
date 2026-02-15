@@ -11,7 +11,7 @@ protected:
     // Animation anim; // Animation d'une entité
 public:
     Entity(Point position, float orientation);
-
+    Entity(Point position);
     inline Point getPosition() const {return position_;}
     inline float getOrientation() const {return orientation_;}
 
