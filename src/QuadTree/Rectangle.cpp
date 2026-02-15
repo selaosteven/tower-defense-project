@@ -1,8 +1,8 @@
 #include "Rectangle.h"
 #include <algorithm>
 
-Rectangle::Rectangle(int x , int y , int w , int h) 
-    : x_{x} , y_{y} , w_{w} , h_{h} {}
+Rectangle::Rectangle(float x , float y , float w , float h) 
+    : x_{x}, y_{y}, w_{w}, h_{h} {}
 
 bool Rectangle::contains(Point point) {
     int x = point.getX();

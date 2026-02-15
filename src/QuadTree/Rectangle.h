@@ -5,20 +5,20 @@
 
 class Rectangle {
 private:
-    int x_;
-    int y_;
-    int w_;
-    int h_;
+    float x_;
+    float y_;
+    float w_;
+    float h_;
 
 public:
-    Rectangle(int x, int y , int w ,int h);
+    Rectangle(float x, float y , float w , float h);
     bool contains(Point point);
     bool checkOverlap(Point center, float range);
 
-    inline int getX() const {return x_;}
-    inline int getY() const {return y_;}
-    inline int getW() const {return w_;}
-    inline int getH() const {return h_;}
+    inline float getX() const {return x_;}
+    inline float getY() const {return y_;}
+    inline float getW() const {return w_;}
+    inline float getH() const {return h_;}
 };
 
 

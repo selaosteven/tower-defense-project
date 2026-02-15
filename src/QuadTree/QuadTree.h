@@ -3,7 +3,7 @@
 
 #include "Rectangle.h"
 #include "Point.h"
-#include "Entity.h"
+#include "../Entities/Entity.h"
 #include <memory>
 #include <vector>
 #include <iostream>
