@@ -4,7 +4,7 @@
 #include <iostream>
 #include <SDL.h>
 
-namespace Sprite
+namespace Sprites
 {
 class Sprite
 {
@@ -12,7 +12,7 @@ class Sprite
 
 protected:
     std::array<int, 3> position_; // Position (x,y) of the sprite, Z-index for vertical alignement
-
+    
 
 public:
     Sprite();
