@@ -1,9 +1,11 @@
-#include "Window.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
 #include <mutex>
 #include <thread>
+
+#include "Window.h"
+#include "Sprites/Sprite.h"
 
 using namespace UI;
 
@@ -35,7 +37,7 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0},win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0} {
     if(!Window::sdl_initiated) init_sdl();
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
@@ -73,12 +75,9 @@ int UI::Window::Create(void * args){
 }
 
 werrors UI::Window::inputs(){
-    // On limite le nombre d'events traités par tour pour éviter une boucle infinie
-    // si on se renvoie la balle (events) entre threads indéfiniment.
     int max_events = 10;
     while (max_events-- > 0)
     {
-        // SDL_PollEvent n'est pas thread-safe, il faut protéger l'accès
         std::unique_lock<std::mutex> lock(event_mutex);
         if (SDL_PollEvent(event_) == 0) break;
 
@@ -87,7 +86,6 @@ werrors UI::Window::inputs(){
         switch (event_->type)
         {
             case SDL_QUIT:
-                // SDL_QUIT est global. On le remet dans la file pour que les autres fenêtres le voient aussi
                 SDL_PushEvent(event_);
                 return STOP;
 
@@ -100,8 +98,6 @@ werrors UI::Window::inputs(){
                     }
                 }
                 break;
-            
-            // Pour les inputs, SDL cible automatiquement la fenêtre qui a le focus
             case SDL_KEYDOWN:
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
@@ -118,10 +114,8 @@ werrors UI::Window::inputs(){
         }
 
         if (!is_for_me) {
-            // Ce n'est pas pour nous, on le rend à la file d'attente
             SDL_PushEvent(event_);
             lock.unlock();
-            // On laisse la main aux autres threads pour qu'ils tentent de récupérer leur event
             std::this_thread::yield();
         }
     }
@@ -130,13 +124,31 @@ werrors UI::Window::inputs(){
 
 void UI::Window::loop(){
     while(1)
-    {
+    {        
+        SDL_SetRenderDrawColor(renderer_,0,0,0,255);
+        SDL_RenderClear(renderer_);
         delta_time_ = ticks_ - SDL_GetTicks64();
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
         if(errInputs == STOP) break;
+        for(auto s : sprites_) s->draw(renderer_);
+        SDL_RenderPresent(renderer_);
     }
     return;
+}
+
+void UI::Window::addSprite(Sprites::Sprite *sprite){
+    if(sprites_.empty()) {
+        sprites_.push_front(sprite);
+    } else {
+        for(auto it = sprites_.begin(); it != sprites_.end(); ++it){
+            if((*it)->position_[2] > sprite->position_[2]) {
+                sprites_.insert(it, sprite);
+                return;
+            }
+        }
+        sprites_.push_back(sprite);        
+    }
 }
 
 // ------------------------------------------------

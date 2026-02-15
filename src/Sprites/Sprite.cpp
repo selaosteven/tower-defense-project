@@ -1,3 +1,5 @@
+#include <SDL.h>
+
 #include "Sprite.h"
 
 namespace Sprites
@@ -11,6 +13,9 @@ Sprite::Sprite(int x, int y, int zIndex) : position_{x,y,zIndex}{}
 
 Sprite::~Sprite(){}
 
-void Sprite::draw(SDL_Surface &win) const {};
-
+void Sprites::Sprite::draw(SDL_Renderer *win) const {
+    SDL_SetRenderDrawColor(win,100,255,55,255);
+    SDL_Rect objet = {position_[0],position_[1],21,21};
+    SDL_RenderFillRect(win,&objet);
+}
 }

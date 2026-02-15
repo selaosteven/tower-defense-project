@@ -16,7 +16,7 @@ class PrimitiveForm : public Sprite
     PrimitiveForm(std::array<int, 3> &pos);
     ~PrimitiveForm();
 
-    void draw(SDL_Surface &win) const override;
+    void draw(SDL_Renderer *win) const override;
 };
 
 enum orientation {

@@ -7,7 +7,7 @@ PrimitiveForm::PrimitiveForm() : Sprite{} {}
 
 PrimitiveForm::~PrimitiveForm(){}
 
-void PrimitiveForm::draw(SDL_Surface &win) const {
+void PrimitiveForm::draw(SDL_Renderer *win) const {
     
 }
 
