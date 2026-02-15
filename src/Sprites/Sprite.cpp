@@ -1,6 +1,7 @@
 #include "Sprite.h"
 
-namespace Sprite{
+namespace Sprites
+{
 
 Sprite::Sprite() : position_{0,0,0}{}
 
