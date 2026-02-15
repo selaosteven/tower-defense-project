@@ -2,7 +2,7 @@
 #define ENTITY_H
 #include <string>
 #include <vector>
-#include "../QuadTree/Point.h"
+#include "QuadTree/Point.h"
 
 class Entity{
 protected:

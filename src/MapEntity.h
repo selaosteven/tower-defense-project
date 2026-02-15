@@ -2,11 +2,11 @@
 #ifndef MAPENTITY_H
 #define MAPENTITY_H
 
-#include "Entities/Entity.h"
 #include <string>
 #include <vector>
 #include <iostream>
 #include <array>
+#include "Entities/Entity.h"
 
 class MapEntity {
 private:

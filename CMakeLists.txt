@@ -31,5 +31,8 @@ include_directories(${CMAKE_SOURCE_DIR})
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(TowerDefense ${SRC_FILES})
 
-target_include_directories(TowerDefense PRIVATE ${SDL2_INCLUDE_DIRS})
+target_include_directories(TowerDefense PRIVATE
+    ${SDL2_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/src
+)
 target_link_libraries(TowerDefense PRIVATE ${SDL2_LIBRARIES})
