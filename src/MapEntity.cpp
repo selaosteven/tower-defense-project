@@ -10,8 +10,8 @@ vector<Entity> MapEntity::allWithinRange(Point center,float range){
     // center => cordonnée de la tour 
     // range => range de la tour
 
-    int width =  map_[0].size(); // Largeur de la map
-    int height = map_.size(); // Hauteur de la map
+    float width =  map_[0].size(); // Largeur de la map
+    float height = map_.size(); // Hauteur de la map
 
     // Construction de la map QuadTree
     QuadTree qt_map{Rectangle{width/2,height/2,width,height}};
@@ -20,6 +20,21 @@ vector<Entity> MapEntity::allWithinRange(Point center,float range){
         qt_map.insert(p);
     }
 
-    qt_map.query(center,range); // Recupere tous les points dans la range
+    qt_map.print();
+
+    std::vector<Point> lst_pts = qt_map.query(center,range); // Recupere tous les points dans la range
+    
+    // qt_map.print();
+    std::vector<Entity> res;
+
+    for(Entity e : lst_){
+        for(Point p : lst_pts){
+            if(p == e.getPosition()){
+                res.push_back(e);
+            }
+        }
+    }
+
+    return res;
 
 }
