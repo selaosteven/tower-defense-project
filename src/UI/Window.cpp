@@ -38,7 +38,6 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
 UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0} {
-    if(!Window::sdl_initiated) init_sdl();
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
     SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
@@ -52,6 +51,10 @@ UI::Window::~Window(){
 }
 
 int UI::Window::Create(void * args){
+    
+    std::mutex &lock(event_mutex);
+    if(!Window::sdl_initiated) init_sdl();
+    lock.unlock();
     bool failed = false;
     window_ = SDL_CreateWindow("Projet CPP SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, win_width_, win_height_, win_flags_);
     if(window_){
@@ -169,6 +172,7 @@ werrors UI::Window::init_sdl() {
 }
 werrors UI::Window::init_sdl(Uint32 flags){
     if(!sdl_initiated){
+        SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
         sdl_flags = flags;
         if(SDL_Init(sdl_flags) < 0){
             print_sdl_error("Failed to create window");
