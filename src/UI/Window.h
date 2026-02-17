@@ -3,6 +3,11 @@
 #include <SDL.h>
 #include <mutex>
 #include <string>
+#include <list>
+
+namespace Sprites {
+    class Sprite;
+}
 
 namespace UI
 {
@@ -44,6 +49,7 @@ private:
     SDL_Window * window_;
     SDL_Event * event_;
     Uint64 ticks_;
+    std::list<Sprites::Sprite*> sprites_;
     
 
 protected:
@@ -56,10 +62,13 @@ public:
     Window();
     Window(int width, int height);
     Window(int width, int heightn, Uint32 flags);
+    ~Window();
+
     int Create(void * args);
     werrors inputs();
     void loop();
-    ~Window();
+
+    void addSprite(Sprites::Sprite *sprite);
 
 };
 
