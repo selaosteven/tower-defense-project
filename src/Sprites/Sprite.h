@@ -5,6 +5,7 @@
 #include <SDL.h>
 
 #include "UI/Window.h"
+#include "QuadTree/Point.h"
 
 namespace Sprites
 {
@@ -15,7 +16,8 @@ protected:
     static constexpr float unit_size_pixels = 10;
 
 protected:
-    std::array<int, 3> position_; // Position (x,y) of the sprite, Z-index for vertical alignement
+    Point position_;
+    int zindex;
     float scale_;
     float rotation_;
 
@@ -26,10 +28,13 @@ public:
     Sprite(int x, int y, int zIndex);
     virtual ~Sprite();
 
-    virtual void draw(SDL_Renderer *win) const;
+    virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
     
     inline void setScale(const float scale) {
         scale_ = scale;
+    }
+    inline void move(Point velocity){
+        position_ += velocity;
     }
 
     friend class UI::Window;

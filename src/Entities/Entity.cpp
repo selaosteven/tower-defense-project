@@ -1,7 +1,32 @@
+#include <vector>
+#include <cmath>
 #include "Entity.h"
 
-Entity::Entity(Point position,float orientation) :
-    position_{position} , orientation_{orientation} {}
+static const float pi = std::acos(-1.0f);
 
-Entity::Entity(Point position) :
-    position_{position} , orientation_{0} {}
+
+Entity::Entity(Point position, float orientation, std::vector<Sprites::Sprite*> sprites) : position_{position}, orientation_{orientation}, sprites_{sprites} {}
+
+
+Entity::Entity(Point position, float orientation, Sprites::Sprite* sprite) : Entity{position, orientation, std::vector<Sprites::Sprite*>{sprite}} {}
+Entity::Entity(Point position, Sprites::Sprite* sprite) : Entity{position, 0, {sprite}} {}
+Entity::Entity(Point position, float orientation) : Entity{position,orientation, {}} {}
+Entity::Entity(Point position) : Entity{position,0.0f} {}
+
+Entity::~Entity() {
+    for(auto s : sprites_) {
+        delete s;
+    }
+    sprites_.clear();
+}
+
+void Entity::live(float deltaTime){
+    const float rx = 10.0f;
+    const float ry = 5.0f;
+    const float va = 2 * pi / 16;
+    orientation_ += va * deltaTime;
+    Point velocity{rx*std::cos(orientation_), ry*std::sin(orientation_)};
+    for(auto s : sprites_){
+        if(s) s->move(velocity);
+    }
+}
