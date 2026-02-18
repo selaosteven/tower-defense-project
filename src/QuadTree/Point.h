@@ -5,13 +5,13 @@
 
 class Point {
 private:
-    int x_; // Cordonnée x du point 
-    int y_; // Cordonnée y du point
+    float x_; // Cordonnée x du point 
+    float y_; // Cordonnée y du point
 
 public:
-    Point(int x,int y);
-    inline int getX() const {return x_;}
-    inline int getY() const {return y_;}
+    Point(float x,float y);
+    inline float getX() const {return x_;}
+    inline float getY() const {return y_;}
     inline bool operator==(Point p){
         return x_ == p.x_ && y_ == p.y_;
     }
