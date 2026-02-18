@@ -2,6 +2,7 @@
 #define PRIMITIVEFORM_H
 #include <vector>
 #include "Sprite.h"
+#include "QuadTree/Point.h"
 
 namespace Sprites
 {
@@ -28,8 +29,7 @@ class PrimitiveForm : public Sprite
     PrimitiveForm(const std::array<int, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color);
     ~PrimitiveForm();
 
-    void draw(SDL_Renderer *win) const override;
-
+    void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
     friend PrimitiveForm triangle(const std::array<int, 3> &pos, float size, SDL_Color color, Orientation orientation);
     friend PrimitiveForm circle(const std::array<int, 3> &pos,const float size,const int points);
     friend PrimitiveForm rectangle(const std::array<int, 3> &pos, float side);

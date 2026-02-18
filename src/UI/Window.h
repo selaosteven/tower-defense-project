@@ -5,6 +5,8 @@
 #include <string>
 #include <list>
 
+#include "QuadTree/Point.h"
+
 namespace Sprites {
     class Sprite;
 }
@@ -57,6 +59,8 @@ protected:
     int win_height_;
     const Uint32 win_flags_;
     float delta_time_;
+    float scale_;
+    Point camera_position_;
 
 public:
     Window();

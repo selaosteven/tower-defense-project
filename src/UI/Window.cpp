@@ -37,7 +37,7 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0}, scale_{1}, camera_position_{0,0} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
     SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
@@ -130,11 +130,11 @@ void UI::Window::loop(){
     {        
         SDL_SetRenderDrawColor(renderer_,0,0,0,255);
         SDL_RenderClear(renderer_);
-        delta_time_ = ticks_ - SDL_GetTicks64();
+        delta_time_ = (SDL_GetTicks64() - ticks_) / 1000.0f;
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
         if(errInputs == STOP) break;
-        for(auto s : sprites_) s->draw(renderer_);
+        for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         SDL_RenderPresent(renderer_);
     }
     return;
@@ -145,7 +145,7 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
         sprites_.push_front(sprite);
     } else {
         for(auto it = sprites_.begin(); it != sprites_.end(); ++it){
-            if((*it)->position_[2] > sprite->position_[2]) {
+            if((*it)->zindex > sprite->zindex) {
                 sprites_.insert(it, sprite);
                 return;
             }
