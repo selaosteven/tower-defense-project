@@ -13,7 +13,9 @@ int main(int argc, char *argv[]){
 
     Session s1{filename};
     s1.mainSession();
-    
+    while(UI::Window::isThereAnInstance()){
+        
+    }
 
     return 0;
 }
