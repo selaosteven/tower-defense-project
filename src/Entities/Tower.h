@@ -1,12 +1,17 @@
 #ifndef TOWER_H
 #define TOWER_H
 
-#include "Projectile.h"
 #include <string>
 // #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
+#include "Entities/Projectile.h"
+
+
+class Augment;
+class Enemy;
 
 class Tower {
 private:
@@ -20,8 +25,23 @@ private:
     int id_; 
     static int compteur_;
 
+protected:
+    std::vector<Augment*> augments_;
+
 public:
     Tower(float range, float damage, float as, float rs, Projectile proj, std::string type); // Constructeur
+
+// Core methods
+
+private:
+    void do_rotate(Enemy& target);
+    void do_shoot(Enemy& target);
+public:
+    void rotate(Enemy& target);
+    void shoot(Enemy& target);
+
+// Inline getter
+public:
     inline float getRange() const {return range_;} // Getter Range
     inline float getDamage() const {return damage_;} // Getter Damage
     inline float getAs() const {return as_;} // Getter Attack Speed
