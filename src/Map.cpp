@@ -11,7 +11,8 @@ Map::Map(std::string name_map){
     { // Bloc de portée scope
         std::ifstream file(name_map);
         std::string line;
-        int x = 0 ;
+        float x = 0 ;
+        std::list<Point> inter_path;
         std::map<char, Case> mapcharcase{
             {'T', Case::Tower},
             {'D', Case::Start},
@@ -20,19 +21,57 @@ Map::Map(std::string name_map){
             {'#', Case::Wall},
             {'C', Case::Path}
         }; 
-        while (std::getline(file, line)) {
 
+        Point pD{0,0};
+        Point pA{0,0};
+        while (std::getline(file, line)) {
+            float y = 0;
             // On ajoute une nouvelle ligne vide
             map_.push_back(std::vector<Case>{});           
             for (char c : line) {
-                int y = 0;
                 if(c == 'C')
-                    path_.push_back(Point(x,y));
+                    inter_path.push_back(Point(x,y));
+
+                if(c == 'D')
+                    pD = Point{x,y};
+
+                if(c == 'A')
+                    pA = Point{x,y};
+
                 y++;
                 map_.back().push_back(mapcharcase.at(c));
             }
             x++;
         }
+
+        path_.push_back(pD);
+
+        bool found = true;
+
+        while (found) {
+            found = false;
+
+            float ax = path_.back().getX();
+            float ay = path_.back().getY();
+
+            // Lambda qui parcours toute la liste inter_path.
+            inter_path.remove_if([&](const Point& p){
+
+                float bx = p.getX();
+                float by = p.getY();
+
+                
+                if ((abs(ax - bx) == 1 && ay == by) || (abs(ay - by) == 1 && ax == bx)) {
+                    path_.push_back(p);  // ajoute au chemin
+                    found = true;        // on a trouvé un voisin
+                    return true;         // remove_if SUPPRIME ce point
+                }
+
+                return false;            // sinon on le garde
+            });
+        }
+
+        path_.push_back(pA);
 
     } // Les variables locales seront détruit a la fin
 
@@ -66,13 +105,18 @@ void Map::print() const {
 
 }
 
-int Map::getWidth() {
+float Map::getWidth() {
     if (map_.empty())
         return 0;
 
     return map_[0].size();
 }
 
-int Map::getHeight() {
+float Map::getHeight() {
     return map_.size();
 }
+
+std::list<Point> Map::getPath() {
+    return path_;
+}
+

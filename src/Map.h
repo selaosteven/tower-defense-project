@@ -27,8 +27,9 @@ private:
 
 public:
     Map(std::string name_map);
-    int  getWidth();
-    int  getHeight();
+    float  getWidth();
+    float  getHeight();
+    std::list<Point> getPath();
     void print() const;
 
 };
