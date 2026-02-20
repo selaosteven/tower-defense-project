@@ -16,6 +16,16 @@ public:
         return x_ == p.x_ && y_ == p.y_;
     }
     void print() const;
+
+    const Point operator+(const Point& p){
+        return Point{x_+p.x_,y_+p.y_};
+    }
+    
+    const Point& operator+=(const Point& p){
+        x_ += p.x_;        
+        y_ += p.y_;
+        return *this; 
+    }
 };
 
 

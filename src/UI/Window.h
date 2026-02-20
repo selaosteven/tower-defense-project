@@ -3,6 +3,13 @@
 #include <SDL.h>
 #include <mutex>
 #include <string>
+#include <list>
+
+#include "QuadTree/Point.h"
+
+namespace Sprites {
+    class Sprite;
+}
 
 namespace UI
 {
@@ -44,6 +51,7 @@ private:
     SDL_Window * window_;
     SDL_Event * event_;
     Uint64 ticks_;
+    std::list<Sprites::Sprite*> sprites_;
     
 
 protected:
@@ -51,15 +59,20 @@ protected:
     int win_height_;
     const Uint32 win_flags_;
     float delta_time_;
+    float scale_;
+    Point camera_position_;
 
 public:
     Window();
     Window(int width, int height);
     Window(int width, int heightn, Uint32 flags);
+    ~Window();
+
     int Create(void * args);
     werrors inputs();
     void loop();
-    ~Window();
+
+    void addSprite(Sprites::Sprite *sprite);
 
 };
 
