@@ -8,14 +8,7 @@
 #include "Map.h"
 #include "MapEntity.h"
 
-enum class Case {
-    Tower,
-    Wall,
-    Path,
-    Void
-};
-
-class Session {
+class Session : public UI::Window{
 private:
     Map map_; // tower_lst_ , map_ , path_
     MapEntity map_ope_; // lst_ , width_, height_

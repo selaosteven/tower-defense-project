@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "Map.h"
 
@@ -40,7 +41,7 @@ Map::Map(std::string name_map){
 void Map::print() const {
     for(std::vector<Case> v : map_){
         for(Case c : v){
-            switch (c) :
+            switch (c){
                 case Case::Tower :
                     std::cout << "Tower\n" << std::endl;
                     break;
@@ -59,24 +60,19 @@ void Map::print() const {
                 case Case::Wall :
                     std::cout << "Wall\n" << std::endl;
                     break;
-
+            }
         }
     }
 
 }
 
-void Map::addTower() const {
+int Map::getWidth() {
+    if (map_.empty())
+        return 0;
 
-}
-
-void Map::addEnemy() const {
-    
-}
-
-int Map::getWidth(){
     return map_[0].size();
 }
 
-int Map::getHeight(){
+int Map::getHeight() {
     return map_.size();
 }

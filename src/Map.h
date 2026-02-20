@@ -6,7 +6,7 @@
 #include <string>
 #include <list>
 
-#include "Point.h"
+#include "QuadTree/Point.h"
 
 enum class Case {
     Tower,
@@ -25,7 +25,6 @@ private:
 
 public:
     Map(std::string name_map);
-    void addTower() const;
     int  getWidth();
     int  getHeight();
     void print() const;
