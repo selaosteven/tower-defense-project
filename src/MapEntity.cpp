@@ -3,18 +3,15 @@
 
 using namespace std;
 
-MapEntity::MapEntity(vector<Entity> lst,vector<string> map) :
-    lst_{lst}, map_{map} {}
+MapEntity::MapEntity(vector<Entity> lst, float width, float height) :
+    lst_{lst}, width_{width}, height_{height} {}
 
 vector<Entity> MapEntity::allWithinRange(Point center,float range){
     // center => cordonnée de la tour 
     // range => range de la tour
 
-    float width =  map_[0].size(); // Largeur de la map
-    float height = map_.size(); // Hauteur de la map
-
     // Construction de la map QuadTree
-    QuadTree qt_map{Rectangle{width/2,height/2,width,height}};
+    QuadTree qt_map{Rectangle{width_/2,height_/2,width_,height_}};
     for(Entity e : lst_){ // Pour chaque ennemie
         Point p = e.getPosition();
         qt_map.insert(p);
