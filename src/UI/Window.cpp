@@ -37,7 +37,7 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{height}, win_height_{width}, win_flags_{flags}, delta_time_{0}, scale_{1}, camera_position_{0,0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, camera_position_{0,0} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
     SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
@@ -105,8 +105,8 @@ werrors UI::Window::inputs(){
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
-            case SDL_MOUSEBUTTONDOWN:
-            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN: // Clic gauche
+            case SDL_MOUSEBUTTONUP: // Clic droit
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
             case SDL_MOUSEMOTION:

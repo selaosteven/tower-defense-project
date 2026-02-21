@@ -19,6 +19,7 @@ public:
     Session(std::string name_map);
     void moneySetter(int new_money);
     void hpSetter(int new_hp);
+    void update();
     void mainSession();
 
 };
