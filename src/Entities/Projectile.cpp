@@ -2,6 +2,7 @@
 #include "Entities/Projectile.h"
 #include "Entities/Enemy.h"
 #include "Entities/Augment.h"
+#include "Entities/Target.h"
 #include "Sprites/PrimitiveForm.h"
 
 
@@ -23,10 +24,18 @@ void Projectile::hit(std::vector<Enemy*> enemies){
     }
 }
 
-Projectile::Projectile(Point position, double size, double ps) : Entity{position}, size_{size}, ps_{ps}, augments_{nullptr} {
+Projectile::Projectile(Point position, float size, float ps) : Entity{position}, size_{size}, ps_{ps}, augments_{nullptr} {
     sprites_ = Projectile::createSprites({25,25,25,255});
 }
-Projectile::Projectile(double size, double ps) : Projectile{{0,0}, size, ps} {}
+Projectile::Projectile(float size, float ps) : Projectile{{0,0}, size, ps} {}
+
+
+void Projectile::live(float deltaTime) {
+    if (!target_) return; // Sécurité si la cible n'est pas encore définie
+    Point direction = position_ ^ target_->getPosition();
+    Point velocity = (direction | (getVelocity() * deltaTime));
+    position_ += velocity;
+}
 
 
 // Static methods

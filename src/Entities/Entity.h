@@ -24,7 +24,7 @@ public:
     inline std::vector<Sprites::Sprite*>& getSprites() {return sprites_;}
 
     virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
-    void live(float deltaTime);
+    virtual void live(float deltaTime);
     
 };
 

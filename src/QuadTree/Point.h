@@ -2,6 +2,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <algorithm>
 
 class Point {
 private:
@@ -19,6 +20,19 @@ public:
 
     const Point operator+(const Point& p){
         return Point{x_+p.x_,y_+p.y_};
+    }
+    const Point operator-(const Point& p){
+        return Point{x_-p.x_, y_-p.y_};
+    }
+
+    const Point operator^(const Point& p){
+        return Point{p.x_-x_, p.y_-y_};
+    }
+
+    const Point operator|(const double max){
+        float nx = x_ < -max ? -max : (x_ > max ? max : x_);
+        float ny = y_ < -max ? -max : (y_ > max ? max : y_);
+        return {nx, ny};
     }
     
     const Point& operator+=(const Point& p){

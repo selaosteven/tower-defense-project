@@ -21,14 +21,7 @@ Entity::~Entity() {
 }
 
 void Entity::live(float deltaTime){
-    const float rx = 10.0f;
-    const float ry = 5.0f;
-    const float va = 2 * pi / 16;
-    orientation_ += va * deltaTime;
-    Point velocity{rx*std::cos(orientation_), ry*std::sin(orientation_)};
-    for(auto s : sprites_){
-        if(s) s->move(velocity);
-    }
+    
 }
 
 void Entity::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
