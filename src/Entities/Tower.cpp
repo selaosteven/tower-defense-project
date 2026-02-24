@@ -16,7 +16,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     type_{type},
     id_{compteur_++} 
     {
-        sprites_ = Tower::createTowerSprites();
+        sprites_ = Tower::createSprites();
     }
 
 Tower::Tower(Point position, Tower &t) : Entity{position},
@@ -28,7 +28,7 @@ proj_{t.proj_},
 type_{t.type_},
 id_{compteur_++} 
   {
-    sprites_ = Tower::createTowerSprites();
+    sprites_ = Tower::createSprites();
   }
 
 
@@ -68,10 +68,11 @@ void Tower::do_rotate(Enemy& target) {
 
 // Static methods 
 
-std::vector<Sprites::Sprite*> Tower::createTowerSprites(SDL_Color color) {
+std::vector<Sprites::Sprite*> Tower::createSprites(SDL_Color color) {
     // base : 
     Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f,0.0f,1.0f}, 20);
     Sprites::PrimitiveForm * socle = Sprites::circle({0.0f,0.0f,2.0f}, 10, 30);
     Sprites::PrimitiveForm * canon = Sprites::rectangle({0.0f,0.0f,3.0f}, 5, 15);
+
     return {base, socle, canon};
 }

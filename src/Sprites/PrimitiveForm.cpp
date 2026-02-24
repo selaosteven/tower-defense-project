@@ -36,12 +36,16 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     static const float rotVelocity = (2 * pi) / 4; // 360 degrée sur 4 seconde
     rotation_ += rotVelocity*deltaTime;
     std::vector<SDL_Vertex> transformed_vertices = vertices_;
-    offset += position_;
-    float cx = static_cast<float>(offset.getX());
-    float cy = static_cast<float>(offset.getY());
-    (void)rot;
-    const float cosA = std::cos(rotation_);
-    const float sinA = std::sin(rotation_);
+
+    float cosRot = std::cos(rot);
+    float sinRot = std::sin(rot);
+    float px = position_.getX() * scale;
+    float py = position_.getY() * scale;
+    float cx = offset.getX() + (px * cosRot - py * sinRot);
+    float cy = offset.getY() + (px * sinRot + py * cosRot);
+
+    const float cosA = std::cos(rotation_ + rot);
+    const float sinA = std::sin(rotation_ + rot);
     for(auto& v : transformed_vertices){
         float sx = v.position.x * scale;
         float sy = v.position.y * scale;

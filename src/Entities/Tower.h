@@ -19,7 +19,7 @@ class Tower : public Entity {
 protected:
     static int compteur_;
 
-    std::vector<Sprites::Sprite*> createTowerSprites(SDL_Color color = {125,255,200,255});
+    std::vector<Sprites::Sprite*> createSprites(SDL_Color color = {125,255,200,255});
 
 private:
     // Stats de chaque tours
