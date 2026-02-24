@@ -7,9 +7,9 @@ class Augment;
 
 class Projectile {
 protected:
-    double size; // Dégat de Zone ou fixe
-    double ps; // Projectile Speed
-    std::vector<Augment*>& augments_;
+    double size_; // Dégat de Zone ou fixe
+    double ps_; // Projectile Speed
+    std::vector<Augment*>* augments_;
 public:
     Projectile(double size, double ps); // Constructeur
 

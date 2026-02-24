@@ -30,3 +30,10 @@ void Entity::live(float deltaTime){
         if(s) s->move(velocity);
     }
 }
+
+void Entity::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
+    offset += position_;
+    for(auto s : sprites_){
+        if(s) s->draw(win, deltaTime, offset, scale, rot + orientation_);
+    }
+}

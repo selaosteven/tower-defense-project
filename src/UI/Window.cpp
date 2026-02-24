@@ -6,6 +6,7 @@
 
 #include "Window.h"
 #include "Sprites/Sprite.h"
+#include "Entities/Entity.h"
 
 using namespace UI;
 
@@ -134,6 +135,7 @@ void UI::Window::loop(){
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
         if(errInputs == STOP) break;
+        for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         SDL_RenderPresent(renderer_);
     }
@@ -152,6 +154,14 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
         }
         sprites_.push_back(sprite);        
     }
+}
+
+void UI::Window::addEntity(Entity *entity){
+    if(entities_.empty()) {
+        entities_.push_front(entity);
+    } else
+        entities_.push_back(entity);        
+    
 }
 
 // ------------------------------------------------

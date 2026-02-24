@@ -8,28 +8,35 @@
 #include <vector>
 
 #include "Entities/Projectile.h"
-
+#include "Entities/Entity.h"
+#include "Sprites/Sprite.h"
 
 class Augment;
 class Enemy;
 
-class Tower {
+class Tower : public Entity {
+// static
+protected:
+    static int compteur_;
+
+    std::vector<Sprites::Sprite*> createTowerSprites(SDL_Color color = {125,255,200,255});
+
 private:
     // Stats de chaque tours
     float range_; // Range
     float damage_; // Damage
     float as_; // Attack Speed 
     float rs_; // Rotation Speed
-    Projectile proj_; // Classe Projectile 
+    Projectile& proj_; // Classe Projectile 
     std::string type_; // Type de la tour
     int id_; 
-    static int compteur_;
 
 protected:
     std::vector<Augment*> augments_;
 
 public:
-    Tower(float range, float damage, float as, float rs, Projectile proj, std::string type); // Constructeur
+    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type); // Constructeur
+    Tower(Point position, Tower &t);
 
 // Core methods
 
