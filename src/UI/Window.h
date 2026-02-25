@@ -10,6 +10,7 @@
 namespace Sprites {
     class Sprite;
 }
+class Entity;
 
 namespace UI
 {
@@ -52,7 +53,7 @@ private:
     SDL_Event * event_;
     Uint64 ticks_;
     std::list<Sprites::Sprite*> sprites_;
-    
+    std::list<Entity*> entities_;
 
 protected:
     int win_width_;
@@ -73,6 +74,7 @@ public:
     void loop();
 
     void addSprite(Sprites::Sprite *sprite);
+    void addEntity(Entity *entity);
 
     inline int getWinWidth() { return win_width_;}
     inline int getWinHeight() { return win_height_;}

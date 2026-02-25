@@ -1,12 +1,5 @@
-#include "Enemy.h"
 #include <iostream>
+#include "Entities/Enemy.h"
 
-// class Enemy{
-// private:
-//     // Stats de chaque ennemies
-//     double lp; // Life Point
-//     double speed; // Speed
-//     double resistance; // Resistance
-//     bool fly; // Fly
-   
-// }
+Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
+Entity{{0,0}}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly} {}

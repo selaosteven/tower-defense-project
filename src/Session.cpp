@@ -53,19 +53,19 @@ void Session::mainSession() {
             // Il ne sera PAS détruit à la sortie du switch ou de la boucle.
             switch (bloc) {
                 case Case::Tower:
-                    s = new Sprites::PrimitiveForm(Sprites::circle({px, py, cellSize/2}, cellSize/2));
+                    s = Sprites::circle({px, py, cellSize/2}, cellSize/2);
                     break;
                 case Case::Path:
-                    s = new Sprites::PrimitiveForm(Sprites::rectangle({px, py, cellSize/2}, cellSize/2));
+                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
                     break;
                 case Case::Wall:
-                    s = new Sprites::PrimitiveForm(Sprites::rectangle({px, py, cellSize/2}, cellSize/2));
+                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
                     break;
                 case Case::Start:
-                    s = new Sprites::PrimitiveForm(Sprites::triangle({px, py, cellSize/2}, cellSize/2));
+                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
                     break;
                 case Case::End:
-                    s = new Sprites::PrimitiveForm(Sprites::triangle({px, py, cellSize/2}, cellSize/2));
+                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
                     break;
                 
                 default:
@@ -107,7 +107,7 @@ void Session::mainSession() {
         
         if (dt >= 1000) { // toutes les 100 ms
         
-            s = new Sprites::PrimitiveForm(Sprites::triangle({px, py, cellSize/2}, cellSize/2));
+            s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
             mapSprites.push_back(s);
             addSprite(s); 
 

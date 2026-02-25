@@ -30,17 +30,22 @@ class PrimitiveForm : public Sprite
     ~PrimitiveForm();
 
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
-    friend PrimitiveForm triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation);
-    friend PrimitiveForm circle(const std::array<float, 3> &pos,const float size,const int points);
-    friend PrimitiveForm rectangle(const std::array<float, 3> &pos, float side);
-    friend PrimitiveForm rectangle(const std::array<float, 3> &pos, float width, float height);
+    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color);
+    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height);
+    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
+    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side);
+    PrimitiveForm * circle(const std::array<float, 3> &pos, float size, int points);
+
+    
 
 };
 
-PrimitiveForm rectangle(const std::array<float, 3> &pos, float width, float height);
-PrimitiveForm rectangle(const std::array<float, 3> &pos, float side);
-PrimitiveForm circle(const std::array<float, 3> &pos, float size, int points = 20);
-PrimitiveForm triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color);
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height);
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side);
+PrimitiveForm * circle(const std::array<float, 3> &pos, float size, int points = 20);
+PrimitiveForm * triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
 
 }
 
