@@ -7,13 +7,15 @@
 #include <iostream>
 #include <array>
 #include "Entities/Entity.h"
+#include "Map.h"
 
 class MapEntity {
 private:
     std::vector<Entity> lst_; // Liste des entités
-    std::vector<std::string> map_; // la Map Physique
+    float width_;
+    float height_;
 public:
-    MapEntity(std::vector<Entity> lst,std::vector<std::string> map);
+    MapEntity(std::vector<Entity> lst,float width, float height);
     std::vector<Entity> allWithinRange(Point center,float range);
 };
 

@@ -10,7 +10,7 @@ namespace Sprites {
 
 PrimitiveForm::PrimitiveForm() : Sprite{} {}
 
-PrimitiveForm::PrimitiveForm(const std::array<int, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color) :
+PrimitiveForm::PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color) :
 Sprite{pos}, vertices_{}
 {
 
@@ -18,12 +18,12 @@ Sprite{pos}, vertices_{}
         vertices_.push_back({fp, color,{0,0}});
     }
 }
-PrimitiveForm::PrimitiveForm(const std::array<int, 3> &pos, std::initializer_list<SDL_Vertex> points) :
+PrimitiveForm::PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_Vertex> points) :
 Sprite{pos}, vertices_{points}
 {
 }
 
-PrimitiveForm::PrimitiveForm(const std::array<int, 3> &pos, std::vector<SDL_Vertex> points) :
+PrimitiveForm::PrimitiveForm(const std::array<float, 3> &pos, std::vector<SDL_Vertex> points) :
 Sprite{pos}, vertices_{std::move(points)}
 {
 }
@@ -54,13 +54,10 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
 }
 
 
-PrimitiveForm triangle(const std::array<int, 3> &pos, float size, SDL_Color color, Orientation orientation) {
+PrimitiveForm triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
     
-    const float x = static_cast<float>(pos[0]);
-    const float y = static_cast<float>(pos[1]);
-
     static const float pi = std::acos(-1.0f);
 
     static std::map<Orientation, const float> orientationToAngle = {
@@ -89,7 +86,7 @@ PrimitiveForm triangle(const std::array<int, 3> &pos, float size, SDL_Color colo
     return t;
 }
 
-PrimitiveForm circle(const std::array<int, 3> &pos, float size,const int points){
+PrimitiveForm circle(const std::array<float, 3> &pos, float size,const int points){
     static const float pi = std::acos(-1.0f);
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
@@ -119,7 +116,7 @@ PrimitiveForm circle(const std::array<int, 3> &pos, float size,const int points)
     return c;
 }
 
-PrimitiveForm rectangle(const std::array<int, 3> &pos, float width, float height) {
+PrimitiveForm rectangle(const std::array<float, 3> &pos, float width, float height) {
     const float unit = Sprite::unit_size_pixels;
     if (width <= 0) width = unit;
     if (height <= 0) height = unit;
@@ -134,7 +131,7 @@ PrimitiveForm rectangle(const std::array<int, 3> &pos, float width, float height
     return PrimitiveForm{pos, {A, B, C, A, C, D}};
 }
 
-PrimitiveForm rectangle(const std::array<int, 3> &pos, float side) {
+PrimitiveForm rectangle(const std::array<float, 3> &pos, float side) {
     return rectangle(pos, side, side);
 }
 

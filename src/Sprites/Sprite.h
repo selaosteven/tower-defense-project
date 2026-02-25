@@ -17,15 +17,15 @@ protected:
 
 protected:
     Point position_;
-    int zindex;
+    float zindex;
     float scale_;
     float rotation_;
 
 public:
     Sprite();
-    Sprite(const std::array<int, 3> &position, float scale, float rotation);
-    Sprite(const std::array<int, 3> &position);
-    Sprite(int x, int y, int zIndex);
+    Sprite(const std::array<float, 3> &position, float scale, float rotation);
+    Sprite(const std::array<float, 3> &position);
+    Sprite(float x, float y, float zIndex);
     virtual ~Sprite();
 
     virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
