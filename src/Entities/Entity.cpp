@@ -34,6 +34,7 @@ void Entity::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale,
 
 void Entity::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
     offset += position_;
+    orientation_+= deltaTime * pi*2 / 4;
     for(auto s : sprites_){
         if(s) s->draw(win, deltaTime, offset, scale, rot + orientation_);
     }
