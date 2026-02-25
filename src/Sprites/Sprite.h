@@ -12,7 +12,7 @@ namespace Sprites
 class Sprite
 {
 
-protected:
+public:
     static constexpr float unit_size_pixels = 10;
 
 protected:

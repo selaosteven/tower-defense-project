@@ -1,16 +1,18 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-class Enemy{
+#include "Entities/Entity.h"
+
+class Enemy : public Entity {
 protected:
     // Stats de chaque ennemies
-    double lp_; // Life Point
-    double speed_; // Speed
-    double resistance_; // Resistance
+    float lp_; // Life Point
+    float speed_; // Speed
+    float resistance_; // Resistance
     bool fly_; // Fly
    
 public:
-    Enemy(double lp, double speed, double resistance, bool fly); // constructeur
+    Enemy(float lp, float speed, float resistance, bool fly); // constructeur
 };
 
 #endif

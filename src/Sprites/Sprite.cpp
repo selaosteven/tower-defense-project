@@ -23,7 +23,7 @@ Sprite::~Sprite(){}
 void Sprites::Sprite::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
     SDL_SetRenderDrawColor(win,100,255,55,255);
     offset += position_;
-    SDL_Rect objet = {offset.getX(),offset.getY(),21,21};
+    SDL_Rect objet = {(int)offset.getX(),(int)offset.getY(),21,21};
     SDL_RenderFillRect(win,&objet);
 }
 

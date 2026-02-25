@@ -36,12 +36,16 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     static const float rotVelocity = (2 * pi) / 4; // 360 degrée sur 4 seconde
     rotation_ += rotVelocity*deltaTime;
     std::vector<SDL_Vertex> transformed_vertices = vertices_;
-    offset += position_;
-    float cx = static_cast<float>(offset.getX());
-    float cy = static_cast<float>(offset.getY());
-    (void)rot;
-    const float cosA = std::cos(rotation_);
-    const float sinA = std::sin(rotation_);
+
+    float cosRot = std::cos(rot);
+    float sinRot = std::sin(rot);
+    float px = position_.getX() * scale;
+    float py = position_.getY() * scale;
+    float cx = offset.getX() + (px * cosRot - py * sinRot);
+    float cy = offset.getY() + (px * sinRot + py * cosRot);
+
+    const float cosA = std::cos(rotation_ + rot);
+    const float sinA = std::sin(rotation_ + rot);
     for(auto& v : transformed_vertices){
         float sx = v.position.x * scale;
         float sy = v.position.y * scale;
@@ -54,13 +58,10 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
 }
 
 
-PrimitiveForm triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
+PrimitiveForm * triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
     
-    const float x = static_cast<float>(pos[0]);
-    const float y = static_cast<float>(pos[1]);
-
     static const float pi = std::acos(-1.0f);
 
     static std::map<Orientation, const float> orientationToAngle = {
@@ -84,12 +85,12 @@ PrimitiveForm triangle(const std::array<float, 3> &pos, float size, SDL_Color co
     SDL_Vertex B = get_vertex(2.0f * pi / 3.0f);
     SDL_Vertex C = get_vertex(4.0f * pi / 3.0f);
 
-    PrimitiveForm t{pos, {A, B, C}};
-    t.setScale(size / unit);
+    PrimitiveForm *t = new PrimitiveForm{pos, {A, B, C}};
+    t->setScale(size / unit);
     return t;
 }
 
-PrimitiveForm circle(const std::array<float, 3> &pos, float size,const int points){
+PrimitiveForm * circle(const std::array<float, 3> &pos, float size,const int points){
     static const float pi = std::acos(-1.0f);
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
@@ -115,26 +116,27 @@ PrimitiveForm circle(const std::array<float, 3> &pos, float size,const int point
         vertices.push_back(get_vertex(i, bangle));
         vertices.push_back(get_vertex(i + 1, bangle));
     }
-    PrimitiveForm c{pos,vertices};
+    PrimitiveForm * c = new PrimitiveForm{pos,vertices};
     return c;
 }
 
-PrimitiveForm rectangle(const std::array<float, 3> &pos, float width, float height) {
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color) {
     const float unit = Sprite::unit_size_pixels;
     if (width <= 0) width = unit;
     if (height <= 0) height = unit;
     
-    SDL_Color color {255, 70, 25, 255};
-
     SDL_Vertex A {{-width/2.0f, height/2.0f}, color, {0, 0}};
     SDL_Vertex B {{width/2.0f, height/2.0f}, color, {0, 0}};
     SDL_Vertex C {{width/2.0f, -height/2.0f}, color, {0, 0}};
     SDL_Vertex D {{-width/2.0f, -height/2.0f}, color, {0, 0}};
 
-    return PrimitiveForm{pos, {A, B, C, A, C, D}};
+    return new PrimitiveForm{pos, {A, B, C, A, C, D}};
+}
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height) {
+    return rectangle(pos, width, height, {125,255,30,255});
 }
 
-PrimitiveForm rectangle(const std::array<float, 3> &pos, float side) {
+PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side) {
     return rectangle(pos, side, side);
 }
 

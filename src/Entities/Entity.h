@@ -23,8 +23,8 @@ public:
     inline float getOrientation() const {return orientation_;}
     inline std::vector<Sprites::Sprite*>& getSprites() {return sprites_;}
 
-    void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
-    void live(float deltaTime);
+    virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
+    virtual void live(float deltaTime);
     
 };
 
