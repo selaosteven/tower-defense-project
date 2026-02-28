@@ -1,7 +1,7 @@
 #include "Session.h"
 
 #include "Sprites/PrimitiveForm.h"
-
+#include "Entities/Enemy.h"
 
 Session::Session(std::string name_map): 
     UI::Window{},
@@ -85,31 +85,39 @@ void Session::mainSession() {
      // Spawn des enemies
     std::list<Point> path = map_.getPath();
 
-    float x = path.front().getX(); // Cordonnée x du départ
-    float y = path.front().getY(); // Cordonnée y du départ
+    for(auto& p : path) {
+        float px = offsetX + p.getY() * cellSize + cellSize / 2.0f;
+        float py = offsetY + p.getX() * cellSize + cellSize / 2.0f;
+        p = Point{px, py};
+    }
 
-    float baseX = offsetX + x * cellSize + cellSize / 2.0f;
-    float baseY = offsetY + y * cellSize + cellSize / 2.0f;
+    float baseX = path.front().getX();
+    float baseY = path.front().getY();
 
 
     using clock = std::chrono::steady_clock;
     auto lastTime = clock::now();
     bool running = true;
     Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
-    while(running) {
-        float offsetSpawnX = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
-        float offsetSpawnY = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
 
-        float px = offsetSpawnX + baseX;
-        float py = offsetSpawnY + baseY;
+    Enemy ref{0.2,0.2,0.2,true, cellSize};
+    std::vector<Enemy*> el = {};
+    Point spawningDirection = ((*path.begin())^(*(++path.begin()))) * (1.0f/cellSize);
+    while(running) {
+        float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
+        Point spawnOffset = spawningDirection*offsetSpawn;
+        Point spawnPosition{baseX,baseY};
+        spawnPosition += spawnOffset;
         auto now = clock::now();
         auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime).count();
-        
-        if (dt >= 1000) { // toutes les 100 ms
-        
-            s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
-            mapSprites.push_back(s);
-            addSprite(s); 
+        for(auto e : el) e->live(delta_time_);
+        if (dt >= 2000) { // toutes les 100 ms
+            el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin()});
+            addEntity(el.back());
+            std::cout << el.size() << " -- " << std::endl;
+            // s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
+            // mapSprites.push_back(s);
+            // addSprite(s); 
 
             lastTime = now;
         }

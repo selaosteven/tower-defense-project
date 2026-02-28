@@ -40,6 +40,16 @@ public:
         y_ += p.y_;
         return *this; 
     }
+
+    Point operator*(float f) const {
+        return Point(x_ * f, y_ * f);
+    }
+
+    friend std::ostream& operator<<(std::ostream &out, const Point &c)
+    {
+        out << "(" << c.x_ << ',' << c.y_ << ")";
+        return out;
+    }
 };
 
 

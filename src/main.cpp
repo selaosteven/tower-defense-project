@@ -8,14 +8,9 @@
 
 // Choisira si on lance la session ou le mode editeur
 int main(int argc, char *argv[]){
-
-    std::string filename = argv[1]; // Pour recuperer le nom de la map en .txt
-
-    Session s1{filename};
-    s1.mainSession();
-    while(UI::Window::isThereAnInstance()){
-        
+    if(argc > 1){
+        Session test{argv[1]};
+        test.mainSession();
     }
-
     return 0;
 }
