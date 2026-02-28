@@ -7,14 +7,18 @@
 #include <iostream>
 #include <array>
 #include "Entities/Entity.h"
+#include "Map.h"
 
 class MapEntity {
 private:
-    std::vector<Entity> lst_; // Liste des entités
-    std::vector<std::string> map_; // la Map Physique
+    float width_;
+    float height_;
+    QuadTree qdtree_;
 public:
-    MapEntity(std::vector<Entity> lst,std::vector<std::string> map);
-    std::vector<Entity> allWithinRange(Point center,float range);
+    MapEntity(float width, float height);
+    std::vector<Enemy> allWithinRange(Point center,float range);
+    void addEnemy();
+    void removeEnemy();
 };
 
 #endif

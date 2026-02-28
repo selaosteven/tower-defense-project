@@ -42,9 +42,10 @@ void QuadTree::subDivide(){
 
 }
 
-void QuadTree::insert(Point point){
+void QuadTree::insert(Enemy e){
 
-    if(!boundary_.contains(point)){ // les cordoonnées du points n'appartient pas au rectangle
+    Point point = e.getPosition();
+    if(!boundary_.contains(p)){ // les cordoonnées du points n'appartient pas au rectangle
         return;
     }
 
@@ -71,8 +72,10 @@ void QuadTree::insert(Point point){
     
 }
 
-std::vector<Point> QuadTree::query(Point center, float range){
+std::vector<Point> QuadTree::query(Tower t){
 
+    Point center = t.getPosition();
+    float range = t.getRange();
     std::vector<Point> res;
     if(!boundary_.checkOverlap(center,range)){ // Pas d'intersection entre le cercle et le rectangle
         return res; // liste vide 
@@ -101,10 +104,11 @@ std::vector<Point> QuadTree::query(Point center, float range){
 
     }
 
-    // for(Point p : res){
-    //     std::cout << "X : " << p.getX() << " Y : " << p.getY() << std::endl;
-    // }
     return res;
+}
+
+void QuadTree::remove(Enemy e){
+    
 }
 
 void QuadTree::print(int level) const {

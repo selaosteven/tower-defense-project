@@ -25,9 +25,10 @@ public:
     QuadTree(Rectangle boundary);
 
     void subDivide();
-    void insert(Point point);
+    void insert(Enemy e);
+    void remove(Enemy e);
     void print(int level = 0) const;
-    std::vector<Point> query(Point center, float range);
+    std::vector<Point> query(Tower t);
 };
 
 #endif

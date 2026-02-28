@@ -1,0 +1,423 @@
+enemy regular {
+    hp : 50
+    speed : 10
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+enemy fast {
+    hp : 25
+    speed : 
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+enemy strong {
+    hp : 100
+    speed :
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+enemy heli {
+    hp : 50
+    speed :
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+enemy jet {
+    hp : 25
+    speed :
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+enemy armored {
+    hp :
+    speed :
+    resistance :
+    sprite : 
+    modifiers: {
+        slowResist :
+        fireResist :
+    }
+    flying :
+}
+
+tower basic {
+    upgrade: {
+        0: {
+            range: 2
+            damage: 8.5
+            attackSpeed: 1.25
+            rotationSpeed: 90
+            projectileSpeed: 2.8
+            cost: 20
+        }
+        1: {
+            range: 2.2
+            damage: 10.9
+            attackSpeed: 1.4
+            projectileSpeed: 3.0
+            cost: 27
+        }
+        2: {
+            range: 2.3
+            damage: 14.1
+            rotationSpeed: 110
+            projectileSpeed: 3.2
+            cost: 44
+        }
+        3: {
+            damage: 18
+            attackSpeed: 1.55
+            rotationSpeed: 120
+            projectileSpeed: 3.3
+            cost: 64
+        }
+        4: {
+            range: 2.5
+            damage: 23.8
+            projectileSpeed: 3.5
+            cost: 101
+        }
+        5: {
+            damage: 32.9
+            attackSpeed: 1.7
+            rotationSpeed: 135
+            cost: 176
+        }
+        6: {
+            range: 2.6
+            damage: 41.6
+            projectileSpeed: 3.7
+            rotationSpeed: 145
+            cost: 320
+        }
+        7: {
+            range: 2.7
+            damage: 57.5
+            attackSpeed: 1.95
+            projectileSpeed: 3.8
+            cost: 580
+        }
+        8: {
+            damage: 77.8
+            attackSpeed: 2.05
+            rotationSpeed: 170
+            projectileSpeed: 3.9
+            cost: 1030
+        }
+        9: {
+            range: 2.9
+            damage: 102.6
+            rotationSpeed: 180
+            projectileSpeed: 4.0
+            cost: 1770
+        }
+        10: {
+            range: 3
+            damage: 131
+            attackSpeed: 2.3
+            projectileSpeed: 4.2
+            cost: null
+        }
+    }
+}
+
+tower sniper {
+    upgrade: {
+        0: {
+            range: 4.5
+            damage: 61.8
+            attackSpeed: 0.266
+            rotationSpeed: 45
+            aimSpeed: 90
+            cost: 43
+        }
+        1: {
+            range: 4.9
+            damage: 86
+            attackSpeed: 0.304
+            rotationSpeed: 49.5
+            aimSpeed: 100
+            cost: 75
+        }
+        2: {
+            range: 5.3
+            damage: 111
+            attackSpeed: 0.361
+            rotationSpeed: 54
+            aimSpeed: 105
+            cost: 117
+        }
+        3: {
+            damage: 171
+            rotationSpeed: 57.6
+            aimSpeed: 110
+            cost: 190
+        }
+        4: {
+            range: 5.7
+            damage: 241
+            attackSpeed: 0.418
+            rotationSpeed: 65.7
+            aimSpeed: 120
+            cost: 420
+        }
+        5: {
+            range: 6.1
+            damage: 336
+            attackSpeed: 0.475
+            aimSpeed: 135
+            cost: 610
+        }
+        6: {
+            damage: 416
+            attackSpeed: 0.503
+            rotationSpeed: 72.9
+            cost: 875
+        }
+        7: {
+            range: 6.5
+            damage: 578
+            rotationSpeed: 77.4
+            aimSpeed: 150
+            cost: 1330
+        }
+        8: {
+            range: 6.9
+            damage: 753
+            attackSpeed: 0.55
+            aimSpeed: 170
+            cost: 2140
+        }
+        9: {
+            range: 7.3
+            damage: 942
+            attackSpeed: 0.59
+            aimSpeed: 180
+            cost: 3630
+        }
+        10: {
+            range: 7.8
+            damage: 1234
+            attackSpeed: 0.61
+            rotationSpeed: 81
+            aimSpeed: 200
+            cost: null
+        }
+    }
+}
+
+tower cannon {
+    upgrade: {
+        0: {
+            range: 1.7
+            damage: 16.3
+            attackSpeed: 0.6
+            rotationSpeed: 40
+            projectileSpeed: 2.2
+            cost: 42
+        }
+        1: {
+            range: 1.9
+            damage: 26.6
+            attackSpeed: 0.7
+            rotationSpeed: 50
+            projectileSpeed: 2.4
+            cost: 63
+        }
+        2: {
+            range: 2
+            damage: 35.5
+            rotationSpeed: 60
+            projectileSpeed: 2.6
+            cost: 115
+        }
+        3: {
+            range: 2.15
+            damage: 47
+            attackSpeed: 0.85
+            rotationSpeed: 70
+            cost: 210
+        }
+        4: {
+            damage: 62.8
+            attackSpeed: 1
+            rotationSpeed: 80
+            projectileSpeed: 2.7
+            cost: 300
+        }
+        5: {
+            range: 2.3
+            damage: 81
+            attackSpeed: 1.1
+            projectileSpeed: 2.9
+            cost: 420
+        }
+        6: {
+            range: 2.45
+            damage: 112
+            rotationSpeed: 90
+            projectileSpeed: 3.0
+            cost: 850
+        }
+        7: {
+            range: 2.6
+            damage: 147
+            attackSpeed: 1.25
+            rotationSpeed: 100
+            projectileSpeed: 3.1
+            cost: 1200
+        }
+        8: {
+            range: 2.9
+            damage: 155
+            attackSpeed: 1.35
+            projectileSpeed: 3.2
+            cost: 1950
+        }
+        9: {
+            range: 3.2
+            damage: 204
+            rotationSpeed: 110
+            cost: 3000
+        }
+        10: {
+            damage: 246
+            attackSpeed: 1.4
+            rotationSpeed: 120
+            cost: null
+        }
+    }
+}
+
+tower freezing {
+    range : 
+    damage :
+    attackSpeed : 
+    rotationSpeed :
+    projectileType:
+    cost :
+    costSell :
+}
+
+tower antiair {
+    upgrade: {
+        0: {
+            range: 3.5
+            damage: 4.6
+            attackSpeed: 1.62
+            rotationSpeed: 75
+            projectileSpeed: 2.2
+            cost: 20
+        }
+        1: {
+            range: 3.7
+            damage: 7.2
+            attackSpeed: 1.71
+            rotationSpeed: 80
+            projectileSpeed: 2.3
+            cost: 30
+        }
+        2: {
+            range: 3.95
+            damage: 11.2
+            attackSpeed: 1.8
+            rotationSpeed: 85
+            projectileSpeed: 2.4
+            cost: 45
+        }
+        3: {
+            range: 4.2
+            damage: 17.6
+            attackSpeed: 1.89
+            rotationSpeed: 90
+            projectileSpeed: 2.55
+            cost: 70
+        }
+        4: {
+            range: 4.5
+            damage: 27.1
+            attackSpeed: 1.98
+            rotationSpeed: 95
+            projectileSpeed: 2.7
+            cost: 125
+        }
+        5: {
+            range: 4.8
+            damage: 41.2
+            attackSpeed: 2.07
+            rotationSpeed: 100
+            projectileSpeed: 2.9
+            cost: 175
+        }
+        6: {
+            range: 5.05
+            damage: 71.5
+            attackSpeed: 2.16
+            rotationSpeed: 105
+            cost: 290
+        }
+        7: {
+            range: 5.3
+            damage: 102
+            attackSpeed: 2.25
+            rotationSpeed: 110
+            projectileSpeed: 3.1
+            cost: 455
+        }
+        8: {
+            range: 5.55
+            damage: 156
+            attackSpeed: 2.34
+            rotationSpeed: 115
+            projectileSpeed: 3.3
+            cost: 780
+        }
+        9: {
+            range: 5.8
+            damage: 235
+            attackSpeed: 2.43
+            rotationSpeed: 120
+            projectileSpeed: 3.6
+            cost: 1340
+        }
+        10: {
+            range: 6
+            damage: 365
+            attackSpeed: 2.52
+            rotationSpeed: 125
+            projectileSpeed: 3.9
+            cost: null
+        }
+    }
+}
+
