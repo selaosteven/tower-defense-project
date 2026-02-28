@@ -11,12 +11,14 @@
 
 class MapEntity {
 private:
-    std::vector<Entity> lst_; // Liste des entités
     float width_;
     float height_;
+    QuadTree qdtree_;
 public:
-    MapEntity(std::vector<Entity> lst,float width, float height);
-    std::vector<Entity> allWithinRange(Point center,float range);
+    MapEntity(float width, float height);
+    std::vector<Enemy> allWithinRange(Point center,float range);
+    void addEnemy();
+    void removeEnemy();
 };
 
 #endif
