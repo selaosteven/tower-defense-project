@@ -6,7 +6,7 @@
 Session::Session(std::string name_map): 
     UI::Window{},
     map_{name_map},
-    map_ope_{std::vector<Entity>{}, map_.getWidth(), map_.getHeight()},
+    map_ope_{map_.getWidth(), map_.getHeight()},
     hp_player_{50},
     round_{0},
     money_{0}
@@ -94,7 +94,6 @@ void Session::mainSession() {
     float baseX = path.front().getX();
     float baseY = path.front().getY();
 
-
     using clock = std::chrono::steady_clock;
     auto lastTime = clock::now();
     bool running = true;
@@ -115,10 +114,7 @@ void Session::mainSession() {
             el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin()});
             addEntity(el.back());
             std::cout << el.size() << " -- " << std::endl;
-            // s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
-            // mapSprites.push_back(s);
-            // addSprite(s); 
-
+    
             lastTime = now;
         }
     }

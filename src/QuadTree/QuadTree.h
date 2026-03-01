@@ -6,7 +6,8 @@
 
 #include "QuadTree/Rectangle.h"
 #include "QuadTree/Point.h"
-#include "Entities/Entity.h"
+#include "Entities/Enemy.h"
+#include "Entities/Tower.h"
 
 class QuadTree {
 private:
@@ -16,7 +17,7 @@ private:
     std::unique_ptr<QuadTree> topRightTree_; // Coin Haut Droite de la division QuadTree
     std::unique_ptr<QuadTree> botLeftTree_; // Coin Bas Gauche de la division QuadTree 
     std::unique_ptr<QuadTree> botRightTree_;// Coin Bas Droite de la division QuadTree 
-    std::vector<Point> points_; // Liste de points dans la case
+    std::vector<Enemy*> lst_enemy_; // Liste de points dans la case
 
     static const int capacity_ = 1; // Capacité max de points d'une case avant de se subdiviser
 
@@ -25,10 +26,10 @@ public:
     QuadTree(Rectangle boundary);
 
     void subDivide();
-    void insert(Enemy e);
-    void remove(Enemy e);
+    void insert(Enemy* e);
+    void remove(Enemy* e);
     void print(int level = 0) const;
-    std::vector<Point> query(Tower t);
+    std::vector<Enemy*> query(Tower t);
 };
 
 #endif
