@@ -25,8 +25,7 @@ void Entity::live(float deltaTime){
 }
 
 void Entity::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
-    offset += position_;
-    orientation_+= deltaTime * pi*2 / 4;
+    offset += position_ * scale;
     for(auto s : sprites_){
         if(s) s->draw(win, deltaTime, offset, scale, rot + orientation_);
     }

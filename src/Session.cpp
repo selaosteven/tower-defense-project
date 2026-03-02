@@ -21,12 +21,11 @@ void Session::hpSetter(int new_hp) {
 }
 
 void Session::mainSession() {
-
     float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
-    float cellSize   = std::min(cellWidth, cellHeight);
-    float offsetX = (getWinWidth()  - cellSize * map_.getWidth())  / 2.0f;
-    float offsetY = (getWinHeight() - cellSize * map_.getHeight()) / 2.0f;
+    scale_ = std::min(cellWidth, cellHeight);
+    float cellSize = 1.0f;
+    // offset_ = Point{offsetX, offsetY}; // Décommentez si vous avez ajouté offset_ dans Session.h
 
 
     // 1. LE COFFRE-FORT : Ce tableau survit à la fin de la fonction.
@@ -46,8 +45,8 @@ void Session::mainSession() {
             Case bloc = map_.map_.at(y).at(x);
             Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
-            float px = offsetX + x * cellSize;
-            float py = offsetY + y * cellSize;
+            float px = x * cellSize + cellSize / 2.0f;
+            float py = y * cellSize + cellSize / 2.0f;
 
             // 3. ALLOCATION "NEW" : L'objet est créé sur le TAS (Heap).
             // Il ne sera PAS détruit à la sortie du switch ou de la boucle.
@@ -62,10 +61,10 @@ void Session::mainSession() {
                     s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
                     break;
                 case Case::Start:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
                     break;
                 case Case::End:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
                     break;
                 
                 default:
@@ -86,8 +85,8 @@ void Session::mainSession() {
     std::list<Point> path = map_.getPath();
 
     for(auto& p : path) {
-        float px = offsetX + p.getY() * cellSize + cellSize / 2.0f;
-        float py = offsetY + p.getX() * cellSize + cellSize / 2.0f;
+        float px = p.getY() * cellSize + cellSize / 2.0f;
+        float py = p.getX() * cellSize + cellSize / 2.0f;
         p = Point{px, py};
     }
 
@@ -100,9 +99,9 @@ void Session::mainSession() {
     bool running = true;
     Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
-    Enemy ref{0.2,0.2,0.2,true, cellSize};
+    Enemy ref{0.2, .02, 0.2, true};
     std::vector<Enemy*> el = {};
-    Point spawningDirection = ((*path.begin())^(*(++path.begin()))) * (1.0f/cellSize);
+    Point spawningDirection = ((*path.begin())^(*(++path.begin())));
     while(running) {
         float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
         Point spawnOffset = spawningDirection*offsetSpawn;
@@ -110,7 +109,9 @@ void Session::mainSession() {
         spawnPosition += spawnOffset;
         auto now = clock::now();
         auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime).count();
-        for(auto e : el) e->live(delta_time_);
+        for (auto enemy : el) {
+            enemy->live(delta_time_);            
+        }
         if (dt >= 2000) { // toutes les 100 ms
             el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin()});
             addEntity(el.back());

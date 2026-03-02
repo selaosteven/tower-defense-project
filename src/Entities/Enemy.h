@@ -16,12 +16,12 @@ protected:
     float speed_; // Speed
     float resistance_; // Resistance
     bool fly_; // Fly
+public:
     std::list<Point>::iterator path_;
     float offset_;
-    float cellSize_;
    
 public:
-    Enemy(float lp, float speed, float resistance, bool fly, float cellSize); // constructeur
+    Enemy(float lp, float speed, float resistance, bool fly); // constructeur
     Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start);
 
     void live(float deltaTime) override;

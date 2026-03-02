@@ -47,8 +47,8 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     const float cosA = std::cos(rotation_ + rot);
     const float sinA = std::sin(rotation_ + rot);
     for(auto& v : transformed_vertices){
-        float sx = v.position.x * scale;
-        float sy = v.position.y * scale;
+        float sx = v.position.x * scale * scale_;
+        float sy = v.position.y * scale * scale_;
         float rx = sx * cosA - sy * sinA;
         float ry = sx * sinA + sy * cosA;
         v.position.x = cx + rx;
