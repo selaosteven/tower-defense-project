@@ -24,15 +24,13 @@ public:
     std::vector<std::vector<Case>> map_;
 private:
     std::list<Point> path_; // Chemin
-
 public:
     Map(std::string name_map);
-    float  getWidth();
-    float  getHeight();
-    std::list<Point> getPath();
+    inline float  getWidth() {if (map_.empty()) return 0; return map_[0].size();}
+    inline float  getHeight() {return map_.size();}
+    inline std::list<Point> getPath() {return path_;}
     void print() const;
 
 };
-
 
 #endif

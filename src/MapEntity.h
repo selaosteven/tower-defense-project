@@ -6,17 +6,21 @@
 #include <vector>
 #include <iostream>
 #include <array>
+
+#include "QuadTree/QuadTree.h"
 #include "Entities/Entity.h"
 #include "Map.h"
 
 class MapEntity {
 private:
-    std::vector<Entity> lst_; // Liste des entités
     float width_;
     float height_;
+    QuadTree qdtree_;
 public:
-    MapEntity(std::vector<Entity> lst,float width, float height);
-    std::vector<Entity> allWithinRange(Point center,float range);
+    MapEntity(float width, float height);
+    std::vector<Enemy*> allWithinRange(Tower t);
+    void addEnemy(Enemy* e);
+    void removeEnemy(Enemy *e);
 };
 
 #endif
