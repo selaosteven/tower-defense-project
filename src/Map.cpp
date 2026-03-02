@@ -29,6 +29,11 @@ Map::Map(std::string name_map){
             // On ajoute une nouvelle ligne vide
             map_.push_back(std::vector<Case>{});           
             for (char c : line) {
+                if(c == 'T'){
+                    std::string key = std::to_string(x) + "_" + std::to_string(y);
+                    tower_lst_.insert({key,Point(x,y)});
+                }
+
                 if(c == 'C')
                     inter_path.push_back(Point(x,y));
 
@@ -105,18 +110,5 @@ void Map::print() const {
 
 }
 
-float Map::getWidth() {
-    if (map_.empty())
-        return 0;
 
-    return map_[0].size();
-}
-
-float Map::getHeight() {
-    return map_.size();
-}
-
-std::list<Point> Map::getPath() {
-    return path_;
-}
 

@@ -106,8 +106,19 @@ werrors UI::Window::inputs(){
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
-            case SDL_MOUSEBUTTONDOWN: // Clic gauche
-            case SDL_MOUSEBUTTONUP: // Clic droit
+            case SDL_MOUSEBUTTONDOWN: // Clic de la souris qui vient d'être pressé
+                if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
+                    std::cout << "clic gauche | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    break;
+                }
+
+                if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
+                    std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    break;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
             case SDL_MOUSEMOTION:
