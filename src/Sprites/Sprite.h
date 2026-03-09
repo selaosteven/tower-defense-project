@@ -37,6 +37,8 @@ public:
         position_ += velocity;
     }
 
+    inline Point getPosition() {return position_;}
+
     friend class UI::Window;
 };
 }

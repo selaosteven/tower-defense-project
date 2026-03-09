@@ -109,7 +109,10 @@ werrors UI::Window::inputs(){
             case SDL_MOUSEBUTTONDOWN: // Clic de la souris qui vient d'être pressé
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
-                    std::cout << "clic gauche | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
+                    clickLeft(click);
+            
+                    
                     break;
                 }
 
@@ -207,4 +210,17 @@ werrors UI::Window::init_sdl(Uint32 flags){
 
 bool UI::Window::isThereAnInstance() {
     return number_of_instances > 0;
+}
+
+void UI::Window::clickLeft(Point click) {
+
+    // float seuil = 10;
+
+    // float px = position_.getX();
+    // float py = position_.getY();
+
+    // float dx = px - click.getX();
+    // float dy = py - click.getY();
+
+    // return (dx*dx + dy*dy <= seuil * seuil);
 }

@@ -30,7 +30,7 @@ Map::Map(std::string name_map){
             map_.push_back(std::vector<Case>{});           
             for (char c : line) {
                 if(c == 'T'){
-                    std::string key = std::to_string(x) + "_" + std::to_string(y);
+                    std::string key = std::to_string(int(x)) + "_" + std::to_string(int(y));
                     tower_lst_.insert({key,Point(x,y)});
                 }
 
@@ -48,7 +48,7 @@ Map::Map(std::string name_map){
             }
             x++;
         }
-
+        printTower();
         path_.push_back(pD);
 
         bool found = true;
@@ -110,5 +110,39 @@ void Map::print() const {
 
 }
 
+Case Map::getCase(float x, float y) {
+   
+}
+
+
+void Map::printTower() {
+    for (auto& [key, point] : tower_lst_) {
+        std::cout << "Tour " << key 
+                << " -> (" << point.getX() << ", " << point.getY() << ")\n";
+    }
+}
+
+void Map::printCase(Case c){
+    switch (c){
+        case Case::Tower :
+            std::cout << "Tower\n" << std::endl;
+            break;
+        case Case::Void :
+            std::cout << "Void\n" << std::endl;
+            break;
+        case Case::Path :
+            std::cout << "Path\n" << std::endl;
+            break;
+        case Case::Start :
+            std::cout << "Start\n" << std::endl;
+            break;
+        case Case::End :
+            std::cout << "End\n" << std::endl;
+            break;
+        case Case::Wall :
+            std::cout << "Wall\n" << std::endl;
+            break;
+    }
+}
 
 
