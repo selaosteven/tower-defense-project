@@ -170,6 +170,14 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
     }
 }
 
+
+void UI::Window::removeEntity(Entity *entity){
+    if(!entities_.empty()) {
+        entities_.remove(entity);
+    }        
+    
+}
+
 void UI::Window::addEntity(Entity *entity){
     if(entities_.empty()) {
         entities_.push_front(entity);

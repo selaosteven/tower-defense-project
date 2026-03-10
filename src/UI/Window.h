@@ -75,6 +75,8 @@ public:
 
     void addSprite(Sprites::Sprite *sprite);
     void addEntity(Entity *entity);
+    void removeEntity(Entity *entity);
+
 
     inline int getWinWidth() { return win_width_;}
     inline int getWinHeight() { return win_height_;}
