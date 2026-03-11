@@ -161,7 +161,7 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
         sprites_.push_front(sprite);
     } else {
         for(auto it = sprites_.begin(); it != sprites_.end(); ++it){
-            if((*it)->zindex > sprite->zindex) {
+            if((*it)->zindex_ > sprite->zindex_) {
                 sprites_.insert(it, sprite);
                 return;
             }

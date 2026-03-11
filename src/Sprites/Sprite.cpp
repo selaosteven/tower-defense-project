@@ -10,10 +10,10 @@ Sprite::Sprite() : Sprite{0,0,0} {}
 
 Sprite::Sprite(const std::array<float, 3> &pos) : Sprite{pos, 1, 0} {}
 
-Sprite::Sprite(float x, float y, float zIndex) : Sprite{{x,y,zIndex}, 1, 0}{}
+Sprite::Sprite(float x, float y, float zindex) : Sprite{{x,y,zindex}, 1, 0}{}
 
 Sprite::Sprite(const std::array<float, 3> &position, float scale, float rotation) :
-position_{position[0], position[1]}, zindex{position[2]}, scale_{scale}, rotation_{rotation}
+position_{position[0], position[1]}, zindex_{position[2]}, scale_{scale}, rotation_{rotation}, inner_circle_radius_{1.0f}
 {
 
 };

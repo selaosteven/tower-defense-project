@@ -17,15 +17,16 @@ public:
 
 protected:
     Point position_;
-    float zindex;
+    float zindex_;
     float scale_;
     float rotation_;
+    float inner_circle_radius_;
 
 public:
     Sprite();
     Sprite(const std::array<float, 3> &position, float scale, float rotation);
     Sprite(const std::array<float, 3> &position);
-    Sprite(float x, float y, float zIndex);
+    Sprite(float x, float y, float zindex);
     virtual ~Sprite();
 
     virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
