@@ -20,24 +20,51 @@ void Session::hpSetter(int new_hp) {
     hp_player_ = new_hp;
 }
 
+void Session::clickLeft(Point click) {
+    float seuil = 10;
+
+    float cellWidth  = getWinWidth()  / static_cast<float>(map_.getWidth());
+    float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
+    float cellSize   = std::min(cellWidth, cellHeight);
+
+    float offsetX = (getWinWidth()  - cellSize * map_.getWidth())  / 2.0f;
+    float offsetY = (getWinHeight() - cellSize * map_.getHeight()) / 2.0f;
+
+    for (Sprites::Sprite* s : getSprites()) {
+
+        Point p = s->getPosition();
+        float px = p.getX();
+        float py = p.getY();
+
+        float dx = px - click.getX();
+        float dy = py - click.getY();
+
+        if (dx*dx + dy*dy > seuil * seuil)
+            continue; 
+
+        // Conversion pixel → case
+        int cellX = (px - offsetX) / cellSize;
+        int cellY = (py - offsetY) / cellSize;
+
+        // Vérification des limites
+        if (cellX < 0 || cellX >= map_.getWidth()) continue;
+        if (cellY < 0 || cellY >= map_.getHeight()) continue;
+
+        // Lecture de la case
+        Case type = map_.map_[cellY][cellX];
+
+        if (type == Case::Tower) {
+            std::cout << "coucou\n";
+        }
+    }
+}
+
 void Session::mainSession() {
     float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
     float cellSize = 1.0f;
     // offset_ = Point{offsetX, offsetY}; // Décommentez si vous avez ajouté offset_ dans Session.h
-
-
-    // 1. LE COFFRE-FORT : Ce tableau survit à la fin de la fonction.
-    // Il garde tes objets 'Sprite' en vie dans la RAM.
-    static std::vector<Sprites::Sprite*> mapSprites;
-
-    // 2. NETTOYAGE : Si tu relances la fonction, on vide l'ancien test
-    // pour éviter de faire exploser la mémoire.
-    for(auto s : mapSprites) {
-        delete s; 
-    }
-    mapSprites.clear();
 
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
@@ -71,10 +98,7 @@ void Session::mainSession() {
                     continue; // On passe au suivant si c'est du vide
             }
 
-            if (s) {
-                // 4. SAUVEGARDE : On stocke l'adresse dans le tableau statique
-                mapSprites.push_back(s);
-                
+            if (s) {                                
                 // 5. ENVOI AU MOTEUR : Ton addSprite reçoit un pointeur VALIDE
                 addSprite(s); 
             }

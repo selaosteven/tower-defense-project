@@ -29,8 +29,10 @@ public:
     inline float  getWidth() {if (map_.empty()) return 0; return map_[0].size();}
     inline float  getHeight() {return map_.size();}
     inline std::list<Point> getPath() {return path_;}
+    Case getCase(float x, float y);
     void print() const;
-
+    void printTower();
+    void printCase(Case c);
 };
 
 #endif
