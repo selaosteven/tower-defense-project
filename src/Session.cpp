@@ -21,37 +21,40 @@ void Session::hpSetter(int new_hp) {
 }
 
 void Session::clickLeft(Point click) {
-    float seuil = 10;
+    float seuil = 0.5f; // seuil logique
 
-    float cellWidth  = getWinWidth()  / static_cast<float>(map_.getWidth());
-    float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
-    float cellSize   = std::min(cellWidth, cellHeight);
+    // 1) Recalcul EXACT du offset (scale_ est déjà correct)
+    float offsetX = (getWinWidth()  - scale_ * map_.getWidth())  / 2.0f;
+    float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
 
-    float offsetX = (getWinWidth()  - cellSize * map_.getWidth())  / 2.0f;
-    float offsetY = (getWinHeight() - cellSize * map_.getHeight()) / 2.0f;
+    // 2) Conversion du clic pixel → logique
+    float clickLX = (click.getX() - offsetX) / scale_;
+    float clickLY = (click.getY() - offsetY) / scale_;
 
+    float verticalFix = 1.6f;   
+    clickLY += verticalFix;
+
+    // 3) Parcours des sprites
     for (Sprites::Sprite* s : getSprites()) {
 
-        Point p = s->getPosition();
-        float px = p.getX();
-        float py = p.getY();
+        Point p = s->getPosition(); // position logique (ex : 3.5, 4.5)
+        float sx = p.getX();
+        float sy = p.getY();
 
-        float dx = px - click.getX();
-        float dy = py - click.getY();
+        // 4) Distance logique
+        float dx = sx - clickLX;
+        float dy = sy - clickLY;
 
         if (dx*dx + dy*dy > seuil * seuil)
-            continue; 
+            continue;
 
-        // Conversion pixel → case
-        int cellX = (px - offsetX) / cellSize;
-        int cellY = (py - offsetY) / cellSize;
+        // 5) Conversion logique → case
+        int cellX = (int)std::floor(sx);
+        int cellY = (int)std::floor(sy);
 
-        // Vérification des limites
-        if (cellX < 0 || cellX >= map_.getWidth()) continue;
-        if (cellY < 0 || cellY >= map_.getHeight()) continue;
-
-        // Lecture de la case
+        // 6) Lecture
         Case type = map_.map_[cellY][cellX];
+        map_.printCase(type);
 
         if (type == Case::Tower) {
             std::cout << "coucou\n";
