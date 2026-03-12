@@ -15,6 +15,7 @@ private:
     int hp_player_;
     int round_;
     int money_;
+    bool showUI_;
 public:
     Session(std::string name_map);
     void moneySetter(int new_money);
@@ -23,6 +24,7 @@ public:
     
 protected:
     void clickLeft(Point click) override;
+    void drawUI(SDL_Renderer* r) override;
 
 };
 

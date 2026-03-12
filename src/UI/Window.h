@@ -81,6 +81,7 @@ public:
     inline int getWinWidth() { return win_width_;}
     inline int getWinHeight() { return win_height_;}
 
+    virtual void drawUI(SDL_Renderer*) {}
 protected:
     virtual void clickLeft(Point click); 
     const std::list<Sprites::Sprite*>& getSprites() const { return sprites_; }

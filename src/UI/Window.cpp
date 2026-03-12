@@ -151,6 +151,8 @@ void UI::Window::loop(){
         if(errInputs == STOP) break;
         for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+        
+        drawUI(renderer_);
         SDL_RenderPresent(renderer_);
     }
     return;
@@ -222,13 +224,4 @@ bool UI::Window::isThereAnInstance() {
 
 void UI::Window::clickLeft(Point click) {
 
-    // float seuil = 10;
-
-    // float px = position_.getX();
-    // float py = position_.getY();
-
-    // float dx = px - click.getX();
-    // float dy = py - click.getY();
-
-    // return (dx*dx + dy*dy <= seuil * seuil);
 }

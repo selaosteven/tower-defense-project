@@ -9,7 +9,8 @@ Session::Session(std::string name_map):
     map_ope_{map_.getWidth(), map_.getHeight()},
     hp_player_{50},
     round_{0},
-    money_{0}
+    money_{0},
+    showUI_{false}
     {}
 
 void Session::moneySetter(int new_money) {
@@ -21,6 +22,29 @@ void Session::hpSetter(int new_hp) {
 }
 
 void Session::clickLeft(Point click) {
+
+    // Si l'UI est ouverte
+    if (showUI_) {
+
+        SDL_Rect uiRect = { 100, 100, 300, 200 };
+
+        // Si clic DANS l'UI → on ne ferme pas
+        if (click.getX() >= uiRect.x &&
+            click.getX() <= uiRect.x + uiRect.w &&
+            click.getY() >= uiRect.y &&
+            click.getY() <= uiRect.y + uiRect.h)
+        {
+            // Ici tu gères les boutons si tu veux
+            std::cout << "Clic dans l'UI\n";
+            return;
+        }
+
+        // Sinon → clic hors UI → on ferme
+        showUI_ = false;
+        std::cout << "UI fermée\n";
+        return;
+    }
+    
     float seuil = 0.5f; // seuil logique
 
     // 1) Recalcul EXACT du offset (scale_ est déjà correct)
@@ -57,10 +81,21 @@ void Session::clickLeft(Point click) {
         map_.printCase(type);
 
         if (type == Case::Tower) {
-            std::cout << "coucou\n";
+            showUI_ = true;
         }
     }
 }
+
+void Session::drawUI(SDL_Renderer* r) {
+    if (!showUI_) return;
+
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 0, 0, 0, 180);
+
+    SDL_Rect panel = { 100, 100, 300, 200 };
+    SDL_RenderFillRect(r, &panel);
+}
+
 
 void Session::mainSession() {
     float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
