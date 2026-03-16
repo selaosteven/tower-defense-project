@@ -6,7 +6,7 @@
 #include "Map.h"
 
 
-Map::Map(std::string name_map){
+Map::Map::Map(std::string name_map){
 
     { // Bloc de portée scope
         std::ifstream file(name_map);
@@ -82,7 +82,7 @@ Map::Map(std::string name_map){
 
 }
 
-void Map::print() const {
+void Map::Map::print() const {
     for(std::vector<Case> v : map_){
         for(Case c : v){
             switch (c){
@@ -110,19 +110,19 @@ void Map::print() const {
 
 }
 
-Case Map::getCase(float x, float y) {
+Case Map::Map::getCase(float x, float y) {
    
 }
 
 
-void Map::printTower() {
+void Map::Map::printTower() {
     for (auto& [key, point] : tower_lst_) {
         std::cout << "Tour " << key 
                 << " -> (" << point.getX() << ", " << point.getY() << ")\n";
     }
 }
 
-void Map::printCase(Case c){
+void Map::Map::printCase(Case c){
     switch (c){
         case Case::Tower :
             std::cout << "Tower\n" << std::endl;
