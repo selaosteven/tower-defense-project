@@ -6,7 +6,7 @@ QuadTree::QuadTree(Rectangle boundary) :
     topRightTree_{nullptr},
     botLeftTree_{nullptr},
     botRightTree_{nullptr},
-    points_{},
+    lst_enemy_{},
     divided_{false}
     {}
 
@@ -26,31 +26,33 @@ void QuadTree::subDivide(){
     botLeftTree_ = std::make_unique<QuadTree>(bl);
     botRightTree_ = std::make_unique<QuadTree>(br);
 
-    // Redistribuer les points dans chaque section 
-    for (Point p : points_) {
+    // Redistribuer les ennemies dans chaque section 
+    for (Enemy* e : lst_enemy_) {
+        Point p = e->getPosition();
         if (topLeftTree_->boundary_.contains(p))      
-            topLeftTree_->insert(p);
+            topLeftTree_->insert(e);
         else if (topRightTree_->boundary_.contains(p)) 
-            topRightTree_->insert(p);
+            topRightTree_->insert(e);
         else if (botLeftTree_->boundary_.contains(p))  
-            botLeftTree_->insert(p);
+            botLeftTree_->insert(e);
         else if (botRightTree_->boundary_.contains(p)) 
-            botRightTree_->insert(p);
+            botRightTree_->insert(e);
     }
 
-    points_.clear(); // vide la liste points
+    lst_enemy_.clear(); // vide la liste points
 
 }
 
-void QuadTree::insert(Point point){
+void QuadTree::insert(Enemy* e){
 
-    if(!boundary_.contains(point)){ // les cordoonnées du points n'appartient pas au rectangle
+    Point point = e->getPosition();
+    if(!boundary_.contains(point)){ // les cordoonnées de l'ennemie n'appartient pas au rectangle
         return;
     }
 
-    // Si jamais il n'y a aucun point dans le rectangle et qu'il n'est pas déjà divisé, on l'insere dans la liste des points 
-    if(points_.size() < capacity_ && !divided_) {      
-        points_.push_back(point); 
+    // Si jamais il n'y a aucun ennemy dans le rectangle et qu'il n'est pas déjà divisé, on l'insere dans la liste des points 
+    if(lst_enemy_.size() < capacity_ && !divided_) {      
+        lst_enemy_.push_back(e); 
         return;
     } 
 
@@ -59,52 +61,73 @@ void QuadTree::insert(Point point){
         divided_ = true;
     }
 
-    // Trouver dans quel sous-rectangles placer le point qu'on veut insérer
+    // Trouver dans quel sous-rectangles placer l'ennemie qu'on veut insérer
     if (topLeftTree_->boundary_.contains(point))      
-        topLeftTree_->insert(point);
+        topLeftTree_->insert(e);
     else if (topRightTree_->boundary_.contains(point)) 
-        topRightTree_->insert(point);
+        topRightTree_->insert(e);
     else if (botLeftTree_->boundary_.contains(point))  
-        botLeftTree_->insert(point);
+        botLeftTree_->insert(e);
     else if (botRightTree_->boundary_.contains(point)) 
-        botRightTree_->insert(point);
+        botRightTree_->insert(e);
     
 }
 
-std::vector<Point> QuadTree::query(Point center, float range){
+std::vector<Enemy*> QuadTree::query(Tower t){
 
-    std::vector<Point> res;
+    Point center = t.getPosition();
+    float range = t.getRange();
+    
+    std::vector<Enemy*> res;
+
     if(!boundary_.checkOverlap(center,range)){ // Pas d'intersection entre le cercle et le rectangle
         return res; // liste vide 
     } else {
-        for(Point p : points_){ 
+        for(Enemy* e : lst_enemy_){ 
+            Point p = e->getPosition();
             float dx = p.getX() - center.getX();
             float dy = p.getY() - center.getY();
             if (dx*dx + dy*dy <= range*range) {
-                res.push_back(p);
+                res.push_back(e);
             }
         }
     }
 
     if(divided_){ // Si cela est divisé
-        std::vector<Point> tl = topLeftTree_->query(center, range);
+        auto tl = topLeftTree_->query(t);
         res.insert(res.end(), tl.begin(), tl.end());
 
-        std::vector<Point> tr = topRightTree_->query(center, range);
+        auto tr = topRightTree_->query(t);
         res.insert(res.end(), tr.begin(), tr.end());
 
-        std::vector<Point> bl = botLeftTree_->query(center, range);
+        auto bl = botLeftTree_->query(t);
         res.insert(res.end(), bl.begin(), bl.end());
 
-        std::vector<Point> br = botRightTree_->query(center, range);
+        auto br = botRightTree_->query(t);
         res.insert(res.end(), br.begin(), br.end());
 
     }
 
-    // for(Point p : res){
-    //     std::cout << "X : " << p.getX() << " Y : " << p.getY() << std::endl;
-    // }
     return res;
+}
+
+void QuadTree::remove(Enemy* e){
+
+    // On cherche dans le noeud actuel l'ennemy
+    auto find = std::find(lst_enemy_.begin(),lst_enemy_.end(),e);
+    if(find != lst_enemy_.end()) {
+        lst_enemy_.erase(find);
+        return;
+    }
+
+    if (!divided_) return;
+
+    // Sinon on le cherche dans les 4 enfants
+    topLeftTree_->remove(e); 
+    topRightTree_->remove(e); 
+    botLeftTree_->remove(e); 
+    botRightTree_->remove(e);
+
 }
 
 void QuadTree::print(int level) const {
@@ -117,13 +140,15 @@ void QuadTree::print(int level) const {
     std::cout << "Node("
               << "center=" << boundary_.getX() << "," << boundary_.getY()
               << " size=" << boundary_.getW() << "," << boundary_.getH()
-              << " points=" << points_.size() << ")";
+              << " points=" << lst_enemy_.size() << ")";
 
-    if (!points_.empty()) {
+    if (!lst_enemy_.empty()) {
         std::cout << " [ ";
-        for (const auto& p : points_) {
+        for (Enemy* e : lst_enemy_) {
+            Point p = e->getPosition();
             std::cout << "(" << p.getX() << "," << p.getY() << ") ";
         }
+
         std::cout << "]";
     }
 

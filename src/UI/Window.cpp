@@ -106,8 +106,22 @@ werrors UI::Window::inputs(){
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
-            case SDL_MOUSEBUTTONDOWN: // Clic gauche
-            case SDL_MOUSEBUTTONUP: // Clic droit
+            case SDL_MOUSEBUTTONDOWN: // Clic de la souris qui vient d'être pressé
+                if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
+                    Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
+                    clickLeft(click);
+            
+                    
+                    break;
+                }
+
+                if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
+                    std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    break;
+                }
+                break;
+            case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
             case SDL_MOUSEMOTION:
@@ -147,13 +161,21 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
         sprites_.push_front(sprite);
     } else {
         for(auto it = sprites_.begin(); it != sprites_.end(); ++it){
-            if((*it)->zindex > sprite->zindex) {
+            if((*it)->zindex_ > sprite->zindex_) {
                 sprites_.insert(it, sprite);
                 return;
             }
         }
         sprites_.push_back(sprite);        
     }
+}
+
+
+void UI::Window::removeEntity(Entity *entity){
+    if(!entities_.empty()) {
+        entities_.remove(entity);
+    }        
+    
 }
 
 void UI::Window::addEntity(Entity *entity){
@@ -196,4 +218,17 @@ werrors UI::Window::init_sdl(Uint32 flags){
 
 bool UI::Window::isThereAnInstance() {
     return number_of_instances > 0;
+}
+
+void UI::Window::clickLeft(Point click) {
+
+    // float seuil = 10;
+
+    // float px = position_.getX();
+    // float py = position_.getY();
+
+    // float dx = px - click.getX();
+    // float dy = py - click.getY();
+
+    // return (dx*dx + dy*dy <= seuil * seuil);
 }

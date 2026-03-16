@@ -29,6 +29,10 @@ class PrimitiveForm : public Sprite
     PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color);
     ~PrimitiveForm();
 
+    inline void changeColor(SDL_Color color) {
+        for(auto v : vertices_) v.color = color;
+    }
+
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
     friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color);
     friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height);
