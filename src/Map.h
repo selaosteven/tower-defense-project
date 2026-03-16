@@ -9,7 +9,7 @@
 #include "QuadTree/Point.h"
 
 enum class Case {
-    Tower,
+    Tower=0,
     Wall,
     Path,
     Void, 

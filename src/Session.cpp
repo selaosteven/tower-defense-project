@@ -9,7 +9,8 @@ Session::Session(std::string name_map):
     map_ope_{map_.getWidth(), map_.getHeight()},
     hp_player_{50},
     round_{0},
-    money_{0}
+    money_{0},
+    showUI_{false}
     {}
 
 void Session::moneySetter(int new_money) {
@@ -21,43 +22,80 @@ void Session::hpSetter(int new_hp) {
 }
 
 void Session::clickLeft(Point click) {
-    float seuil = 10;
 
-    float cellWidth  = getWinWidth()  / static_cast<float>(map_.getWidth());
-    float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
-    float cellSize   = std::min(cellWidth, cellHeight);
+    // Si l'UI est ouverte
+    if (showUI_) {
 
-    float offsetX = (getWinWidth()  - cellSize * map_.getWidth())  / 2.0f;
-    float offsetY = (getWinHeight() - cellSize * map_.getHeight()) / 2.0f;
+        SDL_Rect uiRect = { 100, 100, 300, 200 };
 
+        // Si clic DANS l'UI → on ne ferme pas
+        if (click.getX() >= uiRect.x &&
+            click.getX() <= uiRect.x + uiRect.w &&
+            click.getY() >= uiRect.y &&
+            click.getY() <= uiRect.y + uiRect.h)
+        {
+            // Ici tu gères les boutons si tu veux
+            std::cout << "Clic dans l'UI\n";
+            return;
+        }
+
+        // Sinon → clic hors UI → on ferme
+        showUI_ = false;
+        std::cout << "UI fermée\n";
+        return;
+    }
+    
+    float seuil = 0.5f; // seuil logique
+
+    // 1) Recalcul EXACT du offset (scale_ est déjà correct)
+    float offsetX = (getWinWidth()  - scale_ * map_.getWidth())  / 2.0f;
+    float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
+
+    // 2) Conversion du clic pixel → logique
+    float clickLX = (click.getX() - offsetX) / scale_;
+    float clickLY = (click.getY() - offsetY) / scale_;
+
+    float verticalFix = 1.6f;   
+    clickLY += verticalFix;
+
+    // 3) Parcours des sprites
     for (Sprites::Sprite* s : getSprites()) {
 
-        Point p = s->getPosition();
-        float px = p.getX();
-        float py = p.getY();
+        Point p = s->getPosition(); // position logique (ex : 3.5, 4.5)
+        float sx = p.getX();
+        float sy = p.getY();
 
-        float dx = px - click.getX();
-        float dy = py - click.getY();
+        // 4) Distance logique
+        float dx = sx - clickLX;
+        float dy = sy - clickLY;
 
         if (dx*dx + dy*dy > seuil * seuil)
-            continue; 
+            continue;
 
-        // Conversion pixel → case
-        int cellX = (px - offsetX) / cellSize;
-        int cellY = (py - offsetY) / cellSize;
+        // 5) Conversion logique → case
+        int cellX = (int)std::floor(sx);
+        int cellY = (int)std::floor(sy);
 
-        // Vérification des limites
-        if (cellX < 0 || cellX >= map_.getWidth()) continue;
-        if (cellY < 0 || cellY >= map_.getHeight()) continue;
-
-        // Lecture de la case
+        // 6) Lecture
         Case type = map_.map_[cellY][cellX];
+        map_.printCase(type);
 
         if (type == Case::Tower) {
-            std::cout << "coucou\n";
+            showUI_ = true;
         }
     }
 }
+
+void Session::drawUI(SDL_Renderer* r) {
+    if (!showUI_) return;
+
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 0, 0, 0, 180);
+
+    SDL_Rect panel = { 100, 100, 300, 200 };
+    SDL_RenderFillRect(r, &panel);
+}
+
 
 void Session::mainSession() {
     float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
