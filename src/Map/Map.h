@@ -17,6 +17,9 @@ enum class Case {
     End
 };
 
+
+namespace Map {
+    
 class Map {
 private:
     std::unordered_map<std::string, Point> tower_lst_; // key => (x_y) , value => Point (x,y)
@@ -35,4 +38,5 @@ public:
     void printCase(Case c);
 };
 
+}
 #endif

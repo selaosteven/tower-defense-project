@@ -11,6 +11,9 @@
 #include "Entities/Entity.h"
 #include "Map.h"
 
+namespace Map {
+    
+
 class MapEntity {
 private:
     float width_;
@@ -23,4 +26,5 @@ public:
     void removeEnemy(Enemy *e);
 };
 
+}
 #endif
