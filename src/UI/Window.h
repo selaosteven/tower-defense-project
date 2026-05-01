@@ -53,6 +53,7 @@ private:
     SDL_Event * event_;
     Uint64 ticks_;
     std::list<Sprites::Sprite*> sprites_;
+    std::list<Sprites::Sprite*> ui_sprites_;
     std::list<Entity*> entities_;
 
 protected:
@@ -61,6 +62,7 @@ protected:
     const Uint32 win_flags_;
     float delta_time_;
     float scale_;
+    float ui_scale_;
     Point camera_position_;
 
 public:
@@ -74,12 +76,16 @@ public:
     void loop();
 
     void addSprite(Sprites::Sprite *sprite);
+    void addUISprite(Sprites::Sprite *sprite);
     void addEntity(Entity *entity);
     void removeEntity(Entity *entity);
 
 
     inline int getWinWidth() { return win_width_;}
     inline int getWinHeight() { return win_height_;}
+
+    inline void setUIScale(float scale) { ui_scale_ = scale; }
+    inline float getUIScale() const { return ui_scale_; }
 
     virtual void drawUI(SDL_Renderer*) {}
 protected:
