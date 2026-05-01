@@ -2,6 +2,7 @@
 
 #include "Sprites/PrimitiveForm.h"
 #include "Entities/Enemy.h"
+#include "Entities/TowerTree.h"
 
 UI::Session::Session(std::string name_map): 
     UI::Window{},
@@ -103,6 +104,9 @@ void UI::Session::mainSession() {
     scale_ = std::min(cellWidth, cellHeight);
     float cellSize = 1.0f;
     // offset_ = Point{offsetX, offsetY}; // Décommentez si vous avez ajouté offset_ dans Session.h
+    auto myProj = Projectile(1, 0.5);;
+    auto sniperBlueprint = TowerTree::loadFromFile("../src/Ressources/sniper.json");
+    auto myTower = sniperBlueprint->instantiateTower({100, 100}, myProj);
 
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {

@@ -14,6 +14,7 @@
 #include "Entities/Augment.h"
 
 class Enemy;
+struct UpgradeNode;
 
 class Tower : public Entity {
 // static
@@ -34,6 +35,7 @@ private:
 
 protected:
     std::vector<std::unique_ptr<Augment>> augments_;
+    const UpgradeNode* currentUpgradeNode_ = nullptr;
 
 public:
     // Prevent the compiler from implicitly copying the tower and its unique_ptrs
@@ -53,6 +55,12 @@ public:
     void shoot(Enemy& target);
 
     void addAugment(std::unique_ptr<Augment> augment);
+
+    inline void setPosition(Point p) { position_ = p; }
+
+    // Tree architecture
+    void applyUpgrade(const UpgradeNode* node);
+    const UpgradeNode* getCurrentUpgradeNode() const { return currentUpgradeNode_; }
 
 // Inline getter
 public:

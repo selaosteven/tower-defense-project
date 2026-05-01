@@ -2,6 +2,7 @@
 #include "Entities/Augment.h"
 #include "Entities/Tower.h"
 #include "Entities/Enemy.h"
+#include "Entities/TowerTree.h"
 
 int Tower::compteur_ = 0;
 
@@ -60,6 +61,18 @@ void Tower::shoot(Enemy& target){
 void Tower::addAugment(std::unique_ptr<Augment> augment) {
     augment->onEquip(*this);
     augments_.push_back(std::move(augment));
+}
+
+void Tower::applyUpgrade(const UpgradeNode* node) {
+    if (!node) return;
+    currentUpgradeNode_ = node;
+    
+    for (const auto& augName : node->augments) {
+        auto augment = TowerTree::createAugment(augName);
+        if (augment) {
+            addAugment(std::move(augment));
+        }
+    }
 }
 
 
