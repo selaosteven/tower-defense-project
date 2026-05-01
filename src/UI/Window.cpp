@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <thread>
+#include <SDL2/SDL_ttf.h>
 
 #include "Window.h"
 #include "Sprites/Sprite.h"
@@ -38,7 +39,7 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, camera_position_{0,0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
     SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
@@ -48,6 +49,7 @@ UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), wi
 UI::Window::~Window(){
     SDL_DestroyWindow(window_);
     SDL_DestroyRenderer(renderer_);
+    TTF_Quit();
     delete event_;
 }
 
@@ -99,6 +101,10 @@ werrors UI::Window::inputs(){
                     if (event_->window.event == SDL_WINDOWEVENT_CLOSE) {
                         lock.unlock();
                         return STOP;
+                    }
+                    if (event_->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                        win_width_ = event_->window.data1;
+                        win_height_ = event_->window.data2;
                     }
                 }
                 break;
@@ -153,6 +159,15 @@ void UI::Window::loop(){
         for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         
         drawUI(renderer_);
+
+        // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
+        for(auto s : ui_sprites_) {
+            Point pos = s->getPosition();
+            float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+            float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+            s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+        }
+
         SDL_RenderPresent(renderer_);
     }
     return;
@@ -172,6 +187,19 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
     }
 }
 
+void UI::Window::addUISprite(Sprites::Sprite *sprite){
+    if(ui_sprites_.empty()) {
+        ui_sprites_.push_front(sprite);
+    } else {
+        for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ++it){
+            if((*it)->zindex_ > sprite->zindex_) {
+                ui_sprites_.insert(it, sprite);
+                return;
+            }
+        }
+        ui_sprites_.push_back(sprite);        
+    }
+}
 
 void UI::Window::removeEntity(Entity *entity){
     if(!entities_.empty()) {
@@ -210,6 +238,10 @@ werrors UI::Window::init_sdl(Uint32 flags){
         sdl_flags = flags;
         if(SDL_Init(sdl_flags) < 0){
             print_sdl_error("Failed to create window");
+            return SDL_INIT_FAILED;
+        }
+        if (TTF_Init() == -1) {
+            print_sdl_error("Failed to init TTF");
             return SDL_INIT_FAILED;
         }
         sdl_initiated = true;
