@@ -2,6 +2,7 @@
 #include "Entities/Augment.h"
 #include "Entities/Tower.h"
 #include "Entities/Enemy.h"
+#include "Entities/TowerTree.h"
 
 int Tower::compteur_ = 0;
 
@@ -33,27 +34,44 @@ id_{compteur_++}
 
 
 void Tower::rotate(Enemy& target){
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_rotate_prefix(*this, target);
     }
 
     do_rotate(target);
 
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_rotate_postfix(*this, target);
     }
 }
 
 
 void Tower::shoot(Enemy& target){
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_shoot_prefix(*this, target);
     }
 
     do_shoot(target);
 
-    for(auto a : augments_){
-        a->tower_shoot_prefix(*this, target);
+    for(auto& a : augments_){
+        a->tower_shoot_postfix(*this, target, proj_);
+    }
+}
+
+void Tower::addAugment(std::unique_ptr<Augment> augment) {
+    augment->onEquip(*this);
+    augments_.push_back(std::move(augment));
+}
+
+void Tower::applyUpgrade(const UpgradeNode* node) {
+    if (!node) return;
+    currentUpgradeNode_ = node;
+    
+    for (const auto& augName : node->augments) {
+        auto augment = TowerTree::createAugment(augName);
+        if (augment) {
+            addAugment(std::move(augment));
+        }
     }
 }
 

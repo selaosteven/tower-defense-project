@@ -6,10 +6,14 @@
 #include <vector>
 #include <iostream>
 #include <array>
+#include <memory>
 
 #include "QuadTree/QuadTree.h"
 #include "Entities/Entity.h"
 #include "Map.h"
+
+namespace Map {
+    
 
 class MapEntity {
 private:
@@ -18,9 +22,10 @@ private:
     QuadTree qdtree_;
 public:
     MapEntity(float width, float height);
-    std::vector<Enemy*> allWithinRange(Tower t);
-    void addEnemy(Enemy* e);
-    void removeEnemy(Enemy *e);
+    std::vector<std::shared_ptr<Enemy>> allWithinRange(const Tower& t);
+    void addEnemy(std::shared_ptr<Enemy> e);
+    void removeEnemy(std::shared_ptr<Enemy> e);
 };
 
+}
 #endif

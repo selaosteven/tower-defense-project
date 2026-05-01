@@ -151,6 +151,8 @@ void UI::Window::loop(){
         if(errInputs == STOP) break;
         for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+        
+        drawUI(renderer_);
         SDL_RenderPresent(renderer_);
     }
     return;
