@@ -2,6 +2,8 @@
 #define ENEMY_H
 
 #include "Entities/Entity.h"
+#include "Entities/Effect.h"
+#include <memory>
 
 class Enemy : public Entity {
 
@@ -16,6 +18,7 @@ protected:
     float speed_; // Speed
     float resistance_; // Resistance
     bool fly_; // Fly
+    std::vector<std::unique_ptr<Effect>> effects_; // The Effect "stack"
 public:
     std::list<Point>::iterator path_;
     float offset_;
@@ -25,6 +28,16 @@ public:
     Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start);
 
     void live(float deltaTime) override;
+
+    // Methods to manage effects
+    void addEffect(std::unique_ptr<Effect> effect);
+    const std::vector<std::unique_ptr<Effect>>& getEffects() const { return effects_; }
+
+    // Accessors for effects to modify stats
+    float getSpeed() const { return speed_; }
+    void setSpeed(float speed) { speed_ = speed; }
+    float getLp() const { return lp_; }
+    void takeDamage(float amount) { lp_ -= amount; }
 
 };
 

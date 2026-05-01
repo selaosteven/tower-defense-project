@@ -1,0 +1,26 @@
+{
+  "type": "Sniper",
+  "baseRange": 250.0,
+  "baseDamage": 50.0,
+  "baseAs": 0.5,
+  "baseRs": 2.0,
+  "upgrades": {
+    "name": "Base Sniper",
+    "cost": 100,
+    "augments": ["CritAugment"],
+    "children": [
+      {
+        "name": "Heavy Caliber Path",
+        "cost": 150,
+        "augments": ["DamageAugment"],
+        "children": []
+      },
+      {
+        "name": "Thermal Scope Path",
+        "cost": 200,
+        "augments": ["RangeAugment"],
+        "children": []
+      }
+    ]
+  }
+}

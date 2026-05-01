@@ -23,6 +23,13 @@ endif()
 # Recherche de la librairie SDL2 (nécessaire pour l'affichage graphique)
 find_package(SDL2 REQUIRED)
 
+# Récupération de nlohmann_json (téléchargement automatique)
+include(FetchContent)
+FetchContent_Declare(json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
 # Inclusion du dossier courant pour trouver les headers (.h)
 include_directories(${CMAKE_SOURCE_DIR})
 
@@ -35,4 +42,8 @@ target_include_directories(TowerDefense PRIVATE
     ${SDL2_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
 )
-target_link_libraries(TowerDefense PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(TowerDefense PRIVATE 
+    ${SDL2_LIBRARIES}
+    SDL2_ttf
+    nlohmann_json::nlohmann_json
+)

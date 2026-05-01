@@ -6,13 +6,15 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include "Entities/Projectile.h"
 #include "Entities/Entity.h"
 #include "Sprites/Sprite.h"
+#include "Entities/Augment.h"
 
-class Augment;
 class Enemy;
+struct UpgradeNode;
 
 class Tower : public Entity {
 // static
@@ -32,9 +34,14 @@ private:
     int id_; 
 
 protected:
-    std::vector<Augment*> augments_;
+    std::vector<std::unique_ptr<Augment>> augments_;
+    const UpgradeNode* currentUpgradeNode_ = nullptr;
 
 public:
+    // Prevent the compiler from implicitly copying the tower and its unique_ptrs
+    Tower(const Tower&) = delete;
+    Tower& operator=(const Tower&) = delete;
+
     Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type); // Constructeur
     Tower(Point position, Tower &t);
 
@@ -47,6 +54,14 @@ public:
     void rotate(Enemy& target);
     void shoot(Enemy& target);
 
+    void addAugment(std::unique_ptr<Augment> augment);
+
+    inline void setPosition(Point p) { position_ = p; }
+
+    // Tree architecture
+    void applyUpgrade(const UpgradeNode* node);
+    const UpgradeNode* getCurrentUpgradeNode() const { return currentUpgradeNode_; }
+
 // Inline getter
 public:
     inline float getRange() const {return range_;} // Getter Range
@@ -55,6 +70,11 @@ public:
     inline float getRs() const {return rs_;} // Getter Rotation Speed
     inline std::string getType() const {return type_;} // Getter Type
     inline int getId() const {return id_;} // Getter ID
+
+    inline void setRange(float range) { range_ = range; }
+    inline void setDamage(float damage) { damage_ = damage; }
+    inline void setAs(float as) { as_ = as; }
+    inline void setRs(float rs) { rs_ = rs; }
 };
 
 #endif

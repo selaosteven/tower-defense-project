@@ -27,7 +27,7 @@ void QuadTree::subDivide(){
     botRightTree_ = std::make_unique<QuadTree>(br);
 
     // Redistribuer les ennemies dans chaque section 
-    for (Enemy* e : lst_enemy_) {
+    for (const auto& e : lst_enemy_) {
         Point p = e->getPosition();
         if (topLeftTree_->boundary_.contains(p))      
             topLeftTree_->insert(e);
@@ -43,7 +43,7 @@ void QuadTree::subDivide(){
 
 }
 
-void QuadTree::insert(Enemy* e){
+void QuadTree::insert(std::shared_ptr<Enemy> e){
 
     Point point = e->getPosition();
     if(!boundary_.contains(point)){ // les cordoonnées de l'ennemie n'appartient pas au rectangle
@@ -73,17 +73,17 @@ void QuadTree::insert(Enemy* e){
     
 }
 
-std::vector<Enemy*> QuadTree::query(Tower t){
+std::vector<std::shared_ptr<Enemy>> QuadTree::query(const Tower& t){
 
     Point center = t.getPosition();
     float range = t.getRange();
     
-    std::vector<Enemy*> res;
+    std::vector<std::shared_ptr<Enemy>> res;
 
     if(!boundary_.checkOverlap(center,range)){ // Pas d'intersection entre le cercle et le rectangle
         return res; // liste vide 
     } else {
-        for(Enemy* e : lst_enemy_){ 
+        for(const auto& e : lst_enemy_){ 
             Point p = e->getPosition();
             float dx = p.getX() - center.getX();
             float dy = p.getY() - center.getY();
@@ -111,7 +111,7 @@ std::vector<Enemy*> QuadTree::query(Tower t){
     return res;
 }
 
-void QuadTree::remove(Enemy* e){
+void QuadTree::remove(std::shared_ptr<Enemy> e){
 
     // On cherche dans le noeud actuel l'ennemy
     auto find = std::find(lst_enemy_.begin(),lst_enemy_.end(),e);
@@ -144,7 +144,7 @@ void QuadTree::print(int level) const {
 
     if (!lst_enemy_.empty()) {
         std::cout << " [ ";
-        for (Enemy* e : lst_enemy_) {
+        for (const auto& e : lst_enemy_) {
             Point p = e->getPosition();
             std::cout << "(" << p.getX() << "," << p.getY() << ") ";
         }
@@ -164,4 +164,3 @@ void QuadTree::print(int level) const {
     botLeftTree_->print(level + 1);
     botRightTree_->print(level + 1);
 }
-
