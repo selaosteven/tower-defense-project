@@ -6,13 +6,25 @@ Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
 Entity{{0,0}}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, path_{}, offset_{0.0f} {
     sprites_ = createSprites({255,255,255,255});
 }
-Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start) : Enemy{ref} {
+
+Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start) 
+    : Enemy{ref.lp_, ref.speed_, ref.resistance_, ref.fly_} {
     position_ = position;
     path_ = ++start;
     offset_ = offset;
 }
 
 void Enemy::live(float deltaTime) {
+    // Process the stack of effects
+    for (auto it = effects_.begin(); it != effects_.end(); ) {
+        (*it)->apply(*this, deltaTime);
+        if ((*it)->isExpired()) {
+            it = effects_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     auto prev = path_;
     Point origin = *(--prev);
     Point target = *path_;
@@ -25,6 +37,10 @@ void Enemy::live(float deltaTime) {
     float len = std::sqrt(direction.getX()*direction.getX() + direction.getY()*direction.getY());
     float dot = traveled.getX()*direction.getX() + traveled.getY()*direction.getY();
     if(dot >= len * (len + offset_)) path_++;
+}
+
+void Enemy::addEffect(std::unique_ptr<Effect> effect) {
+    effects_.push_back(std::move(effect));
 }
 
 

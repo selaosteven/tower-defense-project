@@ -1,0 +1,59 @@
+#include "Entities/Augment.h"
+#include "Entities/Tower.h"
+#include <cstdlib>
+#include <iostream>
+
+Augment::Augment(const std::string& name) : name_{name} {}
+
+Augment::~Augment() {}
+
+// Default empty implementations
+void Augment::onEquip(Tower& tower) {}
+void Augment::onUnequip(Tower& tower) {}
+
+void Augment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& projectile) {}
+void Augment::projectile_hit_postfix(std::vector<Enemy*> enemies, Projectile& projectile) {}
+
+void Augment::tower_shoot_prefix(Tower& tower, Enemy& target) {}
+void Augment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {}
+
+void Augment::tower_rotate_prefix(Tower& tower, Enemy& target) {}
+void Augment::tower_rotate_postfix(Tower& tower, Enemy& target) {}
+
+void Augment::effect_apply_prefix(Effect& effect, Enemy& target) {}
+void Augment::effect_apply_postfix(Effect& effect, Enemy& target) {}
+
+// --- CritAugment Implementation ---
+
+CritAugment::CritAugment(float critChance, float critMultiplier) 
+    : Augment("Critical Hit"), critChance_(critChance), critMultiplier_(critMultiplier), originalDamage_(0.0f), didCrit_(false) {}
+
+void CritAugment::tower_shoot_prefix(Tower& tower, Enemy& target) {
+    float roll = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    if (roll <= critChance_) {
+        didCrit_ = true;
+        originalDamage_ = tower.getDamage();
+        tower.setDamage(originalDamage_ * critMultiplier_);
+        std::cout << "CRITICAL HIT!" << std::endl;
+    } else {
+        didCrit_ = false;
+    }
+}
+
+void CritAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {
+    if (didCrit_) {
+        tower.setDamage(originalDamage_);
+    }
+}
+
+// --- RangeAugment Implementation ---
+
+RangeAugment::RangeAugment(float bonusRange) : Augment("Range Boost"), bonusRange_(bonusRange) {}
+
+void RangeAugment::onEquip(Tower& tower) {
+    tower.setRange(tower.getRange() + bonusRange_);
+}
+
+void RangeAugment::onUnequip(Tower& tower) {
+    tower.setRange(tower.getRange() - bonusRange_);
+}

@@ -33,28 +33,33 @@ id_{compteur_++}
 
 
 void Tower::rotate(Enemy& target){
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_rotate_prefix(*this, target);
     }
 
     do_rotate(target);
 
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_rotate_postfix(*this, target);
     }
 }
 
 
 void Tower::shoot(Enemy& target){
-    for(auto a : augments_){
+    for(auto& a : augments_){
         a->tower_shoot_prefix(*this, target);
     }
 
     do_shoot(target);
 
-    for(auto a : augments_){
-        a->tower_shoot_prefix(*this, target);
+    for(auto& a : augments_){
+        a->tower_shoot_postfix(*this, target, proj_);
     }
+}
+
+void Tower::addAugment(std::unique_ptr<Augment> augment) {
+    augment->onEquip(*this);
+    augments_.push_back(std::move(augment));
 }
 
 
