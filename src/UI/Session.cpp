@@ -1,6 +1,7 @@
 #include "Session.h"
 
 #include "Sprites/PrimitiveForm.h"
+#include "Sprites/Text.h"
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
 
@@ -99,6 +100,7 @@ void UI::Session::drawUI(SDL_Renderer* r) {
 
 
 void UI::Session::mainSession() {
+    while(!Window::sdl_initiated);
     float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
@@ -107,7 +109,27 @@ void UI::Session::mainSession() {
     auto myProj = Projectile(1, 0.5);;
     auto sniperBlueprint = TowerTree::loadFromFile("../src/Ressources/sniper.json");
     auto myTower = sniperBlueprint->instantiateTower({100, 100}, myProj);
+    Sprites::Text* myText = new Sprites::Text(
+        {4.2f, 4.2f, 10.0f}, // Position + Z-index
+        "This is a long UI text that will wrap!",
+        "../src/Ressources/PokemonClassic.ttf", // Path to a valid font
+        20, // Font Size
+        {255, 125, 255, 255}, // Color
+        200, // Max width of the bounding box
+        true // Centered
+    );
+    addSprite(myText);
 
+    Sprites::Text* myText2 = new Sprites::Text(
+        {12.2f, 8.2f, 10.0f}, // Position + Z-index
+        "This is a long UI text that will wrap!",
+        "../src/Ressources/POKPIX1.TTF", // Path to a valid font
+        40, // Font Size
+        {125, 125, 255, 255}, // Color
+        400, // Max width of the bounding box
+        false // Centered
+    );
+    addSprite(myText2);
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
             

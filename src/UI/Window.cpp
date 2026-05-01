@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <thread>
+#include <SDL2/SDL_ttf.h>
 
 #include "Window.h"
 #include "Sprites/Sprite.h"
@@ -48,6 +49,7 @@ UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), wi
 UI::Window::~Window(){
     SDL_DestroyWindow(window_);
     SDL_DestroyRenderer(renderer_);
+    TTF_Quit();
     delete event_;
 }
 
@@ -210,6 +212,10 @@ werrors UI::Window::init_sdl(Uint32 flags){
         sdl_flags = flags;
         if(SDL_Init(sdl_flags) < 0){
             print_sdl_error("Failed to create window");
+            return SDL_INIT_FAILED;
+        }
+        if (TTF_Init() == -1) {
+            print_sdl_error("Failed to init TTF");
             return SDL_INIT_FAILED;
         }
         sdl_initiated = true;

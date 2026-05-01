@@ -34,7 +34,7 @@ class Window
 
 
 // Static - classwide
-private:
+protected:
     static bool sdl_initiated;
     static unsigned int number_of_instances;
     static Uint32 sdl_flags;
