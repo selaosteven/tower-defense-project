@@ -112,21 +112,34 @@ werrors UI::Window::inputs(){
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
-            case SDL_MOUSEBUTTONDOWN: // Clic de la souris qui vient d'être pressé
+            case SDL_MOUSEBUTTONDOWN: { // Clic de la souris qui vient d'être pressé
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
-                if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
-                    Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
-                    clickLeft(click);
-            
-                    
-                    break;
+                
+                Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
+                bool consumed = false;
+
+                // Propagate click to UI sprites (highest Z-index first)
+                for(auto it = ui_sprites_.rbegin(); it != ui_sprites_.rend(); ++it){
+                    auto s = *it;
+                    Point pos = s->getPosition();
+                    float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                    float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                    if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
+                        consumed = true;
+                        break;
+                    }
                 }
 
-                if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
-                    std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
-                    break;
+                if (!consumed) {
+                    if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
+                        clickLeft(click);
+                    }
+                    else if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
+                        std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    }
                 }
                 break;
+            }
             case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;

@@ -2,6 +2,7 @@
 
 #include "Sprites/PrimitiveForm.h"
 #include "Sprites/Text.h"
+#include "Sprites/Button.h"
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
 
@@ -130,6 +131,28 @@ void UI::Session::mainSession() {
         false // Centered
     );
     addUISprite(myText2);
+
+    // Button acts as the master entity. Give it the absolute/anchored coordinates.
+    auto boutonTest = new Sprites::Button({-420.0f, 80.0f, 10.0f}, 150.0f, 50.0f);
+    
+    // The sub-sprites are relative to the Button. 
+    // 1. Add a background to see the button bounds (Primitive rectangle origins are centered, so we offset by width/2, height/2)
+    boutonTest->addSubSprite(Sprites::rectangle({75.0f, 25.0f, 0.0f}, 150.0f, 50.0f, {80, 80, 150, 255}));
+    
+    // 2. Add the text centered over the button background
+    boutonTest->addSubSprite(new Sprites::Text(
+        {75.0f, 25.0f, 1.0f}, // Relative to button center
+        "CLICK ME",
+        "../src/Ressources/PokemonClassic.ttf", // Path to a valid font
+        20, // Font Size
+        {255, 255, 255, 255}, // Color
+        150, // Max width of the bounding box
+        true // Centered
+    ));
+    
+    boutonTest->setOnLeftClick([]() { std::cout << "Button clicked!" << std::endl; });
+    addUISprite(boutonTest);
+
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
             

@@ -31,6 +31,9 @@ public:
 
     virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
     
+    // Returns true if the sprite "consumes" the click event
+    virtual bool onClick(Point click, int button, Point offset, float scale) { return false; }
+    
     inline void setScale(const float scale) {
         scale_ = scale;
     }
