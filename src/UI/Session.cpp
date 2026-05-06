@@ -1,4 +1,5 @@
 #include "Session.h"
+#include <thread>
 
 #include "Sprites/PrimitiveForm.h"
 #include "Sprites/Text.h"
@@ -12,8 +13,21 @@ UI::Session::Session(std::string name_map):
     hp_player_{50},
     round_{0},
     money_{0},
-    showUI_{false}
+    showUI_{false},
+    waveActive_{false},
+    enemiesToSpawn_{0},
+    spawnTimer_{0.0f}
     {}
+
+void UI::Session::startNextWave() {
+    if (!waveActive_) {
+        round_++;
+        enemiesToSpawn_ = 5 + round_ * 2; // Increase difficulty: 7, 9, 11 enemies...
+        spawnTimer_ = 0.0f;
+        waveActive_ = true;
+        std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
+    }
+}
 
 void UI::Session::moneySetter(int new_money) {
     hp_player_ = new_money;
@@ -186,25 +200,68 @@ void UI::Session::mainSession() {
     bool running = true;
     Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
-    Enemy ref{0.2, .02, 0.2, true};
+    Enemy ref{5.0f, 1.5f, 0.2f, true}; // Increased LP to 5, and Speed to 1.5 cells per second
     std::vector<Enemy*> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
+
+    // Start the first wave automatically for testing, or rely on UI to trigger it
+    startNextWave(); 
+
     while(running) {
-        float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
-        Point spawnOffset = spawningDirection*offsetSpawn;
-        Point spawnPosition{baseX,baseY};
-        spawnPosition += spawnOffset;
         auto now = clock::now();
-        auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime).count();
-        for (auto enemy : el) {
-            enemy->live(delta_time_);            
+        float dt = std::chrono::duration<float>(now - lastTime).count();
+        lastTime = now;
+
+        if (waveActive_) {
+            spawnTimer_ += dt;
+            
+            // Spawn enemies if we still have some left to spawn for this wave
+            if (enemiesToSpawn_ > 0 && spawnTimer_ >= 1.0f) { // spawn every 1 second
+                float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
+                Point spawnOffset = spawningDirection*offsetSpawn;
+                Point spawnPosition{baseX,baseY};
+                spawnPosition += spawnOffset;
+                
+                el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin(), path.end()});
+                addEntity(el.back());
+                enemiesToSpawn_--;
+                spawnTimer_ = 0.0f;
+            }
+
+            // Update existing enemies
+            for (auto it = el.begin(); it != el.end(); ) {
+                Enemy* enemy = *it;
+                enemy->live(dt);
+                
+                if (enemy->hasReachedEnd()) {
+                    hpSetter(hp_player_ - 1);
+                    std::cout << "Player took damage! HP: " << hp_player_ << "\n";
+                    removeEntity(enemy);
+                    delete enemy;
+                    it = el.erase(it);
+                } else if (enemy->getLp() <= 0) {
+                    moneySetter(money_ + 10);
+                    removeEntity(enemy);
+                    delete enemy;
+                    it = el.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
+            // Check if wave is over (no more to spawn and board is clear)
+            if (enemiesToSpawn_ <= 0 && el.empty()) {
+                waveActive_ = false;
+                std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
+            }
         }
-        if (dt >= 2000) { // toutes les 100 ms
-            el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin()});
-            addEntity(el.back());
-            std::cout << el.size() << " -- " << std::endl;
-    
-            lastTime = now;
+        
+        if (hp_player_ <= 0) {
+            std::cout << "GAME OVER!\n";
+            running = false;
         }
+
+        // Small sleep to prevent 100% CPU usage loop
+        std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
 }

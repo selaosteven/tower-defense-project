@@ -21,13 +21,16 @@ protected:
     std::vector<std::unique_ptr<Effect>> effects_; // The Effect "stack"
 public:
     std::list<Point>::iterator path_;
+    std::list<Point>::iterator path_end_;
     float offset_;
+    bool reached_end_ = false;
    
 public:
     Enemy(float lp, float speed, float resistance, bool fly); // constructeur
-    Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start);
+    Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end);
 
     void live(float deltaTime) override;
+    bool hasReachedEnd() const { return reached_end_; }
 
     // Methods to manage effects
     void addEffect(std::unique_ptr<Effect> effect);
