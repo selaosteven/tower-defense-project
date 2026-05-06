@@ -24,13 +24,17 @@ public:
     std::list<Point>::iterator path_end_;
     float offset_;
     bool reached_end_ = false;
+    bool alive_ = true;
    
 public:
     Enemy(float lp, float speed, float resistance, bool fly); // constructeur
     Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end);
+    virtual ~Enemy() = default;
 
     void live(float deltaTime) override;
     bool hasReachedEnd() const { return reached_end_; }
+    bool isAlive() const { return alive_; }
+    void kill() { alive_ = false; }
 
     // Methods to manage effects
     void addEffect(std::unique_ptr<Effect> effect);

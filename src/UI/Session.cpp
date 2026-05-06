@@ -1,10 +1,15 @@
 #include "Session.h"
 #include <thread>
 
+#include <iostream>
+#include <thread>
 #include "Sprites/PrimitiveForm.h"
 #include "Sprites/Text.h"
+#include "Sprites/Button.h"
 #include "Entities/Enemy.h"
+#include "Entities/Tower.h"
 #include "Entities/TowerTree.h"
+#include "Entities/Projectile.h"
 
 UI::Session::Session(std::string name_map): 
     UI::Window{},
@@ -12,12 +17,17 @@ UI::Session::Session(std::string name_map):
     map_ope_{map_.getWidth(), map_.getHeight()},
     hp_player_{50},
     round_{0},
-    money_{0},
-    showUI_{false},
     waveActive_{false},
     enemiesToSpawn_{0},
-    spawnTimer_{0.0f}
-    {}
+    spawnTimer_{0.0f},
+    money_{1000},
+    showUI_{false},
+    selected_cell_{},
+    ticks_per_seconds_{120},
+    selected_tower_{nullptr}
+    {
+        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/sniper.json"));
+    }
 
 void UI::Session::startNextWave() {
     if (!waveActive_) {
@@ -30,86 +40,171 @@ void UI::Session::startNextWave() {
 }
 
 void UI::Session::moneySetter(int new_money) {
-    hp_player_ = new_money;
+    money_ = new_money;
 }
 
 void UI::Session::hpSetter(int new_hp) {
     hp_player_ = new_hp;
 }
 
+void UI::Session::closeTowerUI() {
+    for (auto* sprite : active_ui_elements_) {
+        removeUISprite(sprite);
+        delete sprite; // The UI owns these temporary sprites
+    }
+    active_ui_elements_.clear();
+    showUI_ = false;
+    selected_tower_ = nullptr;
+    selected_cell_.reset();
+}
+
+void UI::Session::openBuildUI(Point cell) {
+    if (showUI_) closeTowerUI(); // Close any existing UI first
+
+    showUI_ = true;
+    selected_cell_ = cell;
+    
+    float startY = 110.0f;
+    float stepY = 60.0f;
+
+    // Title
+    auto title = new Sprites::Text({110.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, {255, 255, 255, 255});
+    active_ui_elements_.push_back(title);
+    addUISprite(title);
+    startY += 40;
+
+    for (const auto& blueprint : tower_catalog_) {
+        int cost = blueprint->getRootUpgrade() ? blueprint->getRootUpgrade()->cost : 0;
+        std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
+
+        auto button = new Sprites::Button({120.0f, startY, 10.0f}, 260.0f, 50.0f);
+        button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
+        
+        auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        button->addSubSprite(text);
+
+        button->setOnLeftClick([this, blueprint = blueprint.get(), cost]() {
+            if (money_ >= cost) {
+                money_ -= cost;
+                
+                float logicX = selected_cell_->getX() + 0.5f;
+                float logicY = selected_cell_->getY() + 0.5f;
+
+                Projectile dummyProj(1, 0.5); 
+                auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
+                
+                addEntity(new_tower.get());
+                placed_towers_.push_back(std::move(new_tower));
+
+                std::cout << "Built a " << blueprint->getTowerType() << " at " << logicX << ", " << logicY << std::endl;
+                closeTowerUI();
+            } else {
+                std::cout << "Not enough money!" << std::endl;
+            }
+        });
+
+        active_ui_elements_.push_back(button);
+        addUISprite(button);
+        startY += stepY;
+    }
+}
+
+void UI::Session::openUpgradeUI(Tower* tower) {
+    if (showUI_) closeTowerUI();
+
+    showUI_ = true;
+    selected_tower_ = tower;
+
+    float startY = 110.0f;
+    float stepY = 60.0f;
+
+    auto title = new Sprites::Text({110.0f, startY, 11.0f}, "Upgrades", Sprites::Text::POKETEXT, 24, {255, 255, 255, 255});
+    active_ui_elements_.push_back(title);
+    addUISprite(title);
+    startY += 40;
+
+    const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
+    if (!current_node || current_node->children.empty()) {
+        auto text = new Sprites::Text({120.0f, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        active_ui_elements_.push_back(text);
+        addUISprite(text);
+        return;
+    }
+
+    for (const auto& upgrade_node_ptr : current_node->children) {
+        const UpgradeNode* upgrade = upgrade_node_ptr.get();
+        std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
+
+        auto button = new Sprites::Button({120.0f, startY, 10.0f}, 260.0f, 50.0f);
+        button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
+        
+        auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        button->addSubSprite(text);
+
+        button->setOnLeftClick([this, upgrade]() {
+            if (money_ >= upgrade->cost) {
+                money_ -= upgrade->cost;
+                selected_tower_->applyUpgrade(upgrade);
+                std::cout << "Upgraded tower with " << upgrade->name << std::endl;
+                closeTowerUI();
+            } else {
+                std::cout << "Not enough money!" << std::endl;
+            }
+        });
+
+        active_ui_elements_.push_back(button);
+        addUISprite(button);
+        startY += stepY;
+    }
+}
+
 void UI::Session::clickLeft(Point click) {
-
-    // Si l'UI est ouverte
+    // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
+    // We only need to check for clicks *outside* the UI panel to close it.
     if (showUI_) {
+        SDL_Rect uiRect = { 100, 100, 300, 400 };
 
-        SDL_Rect uiRect = { 100, 100, 300, 200 };
-
-        // Si clic DANS l'UI → on ne ferme pas
-        if (click.getX() >= uiRect.x &&
-            click.getX() <= uiRect.x + uiRect.w &&
-            click.getY() >= uiRect.y &&
-            click.getY() <= uiRect.y + uiRect.h)
+        if (click.getX() < uiRect.x || click.getX() > uiRect.x + uiRect.w ||
+            click.getY() < uiRect.y || click.getY() > uiRect.y + uiRect.h)
         {
-            // Ici tu gères les boutons si tu veux
-            std::cout << "Clic dans l'UI\n";
+            closeTowerUI();
             return;
         }
-
-        // Sinon → clic hors UI → on ferme
-        showUI_ = false;
-        std::cout << "UI fermée\n";
         return;
     }
     
-    float seuil = 0.5f; // seuil logique
+    // --- UI is not open, handle world clicks ---
 
-    // 1) Recalcul EXACT du offset (scale_ est déjà correct)
-    float offsetX = (getWinWidth()  - scale_ * map_.getWidth())  / 2.0f;
-    float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
+    float clickLX = (click.getX() - camera_position_.getX()) / scale_;
+    float clickLY = (click.getY() - camera_position_.getY()) / scale_;
 
-    // 2) Conversion du clic pixel → logique
-    float clickLX = (click.getX() - offsetX) / scale_;
-    float clickLY = (click.getY() - offsetY) / scale_;
+    int cellX = static_cast<int>(std::floor(clickLX));
+    int cellY = static_cast<int>(std::floor(clickLY));
 
-    float verticalFix = 1.6f;   
-    clickLY += verticalFix;
+    if (cellY < 0 || cellY >= map_.getHeight() || cellX < 0 || cellX >= map_.getWidth() || map_.map_[cellY][cellX] != Case::Tower) {
+        return;
+    }
 
-    // 3) Parcours des sprites
-    for (Sprites::Sprite* s : getSprites()) {
-
-        Point p = s->getPosition(); // position logique (ex : 3.5, 4.5)
-        float sx = p.getX();
-        float sy = p.getY();
-
-        // 4) Distance logique
-        float dx = sx - clickLX;
-        float dy = sy - clickLY;
-
-        if (dx*dx + dy*dy > seuil * seuil)
-            continue;
-
-        // 5) Conversion logique → case
-        int cellX = (int)std::floor(sx);
-        int cellY = (int)std::floor(sy);
-
-        // 6) Lecture
-        Case type = map_.map_[cellY][cellX];
-        map_.printCase(type);
-
-        if (type == Case::Tower) {
-            showUI_ = true;
+    Tower* clicked_tower = nullptr;
+    for (auto const& tower : placed_towers_) {
+        Point tower_pos = tower->getPosition();
+        if (static_cast<int>(std::floor(tower_pos.getX())) == cellX && static_cast<int>(std::floor(tower_pos.getY())) == cellY) {
+            clicked_tower = tower.get();
+            break;
         }
+    }
+
+    if (clicked_tower) {
+        openUpgradeUI(clicked_tower);
+    } else {
+        openBuildUI({(float)cellX, (float)cellY});
     }
 }
 
 void UI::Session::drawUI(SDL_Renderer* r) {
-    if (!showUI_) return;
-
-    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(r, 0, 0, 0, 180);
-
-    SDL_Rect panel = { 100, 100, 300, 200 };
-    SDL_RenderFillRect(r, &panel);
+    if (!showUI_) return;    
+    static std::unique_ptr<Sprites::PrimitiveForm> background(Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200}));
+    background->draw(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, 0.0f);
 }
 
 
@@ -119,31 +214,23 @@ void UI::Session::mainSession() {
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
     float cellSize = 1.0f;
-    // offset_ = Point{offsetX, offsetY}; // Décommentez si vous avez ajouté offset_ dans Session.h
-    auto myProj = Projectile(1, 0.5);;
-    auto sniperBlueprint = TowerTree::loadFromFile("../src/Ressources/sniper.json");
-    auto myTower = sniperBlueprint->instantiateTower({100, 100}, myProj);
-    Sprites::Text* myText = new Sprites::Text(
-        {20.0f, 20.0f, 10.0f}, // Position in pixels (Top Left)
-        "Top Left UI Text",
-        "../src/Ressources/PokemonClassic.ttf", // Path to a valid font
-        20, // Font Size
-        {255, 125, 255, 255}, // Color
-        200, // Max width of the bounding box
-        false // Centered
-    );
-    addUISprite(myText);
 
-    Sprites::Text* myText2 = new Sprites::Text(
-        {-420.0f, 20.0f, 10.0f}, // Negative X anchors to the right side
-        "Right-Anchored UI Text",
-        "../src/Ressources/POKPIX1.TTF", // Path to a valid font
-        40, // Font Size
-        {125, 125, 255, 255}, // Color
-        400, // Max width of the bounding box
-        false // Centered
-    );
-    addUISprite(myText2);
+    // Center the map on the screen for the rendering engine
+    float offsetX = (getWinWidth()  - scale_ * map_.getWidth())  / 2.0f;
+    float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
+    camera_position_ = Point{offsetX, offsetY};
+
+
+    // Status UI Elements
+    auto moneyText = new Sprites::Text({20.0f, 20.0f, 10.0f}, "Money: " + std::to_string(money_) + "$", Sprites::Text::POKETEXT, 24, {255, 215, 0, 255});
+    addUISprite(moneyText);
+    
+    auto hpText = new Sprites::Text({getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, {255, 50, 50, 255}, true);
+    addUISprite(hpText);
+
+    int last_money = money_;
+    int last_hp = hp_player_;
+
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
             
@@ -196,9 +283,9 @@ void UI::Session::mainSession() {
     float baseY = path.front().getY();
 
     using clock = std::chrono::steady_clock;
-    auto lastTime = clock::now();
+    auto lastTickTime = clock::now();
+    auto lastSpawnTime = clock::now();
     bool running = true;
-    Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
     Enemy ref{5.0f, 1.5f, 0.2f, true}; // Increased LP to 5, and Speed to 1.5 cells per second
     std::vector<Enemy*> el = {};
@@ -206,12 +293,20 @@ void UI::Session::mainSession() {
 
     // Start the first wave automatically for testing, or rely on UI to trigger it
     startNextWave(); 
+    auto lastTime = clock::now();
 
-    while(running) {
+    while(running && !wants_to_die_) {
         auto now = clock::now();
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
-
+        if (money_ != last_money) {
+            moneyText->setText("Money: " + std::to_string(money_) + "$");
+            last_money = money_;
+        }
+        if (hp_player_ != last_hp) {
+            hpText->setText("HP: " + std::to_string(hp_player_));
+            last_hp = hp_player_;
+        }
         if (waveActive_) {
             spawnTimer_ += dt;
             
@@ -229,20 +324,25 @@ void UI::Session::mainSession() {
             }
 
             // Update existing enemies
-            for (auto it = el.begin(); it != el.end(); ) {
-                Enemy* enemy = *it;
+            for (auto& enemy : el) {
+                if (!enemy->isAlive()) continue;
                 enemy->live(dt);
                 
                 if (enemy->hasReachedEnd()) {
                     hpSetter(hp_player_ - 1);
                     std::cout << "Player took damage! HP: " << hp_player_ << "\n";
-                    removeEntity(enemy);
-                    delete enemy;
-                    it = el.erase(it);
+                    enemy->kill();
                 } else if (enemy->getLp() <= 0) {
                     moneySetter(money_ + 10);
-                    removeEntity(enemy);
-                    delete enemy;
+                    enemy->kill();
+                }
+            }
+            
+            // Clean up dead enemies
+            for (auto it = el.begin(); it != el.end(); ) {
+                if (!(*it)->isAlive()) {
+                    removeEntity(*it);
+                    delete *it;
                     it = el.erase(it);
                 } else {
                     ++it;

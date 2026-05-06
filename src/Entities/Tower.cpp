@@ -87,10 +87,11 @@ void Tower::do_rotate(Enemy& target) {
 // Static methods 
 
 std::vector<Sprites::Sprite*> Tower::createSprites(SDL_Color color) {
-    // base : 
-    Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f,0.0f,1.0f}, 20);
-    Sprites::PrimitiveForm * socle = Sprites::circle({0.0f,0.0f,2.0f}, 10, 30);
-    Sprites::PrimitiveForm * canon = Sprites::rectangle({0.0f,0.0f,3.0f}, 5, 15);
+    // Sizes are now in logical units, relative to a 1x1 cell, to match the map sprites.
+    // A tower should fit comfortably within a single cell.
+    Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
+    Sprites::PrimitiveForm * socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
+    Sprites::PrimitiveForm * canon = Sprites::rectangle({0.0f, 0.0f, 3.0f}, 0.15f, 0.5f); // The cannon itself
 
     return {base, socle, canon};
 }

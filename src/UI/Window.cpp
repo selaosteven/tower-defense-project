@@ -39,18 +39,38 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), thread_(nullptr), ticks_{0}, destroyed_{false}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0}, wants_to_die_{false} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
-    SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
+    thread_ = SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this);
 }
 
 
 UI::Window::~Window(){
-    SDL_DestroyWindow(window_);
-    SDL_DestroyRenderer(renderer_);
+    if (destroyed_) return;  // Prevent double deletion
+    destroyed_ = true;
+    
+    // Wait for the window thread to finish if it's still running
+    if (thread_ != nullptr) {
+        int thread_return_value;
+        SDL_WaitThread(thread_, &thread_return_value);
+        thread_ = nullptr;
+    }
+    
+    // Clean up SDL resources
+    if (renderer_ != nullptr) {
+        SDL_DestroyRenderer(renderer_);
+        renderer_ = nullptr;
+    }
+    if (window_ != nullptr) {
+        SDL_DestroyWindow(window_);
+        window_ = nullptr;
+    }
+    if (event_ != nullptr) {
+        delete event_;
+        event_ = nullptr;
+    }
     TTF_Quit();
-    delete event_;
 }
 
 int UI::Window::Create(void * args){
@@ -92,6 +112,7 @@ werrors UI::Window::inputs(){
         switch (event_->type)
         {
             case SDL_QUIT:
+                wants_to_die_ = true;
                 SDL_PushEvent(event_);
                 return STOP;
 
@@ -99,6 +120,7 @@ werrors UI::Window::inputs(){
                 if (event_->window.windowID == SDL_GetWindowID(window_)) {
                     is_for_me = true;
                     if (event_->window.event == SDL_WINDOWEVENT_CLOSE) {
+                        wants_to_die_ = true;
                         lock.unlock();
                         return STOP;
                     }
@@ -112,21 +134,37 @@ werrors UI::Window::inputs(){
             case SDL_KEYUP:
                 if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
-            case SDL_MOUSEBUTTONDOWN: // Clic de la souris qui vient d'être pressé
+            case SDL_MOUSEBUTTONDOWN: { // Clic de la souris qui vient d'être pressé
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
-                if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
-                    Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
-                    clickLeft(click);
-            
-                    
-                    break;
+                
+                Point click{static_cast<float>(event_->button.x),static_cast<float>(event_->button.y)};
+                bool consumed = false;
+
+                // Propagate click to UI sprites (highest Z-index first)
+                {
+                    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+                    for(auto it = ui_sprites_.rbegin(); it != ui_sprites_.rend(); ++it){
+                        auto s = *it;
+                        Point pos = s->getPosition();
+                        float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                        float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                        if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
+                            consumed = true;
+                            break;
+                        }
+                    }
                 }
 
-                if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
-                    std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
-                    break;
+                if (!consumed) {
+                    if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
+                        clickLeft(click);
+                    }
+                    else if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
+                        std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                    }
                 }
                 break;
+            }
             case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
@@ -146,11 +184,20 @@ werrors UI::Window::inputs(){
     return NONE;
 }
 
+void UI::Window::waitForClose(){
+    if (thread_ != nullptr) {
+        int thread_return_value;
+        SDL_WaitThread(thread_, &thread_return_value);
+        thread_ = nullptr;
+    }
+}
+
 void UI::Window::loop(){
     while(1)
     {        
         SDL_SetRenderDrawColor(renderer_,0,0,0,255);
         SDL_RenderClear(renderer_);
+        SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
         delta_time_ = (SDL_GetTicks64() - ticks_) / 1000.0f;
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
@@ -174,6 +221,7 @@ void UI::Window::loop(){
 }
 
 void UI::Window::addSprite(Sprites::Sprite *sprite){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(sprites_.empty()) {
         sprites_.push_front(sprite);
     } else {
@@ -188,6 +236,7 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
 }
 
 void UI::Window::addUISprite(Sprites::Sprite *sprite){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(ui_sprites_.empty()) {
         ui_sprites_.push_front(sprite);
     } else {
@@ -201,7 +250,22 @@ void UI::Window::addUISprite(Sprites::Sprite *sprite){
     }
 }
 
+void UI::Window::removeSprite(Sprites::Sprite *sprite){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    if(!sprites_.empty()) {
+        sprites_.remove(sprite);
+    }
+}
+
+void UI::Window::removeUISprite(Sprites::Sprite *sprite){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    if(!ui_sprites_.empty()) {
+        ui_sprites_.remove(sprite);
+    }
+}
+
 void UI::Window::removeEntity(Entity *entity){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(!entities_.empty()) {
         entities_.remove(entity);
     }        
@@ -209,6 +273,7 @@ void UI::Window::removeEntity(Entity *entity){
 }
 
 void UI::Window::addEntity(Entity *entity){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(entities_.empty()) {
         entities_.push_front(entity);
     } else
@@ -224,8 +289,8 @@ void UI::Window::addEntity(Entity *entity){
 int UI::Window::instanceWindowThread(void * window){
     Window* win = static_cast<Window*>(window);
     int res = win->Create(nullptr);
-    delete win;
     number_of_instances--;
+    // Don't delete win here - let the main thread's destructor handle cleanup
     return res;
 }
 

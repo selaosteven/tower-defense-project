@@ -37,6 +37,7 @@ public:
     std::unique_ptr<Tower> instantiateTower(Point position, Projectile& proj) const;
     
     const UpgradeNode* getRootUpgrade() const { return rootUpgrade_.get(); }
+    const std::string getTowerType() const {return towerType_;}
 };
 
 #endif

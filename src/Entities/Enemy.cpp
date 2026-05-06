@@ -16,7 +16,7 @@ Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::i
 }
 
 void Enemy::live(float deltaTime) {
-    if (reached_end_ || lp_ <= 0) return;
+    if (!alive_ || reached_end_ || lp_ <= 0) return;
 
     // Process the stack of effects
     for (auto it = effects_.begin(); it != effects_.end(); ) {
