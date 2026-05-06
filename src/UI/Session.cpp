@@ -207,12 +207,11 @@ void UI::Session::mainSession() {
     using clock = std::chrono::steady_clock;
     auto lastTime = clock::now();
     bool running = true;
-    Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
     Enemy ref{0.2, .02, 0.2, true};
     std::vector<Enemy*> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
-    while(running) {
+    while(running && !wants_to_die_) {
         float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
         Point spawnOffset = spawningDirection*offsetSpawn;
         Point spawnPosition{baseX,baseY};

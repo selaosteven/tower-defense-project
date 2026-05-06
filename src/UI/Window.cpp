@@ -39,18 +39,38 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), ticks_{0}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), thread_(nullptr), ticks_{0}, destroyed_{false}, wants_to_die_{false}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
-    SDL_DetachThread(SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this));
+    thread_ = SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this);
 }
 
 
 UI::Window::~Window(){
-    SDL_DestroyWindow(window_);
-    SDL_DestroyRenderer(renderer_);
+    if (destroyed_) return;  // Prevent double deletion
+    destroyed_ = true;
+    
+    // Wait for the window thread to finish if it's still running
+    if (thread_ != nullptr) {
+        int thread_return_value;
+        SDL_WaitThread(thread_, &thread_return_value);
+        thread_ = nullptr;
+    }
+    
+    // Clean up SDL resources
+    if (renderer_ != nullptr) {
+        SDL_DestroyRenderer(renderer_);
+        renderer_ = nullptr;
+    }
+    if (window_ != nullptr) {
+        SDL_DestroyWindow(window_);
+        window_ = nullptr;
+    }
+    if (event_ != nullptr) {
+        delete event_;
+        event_ = nullptr;
+    }
     TTF_Quit();
-    delete event_;
 }
 
 int UI::Window::Create(void * args){
@@ -92,6 +112,7 @@ werrors UI::Window::inputs(){
         switch (event_->type)
         {
             case SDL_QUIT:
+                wants_to_die_ = true;
                 SDL_PushEvent(event_);
                 return STOP;
 
@@ -99,6 +120,7 @@ werrors UI::Window::inputs(){
                 if (event_->window.windowID == SDL_GetWindowID(window_)) {
                     is_for_me = true;
                     if (event_->window.event == SDL_WINDOWEVENT_CLOSE) {
+                        wants_to_die_ = true;
                         lock.unlock();
                         return STOP;
                     }
@@ -157,6 +179,14 @@ werrors UI::Window::inputs(){
         }
     }
     return NONE;
+}
+
+void UI::Window::waitForClose(){
+    if (thread_ != nullptr) {
+        int thread_return_value;
+        SDL_WaitThread(thread_, &thread_return_value);
+        thread_ = nullptr;
+    }
 }
 
 void UI::Window::loop(){
@@ -237,8 +267,8 @@ void UI::Window::addEntity(Entity *entity){
 int UI::Window::instanceWindowThread(void * window){
     Window* win = static_cast<Window*>(window);
     int res = win->Create(nullptr);
-    delete win;
     number_of_instances--;
+    // Don't delete win here - let the main thread's destructor handle cleanup
     return res;
 }
 

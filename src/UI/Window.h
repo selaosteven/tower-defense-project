@@ -51,7 +51,9 @@ private:
     SDL_Renderer * renderer_;
     SDL_Window * window_;
     SDL_Event * event_;
+    SDL_Thread * thread_;
     Uint64 ticks_;
+    bool destroyed_;
     std::list<Sprites::Sprite*> sprites_;
     std::list<Sprites::Sprite*> ui_sprites_;
     std::list<Entity*> entities_;
@@ -64,6 +66,7 @@ protected:
     float scale_;
     float ui_scale_;
     Point camera_position_;
+    bool wants_to_die_;
 
 public:
     Window();
@@ -74,6 +77,7 @@ public:
     int Create(void * args);
     werrors inputs();
     void loop();
+    void waitForClose();
 
     void addSprite(Sprites::Sprite *sprite);
     void addUISprite(Sprites::Sprite *sprite);
