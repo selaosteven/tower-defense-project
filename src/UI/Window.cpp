@@ -39,7 +39,7 @@ UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
-UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), thread_(nullptr), ticks_{0}, destroyed_{false}, wants_to_die_{false}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0} {
+UI::Window::Window(int width, int height, Uint32 flags) : renderer_(nullptr), window_(nullptr), event_(nullptr), thread_(nullptr), ticks_{0}, destroyed_{false}, sprites_{}, ui_sprites_{}, win_width_{width}, win_height_{height}, win_flags_{flags}, delta_time_{0}, scale_{1}, ui_scale_{1.0f}, camera_position_{0,0}, wants_to_die_{false} {
     number_of_instances++;
     std::string threadName = "SDL_WindowThread_" + std::to_string(number_of_instances);
     thread_ = SDL_CreateThread(Window::instanceWindowThread, threadName.c_str(), this);
@@ -194,6 +194,7 @@ void UI::Window::loop(){
     {        
         SDL_SetRenderDrawColor(renderer_,0,0,0,255);
         SDL_RenderClear(renderer_);
+        SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
         delta_time_ = (SDL_GetTicks64() - ticks_) / 1000.0f;
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
@@ -241,6 +242,18 @@ void UI::Window::addUISprite(Sprites::Sprite *sprite){
             }
         }
         ui_sprites_.push_back(sprite);        
+    }
+}
+
+void UI::Window::removeSprite(Sprites::Sprite *sprite){
+    if(!sprites_.empty()) {
+        sprites_.remove(sprite);
+    }
+}
+
+void UI::Window::removeUISprite(Sprites::Sprite *sprite){
+    if(!ui_sprites_.empty()) {
+        ui_sprites_.remove(sprite);
     }
 }
 

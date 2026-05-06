@@ -8,6 +8,10 @@
 namespace Sprites {
 
 class Text : public Sprite {
+
+public:
+    static inline const std::string POKETEXT{"../src/Ressources/PokemonClassic.ttf"};
+
 private:
     std::string text_;
     TTF_Font* font_;

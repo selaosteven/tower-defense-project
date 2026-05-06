@@ -80,7 +80,9 @@ public:
     void waitForClose();
 
     void addSprite(Sprites::Sprite *sprite);
+    void removeSprite(Sprites::Sprite *sprite);
     void addUISprite(Sprites::Sprite *sprite);
+    void removeUISprite(Sprites::Sprite *sprite);
     void addEntity(Entity *entity);
     void removeEntity(Entity *entity);
 
