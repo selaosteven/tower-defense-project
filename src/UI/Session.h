@@ -11,6 +11,7 @@
 #include "Map/MapEntity.h"
 #include "QuadTree/Point.h"
 #include "Entities/TowerTree.h"
+#include "Entities/Projectile.h"
 
 struct UpgradeNode;
 
@@ -34,6 +35,7 @@ private:
     Tower* selected_tower_;
     std::vector<std::unique_ptr<TowerTree>> tower_catalog_;
     std::list<std::unique_ptr<Tower>> placed_towers_;
+    std::list<std::unique_ptr<Projectile>> active_projectiles_;
     std::vector<Sprites::Sprite*> active_ui_elements_;
 
 public:

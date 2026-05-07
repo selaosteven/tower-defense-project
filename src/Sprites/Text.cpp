@@ -7,7 +7,7 @@ Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::
     : Text(pos, text, fontPath, fontSize, color, 0, centered) {}
 
 Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::string& fontPath, int fontSize, SDL_Color color, int maxWidth, bool centered)
-    : Sprite{pos}, text_{text}, font_{nullptr}, color_{color}, texture_{nullptr}, width_{0}, height_{0}, centered_{centered}, maxWidth_{maxWidth} 
+    : Sprite{pos}, text_{text}, font_{nullptr}, color_{color}, texture_{nullptr}, width_{0}, height_{0}, centered_{centered}, maxWidth_{maxWidth}, needs_update_{false} 
 {
     font_ = TTF_OpenFont(fontPath.c_str(), fontSize);
     if (!font_) {
@@ -59,23 +59,28 @@ void Text::updateTexture(SDL_Renderer* renderer) {
 
 void Text::setText(const std::string& text, SDL_Renderer* renderer) {
     text_ = text;
-    if (renderer) updateTexture(renderer);
-    else {
-        if (texture_) { SDL_DestroyTexture(texture_); texture_ = nullptr; }
+    needs_update_ = true;
+    if (renderer) {
+        updateTexture(renderer);
+        needs_update_ = false;
     }
 }
 
 void Text::setColor(SDL_Color color, SDL_Renderer* renderer) {
     color_ = color;
-    if (renderer) updateTexture(renderer);
+    needs_update_ = true;
+    if (renderer) {
+        updateTexture(renderer);
+        needs_update_ = false;
+    }
 }
 
 void Text::draw(SDL_Renderer* win, float deltaTime, Point offset, float scale, float rot) {
     if (!font_ || text_.empty()) return;
 
-    // Lazy initialization of the texture once we finally have the renderer
-    if (!texture_) {
+    if (!texture_ || needs_update_) {
         updateTexture(win);
+        needs_update_ = false;
     }
     if (!texture_) return; 
 

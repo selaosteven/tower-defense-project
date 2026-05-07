@@ -29,9 +29,18 @@ private:
     float damage_; // Damage
     float as_; // Attack Speed 
     float rs_; // Rotation Speed
-    Projectile& proj_; // Classe Projectile 
+    float cone_angle_; // Cone of fire angle in degrees (e.g., 60)
+    Projectile proj_; // Classe Projectile 
     std::string type_; // Type de la tour
-    int id_; 
+    int id_;
+    
+    // Targeting and orientation
+    float current_angle_; // Current tower orientation (-180 to 180)
+    float time_since_shot_; // Time since last shot 
+    bool show_range_;
+    bool range_changed_;
+    std::unique_ptr<Sprites::Sprite> range_sprite_;
+    std::vector<std::unique_ptr<Projectile>> spawned_projectiles_;
 
 protected:
     std::vector<std::unique_ptr<Augment>> augments_;
@@ -50,9 +59,18 @@ public:
 private:
     void do_rotate(Enemy& target);
     void do_shoot(Enemy& target);
+    
+    // Cone targeting helpers
+    Enemy* findBestTarget(const std::vector<Enemy*>& enemies);
+    float calculateAngleToTarget(const Enemy& target) const;
+    float normalizeAngle(float angle) const;
+    float getSmallestRotation(float from, float to) const;
+    bool isInCone(const Enemy& target) const;
 public:
     void rotate(Enemy& target);
     void shoot(Enemy& target);
+    void live(float deltaTime, const std::vector<Enemy*>& enemies);
+    void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
 
     void addAugment(std::unique_ptr<Augment> augment);
 
@@ -71,10 +89,19 @@ public:
     inline std::string getType() const {return type_;} // Getter Type
     inline int getId() const {return id_;} // Getter ID
 
-    inline void setRange(float range) { range_ = range; }
+    inline void setRange(float range) { range_ = range; range_changed_ = true; }
     inline void setDamage(float damage) { damage_ = damage; }
     inline void setAs(float as) { as_ = as; }
     inline void setRs(float rs) { rs_ = rs; }
+    inline void setConeAngle(float angle) { cone_angle_ = angle; }
+    inline float getConeAngle() const { return cone_angle_; }
+    inline float getCurrentAngle() const { return current_angle_; }
+    inline void setShowRange(bool show) { show_range_ = show; }
+    inline bool getShowRange() const { return show_range_; }
+
+    std::vector<std::unique_ptr<Projectile>> fetchSpawnedProjectiles() {
+        return std::move(spawned_projectiles_);
+    }
 };
 
 #endif

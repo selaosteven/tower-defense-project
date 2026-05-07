@@ -53,6 +53,9 @@ void UI::Session::closeTowerUI() {
         delete sprite; // The UI owns these temporary sprites
     }
     active_ui_elements_.clear();
+    if (selected_tower_) {
+        selected_tower_->setShowRange(false);
+    }
     showUI_ = false;
     selected_tower_ = nullptr;
     selected_cell_.reset();
@@ -90,7 +93,7 @@ void UI::Session::openBuildUI(Point cell) {
                 float logicX = cell.getX() + 0.5f;
                 float logicY = cell.getY() + 0.5f;
 
-                Projectile dummyProj(1, 0.5); 
+                Projectile dummyProj(0.0f, 5.0f); 
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
                 
                 addEntity(new_tower.get());
@@ -112,8 +115,10 @@ void UI::Session::openBuildUI(Point cell) {
 void UI::Session::openUpgradeUI(Tower* tower) {
     if (showUI_) closeTowerUI();
 
+    // Show tower range
     showUI_ = true;
     selected_tower_ = tower;
+    selected_tower_->setShowRange(true);
 
     float startY = 110.0f;
     float stepY = 60.0f;
@@ -300,10 +305,12 @@ void UI::Session::mainSession() {
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
         if (money_ != last_money) {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             moneyText->setText("Money: " + std::to_string(money_) + "$");
             last_money = money_;
         }
         if (hp_player_ != last_hp) {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             hpText->setText("HP: " + std::to_string(hp_player_));
             last_hp = hp_player_;
         }
@@ -337,6 +344,54 @@ void UI::Session::mainSession() {
                     moneySetter(money_ + 10);
                     enemy->kill();
                     removeEntity(enemy);
+                }
+            }
+             // Update projectiles
+            for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ) {
+                auto& proj = *it;
+                proj->live(dt);
+                
+                if (proj->hasHit()) {
+                    std::vector<Enemy*> hit_enemies;
+                    if (proj->getSize() > 0.0f) { // Splash damage
+                        for (auto& enemy : el) {
+                            if (!enemy->isAlive()) continue;
+                            Point dir = proj->getPosition() ^ enemy->getPosition();
+                            float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
+                            if (dist <= proj->getSize()) {
+                                hit_enemies.push_back(enemy);
+                            }
+                        }
+                    } else { // Single target
+                        Enemy* closest = nullptr;
+                        float min_dist = 1.0f; // Max acceptable dist for single target splash search
+                        for (auto& enemy : el) {
+                            if (!enemy->isAlive()) continue;
+                            Point dir = proj->getPosition() ^ enemy->getPosition();
+                            float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
+                            if (dist <= min_dist) {
+                                min_dist = dist;
+                                closest = enemy;
+                            }
+                        }
+                        if (closest) hit_enemies.push_back(closest);
+                    }
+                    
+                    proj->hit(hit_enemies);
+                    
+                    removeEntity(proj.get());
+                    it = active_projectiles_.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            // Update towers with enemy list
+            for (auto& tower : placed_towers_) {
+                tower->live(dt, el);
+                auto new_projs = tower->fetchSpawnedProjectiles();
+                for(auto& p : new_projs) {
+                    addEntity(p.get());
+                    active_projectiles_.push_back(std::move(p));
                 }
             }
             

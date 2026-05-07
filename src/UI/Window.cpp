@@ -202,19 +202,24 @@ void UI::Window::loop(){
         ticks_ = SDL_GetTicks64();
         werrors errInputs = inputs();
         if(errInputs == STOP) break;
-        for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
-        for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
         
-        drawUI(renderer_);
-
-        // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
-        for(auto s : ui_sprites_) {
-            Point pos = s->getPosition();
-            float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
-            float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
-            s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+        {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+            for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+            for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+            
+            
+            drawUI(renderer_);
+            
+            // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
+            for(auto s : ui_sprites_) {
+                Point pos = s->getPosition();
+                float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+            }
         }
-
+            
         SDL_RenderPresent(renderer_);
     }
     return;

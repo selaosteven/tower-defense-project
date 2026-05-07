@@ -21,6 +21,7 @@ private:
     int height_;
     bool centered_;
     int maxWidth_;
+    bool needs_update_;
 
     void updateTexture(SDL_Renderer* renderer);
 

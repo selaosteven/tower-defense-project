@@ -1,9 +1,9 @@
 {
   "type": "Sniper",
-  "baseRange": 250.0,
+  "baseRange": 3.0,
   "baseDamage": 50.0,
   "baseAs": 0.5,
-  "baseRs": 2.0,
+  "baseRs": 40.0,
   "upgrades": {
     "name": "Base Sniper",
     "cost": 100,

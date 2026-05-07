@@ -17,12 +17,16 @@ public:
 protected:
     float size_; // Dégat de Zone ou fixe
     float ps_; // Projectile Speed
-    std::vector<Augment*>* augments_;
+    float damage_;
+    float collision_radius_;
+    bool has_hit_;
+    std::vector<Augment*> augments_;
     std::unique_ptr<Target> target_;
 
 public:
-    Projectile(float size, float ps); // Constructeur
-    Projectile(Point position, float size, float ps); // Constructeur
+    Projectile(float size, float ps, float damage = 0.0f); // Constructeur
+    Projectile(Point position, float size, float ps, float damage = 0.0f); // Constructeur
+    Projectile(const Projectile& other);
     
     void live(float deltaTime) override;
 // Methods
@@ -34,6 +38,8 @@ public:
     inline float getVelocity() const{
         return ps_;
     }
+    inline float getSize() const { return size_; }
+    inline bool hasHit() const { return has_hit_; }
 
     inline void setTarget(Enemy * enemy){
         target_ = std::make_unique<TargetEntity>(enemy);
@@ -41,6 +47,11 @@ public:
     inline void setTarget(Point position){
         target_ = std::make_unique<TargetPoint>(position);
     }
+    inline void setPosition(Point position){ position_ = position; }
+    inline void setDamage(float damage) { damage_ = damage; }
+    inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
+    
+    std::unique_ptr<Projectile> clone() const;
 };
 
 #endif
