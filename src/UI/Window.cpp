@@ -205,8 +205,8 @@ void UI::Window::loop(){
         
         {
             std::lock_guard<std::recursive_mutex> lock(render_mutex_);
-            for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+            for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             
             
             drawUI(renderer_);

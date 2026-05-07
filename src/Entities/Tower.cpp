@@ -1,25 +1,11 @@
 #include <cmath>
+#include <algorithm>
 #include "Sprites/PrimitiveForm.h"
 #include "Entities/Augment.h"
 #include "Entities/Tower.h"
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
 
-namespace {
-    Sprites::PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex) {
-        std::vector<SDL_Vertex> vertices;
-        const float pi = std::acos(-1.0f);
-        const int points = 60; // Higher point count for smooth big circles
-        const float bangle = 2.0f * pi / points;
-        SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
-        for (int i = 0; i < points; i++) {
-            vertices.push_back(center);
-            vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
-            vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
-        }
-        return new Sprites::PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices));
-    }
-}
 
 int Tower::compteur_ = 0;
 
@@ -37,11 +23,15 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     time_since_shot_{0.0f},
     show_range_{false},
     range_changed_{true},
+    show_cone_{false},
+    cone_changed_{false},
     target_ground_{true},
     target_flying_{false} // By default, towers only target ground enemies!
     {
         sprites_ = Tower::createSprites();
-        range_sprite_.reset(createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+        range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
     }
 
 Tower::Tower(Point position, Tower &t) : Entity{position},
@@ -57,23 +47,50 @@ current_angle_{0.0f},
 time_since_shot_{0.0f},
 show_range_{false},
 range_changed_{true},
+show_cone_{false},
+cone_changed_{false},
 target_ground_{t.target_ground_},
 target_flying_{t.target_flying_}
   {
     sprites_ = Tower::createSprites();
-    range_sprite_.reset(createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+    range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+    cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+    if (t.cannon_sprite_) {
+        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
+    }
   }
 
 void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
+    if (cone_changed_) {
+        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+        if (cone_sprite_) cone_sprite_->setScale(range_);
+        cone_changed_ = false;
+    }
+
+    if (range_changed_) {
+        if (range_sprite_) range_sprite_->setScale(range_);
+        if (cone_sprite_) cone_sprite_->setScale(range_);
+        range_changed_ = false;
+    }
+
     if (show_range_ && range_sprite_) {
-        if (range_changed_) {
-            range_sprite_->setScale(range_);
-            range_changed_ = false;
-        }
         Point my_offset = offset + position_ * scale;
         range_sprite_->draw(win, deltaTime, my_offset, scale, rot);
     }
+
+    if (show_cone_ && cone_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        float radians = current_angle_ * M_PI / 180.0f;
+        cone_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
+    }
+
     Entity::draw(win, deltaTime, offset, scale, rot);
+
+    if (cannon_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        float radians = current_angle_ * M_PI / 180.0f;
+        cannon_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
+    }
 }
 
 void Tower::rotate(Enemy& target){
@@ -234,7 +251,6 @@ std::vector<Sprites::Sprite*> Tower::createSprites(SDL_Color color) {
     // A tower should fit comfortably within a single cell.
     Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
     Sprites::PrimitiveForm * socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
-    Sprites::PrimitiveForm * canon = Sprites::rectangle({0.0f, 0.0f, 3.0f}, 0.15f, 0.5f); // The cannon itself
 
-    return {base, socle, canon};
+    return {base, socle};
 }

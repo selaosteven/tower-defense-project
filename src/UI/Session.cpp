@@ -233,6 +233,15 @@ void UI::Session::mainSession() {
     auto hpText = new Sprites::Text({getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, {255, 50, 50, 255}, true);
     addUISprite(hpText);
 
+    // START WAVE BUTTON
+    auto bouton_next_wave = new Sprites::Button({60.0f, -60, 10.0f}, 260.0f, 50.0f);
+    auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, "START WAVE", Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+    bouton_next_wave->addSubSprite(text);
+
+    bouton_next_wave->setOnLeftClick([this]() {
+        startNextWave();
+    });
+    addUISprite(bouton_next_wave);
     int last_money = money_;
     int last_hp = hp_player_;
 
@@ -249,19 +258,19 @@ void UI::Session::mainSession() {
             // Il ne sera PAS détruit à la sortie du switch ou de la boucle.
             switch (bloc) {
                 case Case::Tower:
-                    s = Sprites::circle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::circle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Path:
-                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Wall:
-                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Start:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
                     break;
                 case Case::End:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
                     break;
                 
                 default:
@@ -298,7 +307,7 @@ void UI::Session::mainSession() {
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
     // Start the first wave automatically for testing, or rely on UI to trigger it
-    startNextWave(); 
+    // startNextWave(); 
     auto lastTime = clock::now();
 
     while(running && !wants_to_die_) {
@@ -415,6 +424,13 @@ void UI::Session::mainSession() {
                     delete *it;
                     it = el.erase(it);
                 }
+                
+                // Clean up remaining projectiles from the wave so they don't hold dangling pointers
+                for (auto& proj : active_projectiles_) {
+                    removeEntity(proj.get());
+                }
+                active_projectiles_.clear();
+                
                 waveActive_ = false;
                 std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
             }
