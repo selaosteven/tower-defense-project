@@ -83,12 +83,12 @@ void UI::Session::openBuildUI(Point cell) {
         auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
         button->addSubSprite(text);
 
-        button->setOnLeftClick([this, blueprint = blueprint.get(), cost]() {
+        button->setOnLeftClick([this, blueprint = blueprint.get(), cost, cell = *selected_cell_]() {
             if (money_ >= cost) {
                 money_ -= cost;
                 
-                float logicX = selected_cell_->getX() + 0.5f;
-                float logicY = selected_cell_->getY() + 0.5f;
+                float logicX = cell.getX() + 0.5f;
+                float logicY = cell.getY() + 0.5f;
 
                 Projectile dummyProj(1, 0.5); 
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
@@ -332,25 +332,29 @@ void UI::Session::mainSession() {
                     hpSetter(hp_player_ - 1);
                     std::cout << "Player took damage! HP: " << hp_player_ << "\n";
                     enemy->kill();
+                    removeEntity(enemy);
                 } else if (enemy->getLp() <= 0) {
                     moneySetter(money_ + 10);
                     enemy->kill();
+                    removeEntity(enemy);
                 }
             }
             
-            // Clean up dead enemies
-            for (auto it = el.begin(); it != el.end(); ) {
-                if (!(*it)->isAlive()) {
-                    removeEntity(*it);
-                    delete *it;
-                    it = el.erase(it);
-                } else {
-                    ++it;
+            // Check if wave is over (no more to spawn and all enemies are dead)
+            bool allEnemiesDead = true;
+            for (auto& enemy : el) {
+                if (enemy->isAlive()) {
+                    allEnemiesDead = false;
+                    break;
                 }
             }
-
-            // Check if wave is over (no more to spawn and board is clear)
-            if (enemiesToSpawn_ <= 0 && el.empty()) {
+            
+            if (enemiesToSpawn_ <= 0 && allEnemiesDead) {
+                // Clean up all dead enemies at wave end
+                for (auto it = el.begin(); it != el.end(); ) {
+                    delete *it;
+                    it = el.erase(it);
+                }
                 waveActive_ = false;
                 std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
             }
