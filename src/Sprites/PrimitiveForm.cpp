@@ -33,7 +33,7 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     static const float pi = std::acos(-1.0f);
 
     // Animation
-    static const float rotVelocity = (2 * pi) / 4; // 360 degrée sur 4 seconde
+    static const float rotVelocity = 0;// (2 * pi) / 4; // 360 degrée sur 4 seconde
     rotation_ += rotVelocity*deltaTime;
     std::vector<SDL_Vertex> transformed_vertices = vertices_;
 
@@ -57,6 +57,38 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     SDL_RenderGeometry(win, nullptr, transformed_vertices.data(), transformed_vertices.size(), nullptr, 0);
 }
 
+
+
+PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex) {
+    std::vector<SDL_Vertex> vertices;
+    const float pi = std::acos(-1.0f);
+    const int points = 60; // Higher point count for smooth big circles
+    const float bangle = 2.0f * pi / points;
+    SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
+    for (int i = 0; i < points; i++) {
+        vertices.push_back(center);
+        vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
+        vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
+    }
+    return new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices));
+}
+
+PrimitiveForm* createCone(float radius, float angle_degrees, SDL_Color color, float zindex) {
+    std::vector<SDL_Vertex> vertices;
+    const float pi = std::acos(-1.0f);
+    int points = std::max(10, static_cast<int>(60 * angle_degrees / 360.0f));
+    float half_angle = angle_degrees / 2.0f * pi / 180.0f;
+    float step = (angle_degrees * pi / 180.0f) / points;
+    SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
+    for (int i = 0; i < points; i++) {
+        vertices.push_back(center);
+        float a1 = -half_angle + i * step;
+        float a2 = -half_angle + (i + 1) * step;
+        vertices.push_back({{static_cast<float>(std::cos(-a1)) * radius, static_cast<float>(std::sin(-a1)) * radius}, color, {0.0f, 0.0f}});
+        vertices.push_back({{static_cast<float>(std::cos(-a2)) * radius, static_cast<float>(std::sin(-a2)) * radius}, color, {0.0f, 0.0f}});
+    }
+    return new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices));
+}
 
 PrimitiveForm * triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
     const float unit = Sprite::unit_size_pixels;

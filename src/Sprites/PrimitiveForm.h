@@ -50,6 +50,8 @@ PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side, SDL_Color
 PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side);
 PrimitiveForm * circle(const std::array<float, 3> &pos, float size, int points = 20);
 PrimitiveForm * triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
+PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex);
+PrimitiveForm* createCone(float radius, float angle_degrees, SDL_Color color, float zindex);
 
 }
 

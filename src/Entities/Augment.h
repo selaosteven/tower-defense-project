@@ -66,4 +66,15 @@ public:
     void onUnequip(Tower& tower) override;
 };
 
+// Modifies what type of enemies the tower can target
+class TargetingAugment : public Augment {
+private:
+    bool targetGround_;
+    bool targetFlying_;
+public:
+    TargetingAugment(bool targetGround, bool targetFlying);
+    void onEquip(Tower& tower) override;
+    void onUnequip(Tower& tower) override;
+};
+
 #endif

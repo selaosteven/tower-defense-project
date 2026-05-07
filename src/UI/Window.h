@@ -57,9 +57,9 @@ private:
     std::list<Sprites::Sprite*> sprites_;
     std::list<Sprites::Sprite*> ui_sprites_;
     std::list<Entity*> entities_;
-    std::recursive_mutex render_mutex_;
 
 protected:
+    std::recursive_mutex render_mutex_;
     int win_width_;
     int win_height_;
     const Uint32 win_flags_;

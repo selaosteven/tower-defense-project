@@ -4,7 +4,11 @@
 
 Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
 Entity{{0,0}}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, path_{}, offset_{0.0f} {
-    sprites_ = createSprites({255,255,255,255});
+    if (fly_) {
+        sprites_ = createSprites({100, 200, 255, 255}); // Blue for flying enemies
+    } else {
+        sprites_ = createSprites({255, 100, 100, 255}); // Red for ground enemies
+    }
 }
 
 Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end) 
@@ -54,8 +58,8 @@ void Enemy::addEffect(std::unique_ptr<Effect> effect) {
 
 std::vector<Sprites::Sprite*> Enemy::createSprites(SDL_Color color) {
     // base : 
-    Sprites::PrimitiveForm * Core = Sprites::triangle({0.0f,0.0f,1.0f}, 0.5);
-    Sprites::PrimitiveForm * Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5);
+    Sprites::PrimitiveForm * Core = Sprites::triangle({0.0f,0.0f,1.0f}, 0.5f, color);
+    Sprites::PrimitiveForm * Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
 
     return {Core, Behind};
 }

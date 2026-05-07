@@ -1,23 +1,37 @@
+#include <cmath>
+#include <algorithm>
 #include "Sprites/PrimitiveForm.h"
 #include "Entities/Augment.h"
 #include "Entities/Tower.h"
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
 
+
 int Tower::compteur_ = 0;
 
-// Constructeur
 Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type) : 
     Entity{{0,0}},
     range_{range}, 
     damage_{damage}, 
     as_{as}, 
     rs_{rs},
+    cone_angle_{60.0f},
     proj_{proj},
     type_{type},
-    id_{compteur_++} 
+    id_{compteur_++},
+    current_angle_{0.0f},
+    time_since_shot_{0.0f},
+    show_range_{false},
+    range_changed_{true},
+    show_cone_{false},
+    cone_changed_{false},
+    target_ground_{true},
+    target_flying_{false} // By default, towers only target ground enemies!
     {
         sprites_ = Tower::createSprites();
+        range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
     }
 
 Tower::Tower(Point position, Tower &t) : Entity{position},
@@ -25,13 +39,59 @@ range_{t.range_},
 damage_{t.damage_}, 
 as_{t.as_}, 
 rs_{t.rs_},
+cone_angle_{t.cone_angle_},
 proj_{t.proj_},
 type_{t.type_},
-id_{compteur_++} 
+id_{compteur_++},
+current_angle_{0.0f},
+time_since_shot_{0.0f},
+show_range_{false},
+range_changed_{true},
+show_cone_{false},
+cone_changed_{false},
+target_ground_{t.target_ground_},
+target_flying_{t.target_flying_}
   {
     sprites_ = Tower::createSprites();
+    range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
+    cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+    if (t.cannon_sprite_) {
+        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
+    }
   }
 
+void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
+    if (cone_changed_) {
+        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+        if (cone_sprite_) cone_sprite_->setScale(range_);
+        cone_changed_ = false;
+    }
+
+    if (range_changed_) {
+        if (range_sprite_) range_sprite_->setScale(range_);
+        if (cone_sprite_) cone_sprite_->setScale(range_);
+        range_changed_ = false;
+    }
+
+    if (show_range_ && range_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        range_sprite_->draw(win, deltaTime, my_offset, scale, rot);
+    }
+
+    if (show_cone_ && cone_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        float radians = current_angle_ * M_PI / 180.0f;
+        cone_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
+    }
+
+    Entity::draw(win, deltaTime, offset, scale, rot);
+
+    if (cannon_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        float radians = current_angle_ * M_PI / 180.0f;
+        cannon_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
+    }
+}
 
 void Tower::rotate(Enemy& target){
     for(auto& a : augments_){
@@ -77,12 +137,112 @@ void Tower::applyUpgrade(const UpgradeNode* node) {
 
 
 void Tower::do_shoot(Enemy& target) {
-    std::cout << "piou piou" << std::endl;
+    auto proj = proj_.clone();
+    proj->setPosition(position_);
+    proj->setTarget(&target);
+    proj->setDamage(damage_);
+    
+    std::vector<Augment*> proj_augs;
+    for(auto& a : augments_) {
+        proj_augs.push_back(a.get());
+    }
+    proj->setAugments(std::move(proj_augs));
+    
+    spawned_projectiles_.push_back(std::move(proj));
 }
 void Tower::do_rotate(Enemy& target) {
-    std::cout << "rotating rotating" << std::endl;
 }
 
+// Cone targeting helpers
+
+float Tower::normalizeAngle(float angle) const {
+    while (angle > 180.0f) angle -= 360.0f;
+    while (angle < -180.0f) angle += 360.0f;
+    return angle;
+}
+
+float Tower::getSmallestRotation(float from, float to) const {
+    float diff = normalizeAngle(to - from);
+    return diff;
+}
+
+float Tower::calculateAngleToTarget(const Enemy& target) const {
+    Point direction = target.getPosition() ^ position_;
+    float angle = std::atan2(direction.getY(), direction.getX()) * 180.0f / M_PI;
+    return normalizeAngle(angle);
+}
+
+bool Tower::isInCone(const Enemy& target) const {
+    float angle_to_target = calculateAngleToTarget(target);
+    float angle_diff = std::abs(normalizeAngle(angle_to_target - current_angle_));
+    
+    // If angle difference is greater than 180, take the smaller angle
+    if (angle_diff > 180.0f) angle_diff = 360.0f - angle_diff;
+    
+    return angle_diff <= (cone_angle_ / 2.0f);
+}
+
+Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
+    Enemy* best_target = nullptr;
+    float smallest_rotation = 360.0f; // Maximum rotation needed
+
+    for (auto* enemy : enemies) {
+        if (!enemy || !enemy->isAlive()) continue;
+        
+        // Filter out enemies this tower is not allowed to hit
+        if (enemy->isFlying() && !target_flying_) continue;
+        if (!enemy->isFlying() && !target_ground_) continue;
+        
+        // Check distance
+        Point direction = enemy->getPosition() ^ position_;
+        float distance = std::sqrt(direction.getX() * direction.getX() + direction.getY() * direction.getY());
+        
+        if (distance > range_) continue;
+        
+        // Calculate rotation needed to face this target
+        float target_angle = calculateAngleToTarget(*enemy);
+        float rotation_needed = std::abs(getSmallestRotation(current_angle_, target_angle));
+        
+        // Pick the target that needs the least rotation
+        if (rotation_needed < smallest_rotation) {
+            smallest_rotation = rotation_needed;
+            best_target = enemy;
+        }
+    }
+
+    return best_target;
+}
+
+void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
+    time_since_shot_ += deltaTime;
+    
+    // Find best target (target needing least rotation within range)
+    Enemy* target = findBestTarget(enemies);
+    
+    if (!target) {
+        return; // No valid target
+    }
+    
+    // Rotate towards target
+    float target_angle = calculateAngleToTarget(*target);
+    float rotation_needed = getSmallestRotation(current_angle_, target_angle);
+    float max_rotation = rs_ * deltaTime;
+    
+    if (std::abs(rotation_needed) > max_rotation) {
+        // Still need to rotate
+        current_angle_ += (rotation_needed > 0 ? max_rotation : -max_rotation);
+        current_angle_ = normalizeAngle(current_angle_);
+    } else {
+        // Hit target angle
+        current_angle_ = target_angle;
+    }
+    
+    // Check if target is in cone and can shoot
+    if (isInCone(*target) && time_since_shot_ >= (1.0f / as_)) {
+        shoot(*target);
+        time_since_shot_ = 0.0f;
+    }
+}
 
 // Static methods 
 
@@ -91,7 +251,6 @@ std::vector<Sprites::Sprite*> Tower::createSprites(SDL_Color color) {
     // A tower should fit comfortably within a single cell.
     Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
     Sprites::PrimitiveForm * socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
-    Sprites::PrimitiveForm * canon = Sprites::rectangle({0.0f, 0.0f, 3.0f}, 0.15f, 0.5f); // The cannon itself
 
-    return {base, socle, canon};
+    return {base, socle};
 }

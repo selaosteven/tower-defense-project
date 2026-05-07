@@ -53,6 +53,9 @@ void UI::Session::closeTowerUI() {
         delete sprite; // The UI owns these temporary sprites
     }
     active_ui_elements_.clear();
+    if (selected_tower_) {
+        selected_tower_->setShowRange(false);
+    }
     showUI_ = false;
     selected_tower_ = nullptr;
     selected_cell_.reset();
@@ -90,7 +93,7 @@ void UI::Session::openBuildUI(Point cell) {
                 float logicX = cell.getX() + 0.5f;
                 float logicY = cell.getY() + 0.5f;
 
-                Projectile dummyProj(1, 0.5); 
+                Projectile dummyProj(0.0f, 5.0f); 
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
                 
                 addEntity(new_tower.get());
@@ -112,8 +115,10 @@ void UI::Session::openBuildUI(Point cell) {
 void UI::Session::openUpgradeUI(Tower* tower) {
     if (showUI_) closeTowerUI();
 
+    // Show tower range
     showUI_ = true;
     selected_tower_ = tower;
+    selected_tower_->setShowRange(true);
 
     float startY = 110.0f;
     float stepY = 60.0f;
@@ -228,6 +233,15 @@ void UI::Session::mainSession() {
     auto hpText = new Sprites::Text({getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, {255, 50, 50, 255}, true);
     addUISprite(hpText);
 
+    // START WAVE BUTTON
+    auto bouton_next_wave = new Sprites::Button({60.0f, -60, 10.0f}, 260.0f, 50.0f);
+    auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, "START WAVE", Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+    bouton_next_wave->addSubSprite(text);
+
+    bouton_next_wave->setOnLeftClick([this]() {
+        startNextWave();
+    });
+    addUISprite(bouton_next_wave);
     int last_money = money_;
     int last_hp = hp_player_;
 
@@ -244,19 +258,19 @@ void UI::Session::mainSession() {
             // Il ne sera PAS détruit à la sortie du switch ou de la boucle.
             switch (bloc) {
                 case Case::Tower:
-                    s = Sprites::circle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::circle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Path:
-                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Wall:
-                    s = Sprites::rectangle({px, py, cellSize/2}, cellSize/2);
+                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Start:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
                     break;
                 case Case::End:
-                    s = Sprites::triangle({px, py, cellSize/2}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
                     break;
                 
                 default:
@@ -287,12 +301,13 @@ void UI::Session::mainSession() {
     auto lastSpawnTime = clock::now();
     bool running = true;
 
-    Enemy ref{5.0f, 1.5f, 0.2f, true}; // Increased LP to 5, and Speed to 1.5 cells per second
+    Enemy ground_ref{5.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
+    Enemy flying_ref{3.0f, 2.0f, 0.1f, true};  // Fast flying enemy with slightly lower LP
     std::vector<Enemy*> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
     // Start the first wave automatically for testing, or rely on UI to trigger it
-    startNextWave(); 
+    // startNextWave(); 
     auto lastTime = clock::now();
 
     while(running && !wants_to_die_) {
@@ -300,10 +315,12 @@ void UI::Session::mainSession() {
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
         if (money_ != last_money) {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             moneyText->setText("Money: " + std::to_string(money_) + "$");
             last_money = money_;
         }
         if (hp_player_ != last_hp) {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             hpText->setText("HP: " + std::to_string(hp_player_));
             last_hp = hp_player_;
         }
@@ -317,7 +334,11 @@ void UI::Session::mainSession() {
                 Point spawnPosition{baseX,baseY};
                 spawnPosition += spawnOffset;
                 
-                el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin(), path.end()});
+                // Make every 3rd enemy a flying enemy!
+                bool is_flying = (enemiesToSpawn_ % 3 == 0); 
+                const Enemy& spawn_ref = is_flying ? flying_ref : ground_ref;
+                
+                el.push_back(new Enemy{spawnPosition, offsetSpawn, spawn_ref, path.begin(), path.end()});
                 addEntity(el.back());
                 enemiesToSpawn_--;
                 spawnTimer_ = 0.0f;
@@ -339,6 +360,54 @@ void UI::Session::mainSession() {
                     removeEntity(enemy);
                 }
             }
+             // Update projectiles
+            for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ) {
+                auto& proj = *it;
+                proj->live(dt);
+                
+                if (proj->hasHit()) {
+                    std::vector<Enemy*> hit_enemies;
+                    if (proj->getSize() > 0.0f) { // Splash damage
+                        for (auto& enemy : el) {
+                            if (!enemy->isAlive()) continue;
+                            Point dir = proj->getPosition() ^ enemy->getPosition();
+                            float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
+                            if (dist <= proj->getSize()) {
+                                hit_enemies.push_back(enemy);
+                            }
+                        }
+                    } else { // Single target
+                        Enemy* closest = nullptr;
+                        float min_dist = 1.0f; // Max acceptable dist for single target splash search
+                        for (auto& enemy : el) {
+                            if (!enemy->isAlive()) continue;
+                            Point dir = proj->getPosition() ^ enemy->getPosition();
+                            float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
+                            if (dist <= min_dist) {
+                                min_dist = dist;
+                                closest = enemy;
+                            }
+                        }
+                        if (closest) hit_enemies.push_back(closest);
+                    }
+                    
+                    proj->hit(hit_enemies);
+                    
+                    removeEntity(proj.get());
+                    it = active_projectiles_.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            // Update towers with enemy list
+            for (auto& tower : placed_towers_) {
+                tower->live(dt, el);
+                auto new_projs = tower->fetchSpawnedProjectiles();
+                for(auto& p : new_projs) {
+                    addEntity(p.get());
+                    active_projectiles_.push_back(std::move(p));
+                }
+            }
             
             // Check if wave is over (no more to spawn and all enemies are dead)
             bool allEnemiesDead = true;
@@ -355,6 +424,13 @@ void UI::Session::mainSession() {
                     delete *it;
                     it = el.erase(it);
                 }
+                
+                // Clean up remaining projectiles from the wave so they don't hold dangling pointers
+                for (auto& proj : active_projectiles_) {
+                    removeEntity(proj.get());
+                }
+                active_projectiles_.clear();
+                
                 waveActive_ = false;
                 std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
             }

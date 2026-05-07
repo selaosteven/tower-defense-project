@@ -35,6 +35,7 @@ public:
     bool hasReachedEnd() const { return reached_end_; }
     bool isAlive() const { return alive_; }
     void kill() { alive_ = false; }
+    bool isFlying() const { return fly_; }
 
     // Methods to manage effects
     void addEffect(std::unique_ptr<Effect> effect);
