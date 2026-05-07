@@ -57,3 +57,18 @@ void RangeAugment::onEquip(Tower& tower) {
 void RangeAugment::onUnequip(Tower& tower) {
     tower.setRange(tower.getRange() - bonusRange_);
 }
+
+// --- TargetingAugment Implementation ---
+
+TargetingAugment::TargetingAugment(bool targetGround, bool targetFlying) 
+    : Augment("Targeting Modification"), targetGround_(targetGround), targetFlying_(targetFlying) {}
+
+void TargetingAugment::onEquip(Tower& tower) {
+    tower.setTargetGround(targetGround_);
+    tower.setTargetFlying(targetFlying_);
+}
+
+void TargetingAugment::onUnequip(Tower& tower) {
+    tower.setTargetGround(true);
+    tower.setTargetFlying(false);
+}

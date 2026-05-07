@@ -36,7 +36,9 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     current_angle_{0.0f},
     time_since_shot_{0.0f},
     show_range_{false},
-    range_changed_{true}
+    range_changed_{true},
+    target_ground_{true},
+    target_flying_{false} // By default, towers only target ground enemies!
     {
         sprites_ = Tower::createSprites();
         range_sprite_.reset(createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
@@ -54,7 +56,9 @@ id_{compteur_++},
 current_angle_{0.0f},
 time_since_shot_{0.0f},
 show_range_{false},
-range_changed_{true}
+range_changed_{true},
+target_ground_{t.target_ground_},
+target_flying_{t.target_flying_}
   {
     sprites_ = Tower::createSprites();
     range_sprite_.reset(createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
@@ -167,6 +171,10 @@ Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
 
     for (auto* enemy : enemies) {
         if (!enemy || !enemy->isAlive()) continue;
+        
+        // Filter out enemies this tower is not allowed to hit
+        if (enemy->isFlying() && !target_flying_) continue;
+        if (!enemy->isFlying() && !target_ground_) continue;
         
         // Check distance
         Point direction = enemy->getPosition() ^ position_;

@@ -40,6 +40,8 @@ private:
     bool show_range_;
     bool range_changed_;
     std::unique_ptr<Sprites::Sprite> range_sprite_;
+    bool target_ground_;
+    bool target_flying_;
     std::vector<std::unique_ptr<Projectile>> spawned_projectiles_;
 
 protected:
@@ -98,6 +100,11 @@ public:
     inline float getCurrentAngle() const { return current_angle_; }
     inline void setShowRange(bool show) { show_range_ = show; }
     inline bool getShowRange() const { return show_range_; }
+    
+    inline void setTargetGround(bool val) { target_ground_ = val; }
+    inline bool getTargetGround() const { return target_ground_; }
+    inline void setTargetFlying(bool val) { target_flying_ = val; }
+    inline bool getTargetFlying() const { return target_flying_; }
 
     std::vector<std::unique_ptr<Projectile>> fetchSpawnedProjectiles() {
         return std::move(spawned_projectiles_);

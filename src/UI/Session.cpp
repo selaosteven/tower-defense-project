@@ -292,7 +292,8 @@ void UI::Session::mainSession() {
     auto lastSpawnTime = clock::now();
     bool running = true;
 
-    Enemy ref{5.0f, 1.5f, 0.2f, true}; // Increased LP to 5, and Speed to 1.5 cells per second
+    Enemy ground_ref{5.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
+    Enemy flying_ref{3.0f, 2.0f, 0.1f, true};  // Fast flying enemy with slightly lower LP
     std::vector<Enemy*> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
@@ -324,7 +325,11 @@ void UI::Session::mainSession() {
                 Point spawnPosition{baseX,baseY};
                 spawnPosition += spawnOffset;
                 
-                el.push_back(new Enemy{spawnPosition, offsetSpawn, ref, path.begin(), path.end()});
+                // Make every 3rd enemy a flying enemy!
+                bool is_flying = (enemiesToSpawn_ % 3 == 0); 
+                const Enemy& spawn_ref = is_flying ? flying_ref : ground_ref;
+                
+                el.push_back(new Enemy{spawnPosition, offsetSpawn, spawn_ref, path.begin(), path.end()});
                 addEntity(el.back());
                 enemiesToSpawn_--;
                 spawnTimer_ = 0.0f;
