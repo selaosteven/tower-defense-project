@@ -29,6 +29,8 @@ private:
     int enemiesToSpawn_;
     float spawnTimer_;
     int ticks_per_seconds_;
+    std::vector<Point> tower_build_cells_;
+    int tower_cursor_index_ = 0;
 
     // --- Tower UI Members ---
     std::optional<Point> selected_cell_;
@@ -47,12 +49,20 @@ public:
 
 protected:
     void clickLeft(Point click) override;
+    void onArrowLeft() override;
+    void onArrowRight() override;
+    void onValidateSelection() override;
     void drawUI(SDL_Renderer* r) override;
+    void drawSelection(SDL_Renderer* r) override;
+
 
 private:
     void openBuildUI(Point cell);
     void openUpgradeUI(Tower* tower);
     void closeTowerUI();
+    
+    
+
 };
 
 

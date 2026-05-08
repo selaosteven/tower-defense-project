@@ -1,0 +1,26 @@
+{
+  "type": "AntiAir",
+  "baseRange": 4.0,
+  "baseDamage": 25.0,
+  "baseAs": 1.2,
+  "baseRs": 90.0,
+  "upgrades": {
+    "name": "Base Anti-Air",
+    "cost": 120,
+    "augments": ["AntiAirAugment"],
+    "children": [
+      {
+        "name": "High Velocity Rounds",
+        "cost": 150,
+        "augments": ["DamageAugment", "ProjectileSpeedAugment"],
+        "children": []
+      },
+      {
+        "name": "Advanced Radar",
+        "cost": 180,
+        "augments": ["RangeAugment", "RotationSpeedAugment"],
+        "children": []
+      }
+    ]
+  }
+}

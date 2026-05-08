@@ -131,8 +131,39 @@ werrors UI::Window::inputs(){
                 }
                 break;
             case SDL_KEYDOWN:
+                if (event_->key.windowID == SDL_GetWindowID(window_)) {
+                    is_for_me = true;
+
+                    switch(event_->key.keysym.sym) {
+
+                        case SDLK_LEFT:
+                            std::cout << "fleche gauche" << std::endl;
+                            onArrowLeft();
+                            break;
+
+                        case SDLK_RIGHT:
+                            std::cout << "fleche droite" << std::endl;
+                            onArrowRight();
+                            break;
+
+
+                        case SDLK_RETURN:
+                            std::cout << "validation clavier" << std::endl;
+                            onValidateSelection();
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+                break;
+
+                
+
             case SDL_KEYUP:
-                if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if (event_->key.windowID == SDL_GetWindowID(window_)){
+                    is_for_me = true;
+                }
                 break;
             case SDL_MOUSEBUTTONDOWN: { // Clic de la souris qui vient d'être pressé
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
@@ -165,6 +196,7 @@ werrors UI::Window::inputs(){
                 }
                 break;
             }
+        
             case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
@@ -208,7 +240,7 @@ void UI::Window::loop(){
             for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             
-            
+            drawSelection(renderer_);
             drawUI(renderer_);
             
             // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
@@ -336,3 +368,7 @@ void UI::Window::clickLeft(Point click) {
 
     // return (dx*dx + dy*dy <= seuil * seuil);
 }
+
+void UI::Window::onArrowLeft(){}
+void UI::Window::onArrowRight(){}
+void UI::Window::onValidateSelection(){}

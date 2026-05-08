@@ -18,7 +18,7 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
         return std::make_unique<TargetingAugment>(false, true); // Targets ONLY air
     } else if (augmentName == "AllTargetAugment") {
         return std::make_unique<TargetingAugment>(true, true); // Targets both ground and air
-    }
+    } 
     // If the augment name doesn't exist, we skip it
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;
     return nullptr;

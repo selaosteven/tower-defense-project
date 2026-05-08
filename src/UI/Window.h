@@ -95,8 +95,14 @@ public:
     inline float getUIScale() const { return ui_scale_; }
 
     virtual void drawUI(SDL_Renderer*) {}
+    virtual void drawSelection(SDL_Renderer* r) {}
+
 protected:
     virtual void clickLeft(Point click); 
+    virtual void onArrowLeft();
+    virtual void onArrowRight();
+    virtual void onValidateSelection();
+    
     const std::list<Sprites::Sprite*>& getSprites() const { return sprites_; }
 
 

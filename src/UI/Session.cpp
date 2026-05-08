@@ -25,8 +25,10 @@ UI::Session::Session(std::string name_map):
     selected_cell_{},
     ticks_per_seconds_{120},
     selected_tower_{nullptr}
-    {
+    {   
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/sniper.json"));
+        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/basic.json"));
+        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/antiair.json"));
     }
 
 void UI::Session::startNextWave() {
@@ -146,10 +148,10 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
         button->addSubSprite(text);
 
-        button->setOnLeftClick([this, upgrade]() {
+        button->setOnLeftClick([this, upgrade]() { // Pour faire un upgrade
             if (money_ >= upgrade->cost) {
                 money_ -= upgrade->cost;
-                selected_tower_->applyUpgrade(upgrade);
+                selected_tower_->applyUpgrade(upgrade); 
                 std::cout << "Upgraded tower with " << upgrade->name << std::endl;
                 closeTowerUI();
             } else {
@@ -206,11 +208,67 @@ void UI::Session::clickLeft(Point click) {
     }
 }
 
+void UI::Session::onArrowRight(){
+    if (tower_build_cells_.empty()) return;
+    tower_cursor_index_ = (tower_cursor_index_ + 1) % tower_build_cells_.size();
+    selected_cell_ = tower_build_cells_[tower_cursor_index_];
+}
+
+void UI::Session::onArrowLeft(){
+    if (tower_build_cells_.empty()) return;
+    tower_cursor_index_ = (tower_cursor_index_ - 1) % tower_build_cells_.size();
+    selected_cell_ = tower_build_cells_[tower_cursor_index_];
+}
+
+void UI::Session::onValidateSelection() {
+    if (!selected_cell_) return;
+
+    float screenX = selected_cell_->getX() * scale_ + camera_position_.getX() + scale_ * 0.5f;
+    float screenY = selected_cell_->getY() * scale_ + camera_position_.getY() + scale_ * 0.5f;
+
+    clickLeft(Point{screenX, screenY});
+}
+
+
+
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
     static std::unique_ptr<Sprites::PrimitiveForm> background(Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200}));
     background->draw(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, 0.0f);
 }
+
+void UI::Session::drawSelection(SDL_Renderer* r) {
+    if (!selected_cell_) return;
+
+    Point c = *selected_cell_;
+
+    float x = c.getX();
+    float y = c.getY();
+
+    SDL_Color col = {255, 255, 0, 255}; // jaune
+
+    float thickness = 0.05f; // épaisseur du cadre
+
+    // Ligne du haut
+    auto top = Sprites::rectangle({x + 0.5f, y + thickness/2, 999}, 1.0f, thickness, col);
+
+    // Ligne du bas
+    auto bottom = Sprites::rectangle({x + 0.5f, y + 1 - thickness/2, 999}, 1.0f, thickness, col);
+
+    // Ligne gauche
+    auto left = Sprites::rectangle({x + thickness/2, y + 0.5f, 999}, thickness, 1.0f, col);
+
+    // Ligne droite
+    auto right = Sprites::rectangle({x + 1 - thickness/2, y + 0.5f, 999}, thickness, 1.0f, col);
+
+    top->draw(r, delta_time_, camera_position_, scale_, 0.0f);
+    bottom->draw(r, delta_time_, camera_position_, scale_, 0.0f);
+    left->draw(r, delta_time_, camera_position_, scale_, 0.0f);
+    right->draw(r, delta_time_, camera_position_, scale_, 0.0f);
+}
+
+
+
 
 
 void UI::Session::mainSession() {
@@ -249,6 +307,9 @@ void UI::Session::mainSession() {
         for(int x = 0; x < map_.getWidth(); x++) {
             
             Case bloc = map_.map_.at(y).at(x);
+            if(bloc == Case::Tower){
+                tower_build_cells_.push_back(Point{(float)x, (float)y});
+            }
             Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
 
             float px = x * cellSize + cellSize / 2.0f;
