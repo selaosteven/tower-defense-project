@@ -313,9 +313,12 @@ void UI::Session::clickLeft(Point click) {
     // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
     // We only need to check for clicks *outside* the UI panel to close it.
     if (showUI_) {
+        float offsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
+        float offsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
+
         SDL_Rect uiRect = {
-            static_cast<int>(ui_panel_x_ * ui_scale_),
-            static_cast<int>(ui_panel_y_ * ui_scale_),
+            static_cast<int>(offsetX + ui_panel_x_ * ui_scale_),
+            static_cast<int>(offsetY + ui_panel_y_ * ui_scale_),
             static_cast<int>(ui_panel_w_ * ui_scale_),
             static_cast<int>(ui_panel_h_ * ui_scale_)
         };
@@ -437,10 +440,12 @@ void UI::Session::onMouseScroll(float scrollX, float scrollY) {
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
     
-    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(r, 20, 20, 40, 200);
-    SDL_FRect bgRect = {ui_panel_x_ * ui_scale_, ui_panel_y_ * ui_scale_, ui_panel_w_ * ui_scale_, ui_panel_h_ * ui_scale_};
-    SDL_RenderFillRectF(r, &bgRect);
+    float panelOffsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
+    float panelOffsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
+    Point panel_offset{panelOffsetX, panelOffsetY};
+
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, 0.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    bg->draw(r, delta_time_, panel_offset, ui_scale_, 0.0f);
     
     // Draw selection highlight on the currently selected menu button
     if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
@@ -449,10 +454,13 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         // Draw a bright border around the selected button
         auto pos = selected_button->getPosition();
         SDL_Color col = {255, 200, 0, 255}; // Gold color
-        // The width and height are mapped from the original dimensions, with added spacing so the highlight is visibly framing the button boundaries 
         float btn_w = selected_button->getWidth();
         float btn_h = selected_button->getHeight();
-        Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
+        
+        float btnOffsetX = (pos.getX() < 0) ? getWinWidth() : 0.0f;
+        float btnOffsetY = (pos.getY() < 0) ? getWinHeight() : 0.0f;
+        
+        Session::drawHighlightBox(r, delta_time_, Point{btnOffsetX, btnOffsetY}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 
     if (showUI_ && selected_tower_) {
@@ -472,44 +480,28 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         float titleY = ui_panel_y_ + 10.0f;
 
         // Taille du badge
-        float badgeSize = 26.0f * ui_scale_;
+        float badgeSize = 26.0f;
 
         // Position du badge (à droite du nom)
-        float badgeX = (titleX + 200.0f) * ui_scale_;  // ajuste 200 si ton texte est plus long
-        float badgeY = (titleY + 4.0f) * ui_scale_;
+        float badgeX = titleX + 200.0f;  // ajuste 200 si ton texte est plus long
+        float badgeY = titleY + 4.0f;
+        
+        float badgeOffsetX = (badgeX < 0) ? getWinWidth() : 0.0f;
+        float badgeOffsetY = (badgeY < 0) ? getWinHeight() : 0.0f;
+        Point badge_offset{badgeOffsetX, badgeOffsetY};
 
-        // Fond du carré
-        SDL_FRect badgeRect = { badgeX, badgeY, badgeSize, badgeSize };
-        SDL_SetRenderDrawColor(r, badgeColor.r, badgeColor.g, badgeColor.b, badgeColor.a);
-        SDL_RenderFillRectF(r, &badgeRect);
+        auto badge = Sprites::rectangle({badgeX + badgeSize / 2.0f, badgeY + badgeSize / 2.0f, 0.0f}, badgeSize, badgeSize, badgeColor);
+        badge->draw(r, delta_time_, badge_offset, ui_scale_, 0.0f);
 
-        // --- TEXTE CENTRÉ DANS LE CARRÉ ---
-        {
-            Sprites::Text lvlText(
-                {0, 0, 12.0f},                // position temporaire
-                std::to_string(lvl),
-                Sprites::Text::POKETEXT,
-                20,
-                SDL_Color{0,0,0,255}
-            );
-
-            // Taille réelle du texte
-            float textW = lvlText.getWidth()  * ui_scale_;
-            float textH = lvlText.getHeight() * ui_scale_;
-
-            // Position centrée
-            float textX = badgeX + (badgeSize - textW) / 2.0f;
-            float textY = badgeY + (badgeSize - textH) / 2.0f;
-
-            // On dessine directement, sans setPosition()
-            lvlText.draw(
-                r,
-                delta_time_,
-                Point{ textX / ui_scale_, textY / ui_scale_ },
-                ui_scale_,
-                0.0f
-            );
-        }
+        Sprites::Text lvlText(
+            {badgeX + badgeSize / 2.0f, badgeY + badgeSize / 2.0f, 12.0f},
+            std::to_string(lvl),
+            Sprites::Text::POKETEXT,
+            20,
+            SDL_Color{0,0,0,255},
+            true // Centered Nativement
+        );
+        lvlText.draw(r, delta_time_, badge_offset, ui_scale_, 0.0f);
     }
 
     // --- BARRE D'XP DYNAMIQUE ---
@@ -519,35 +511,37 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         int xpMax = selected_tower_->getXpMax();
         int level = selected_tower_->getLevel();
         int levelMax = selected_tower_->getLevelMax();
-        float xpRatio = (level >= 11) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
-
+        float xpRatio = (level >= levelMax) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
 
         float margin = 20.0f;
         float barX = ui_panel_x_ + margin;
         float barY = ui_panel_y_ + ui_panel_h_ - 80.0f; // position basse
         float barW = ui_panel_w_ - 2 * margin;
         float barH = 25.0f;
+        
+        float barOffsetX = (barX < 0) ? getWinWidth() : 0.0f;
+        float barOffsetY = (barY < 0) ? getWinHeight() : 0.0f;
+        Point bar_offset{barOffsetX, barOffsetY};
 
-        // Fond gris
-        SDL_FRect bg = { barX * ui_scale_, barY * ui_scale_, barW * ui_scale_, barH * ui_scale_ };
-        SDL_SetRenderDrawColor(r, 80, 80, 80, 255);
-        SDL_RenderFillRectF(r, &bg);
+        auto bg = Sprites::rectangle({barX + barW / 2.0f, barY + barH / 2.0f, 0.0f}, barW, barH, {80, 80, 80, 255});
+        bg->draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
 
-        // Barre bleue
-        SDL_FRect fill = { barX * ui_scale_, barY * ui_scale_, (barW * xpRatio) * ui_scale_, barH * ui_scale_ };
-        SDL_SetRenderDrawColor(r, 100, 180, 255, 255);
-        SDL_RenderFillRectF(r, &fill);
+        if (xpRatio > 0.0f) {
+            float fillW = barW * xpRatio;
+            auto fill = Sprites::rectangle({barX + fillW / 2.0f, barY + barH / 2.0f, 0.0f}, fillW, barH, {100, 180, 255, 255});
+            fill->draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
+        }
 
         if (level >= levelMax) {
-            // --- TEXTE "MAX" ---
             Sprites::Text xpValue(
-                {barX + barW/2 - 20.0f, barY - 4.0f, 12.0f},
+                {barX + barW / 2.0f, barY + barH / 2.0f, 12.0f},
                 "MAX",
                 Sprites::Text::POKETEXT,
                 20,
-                SDL_Color{255, 215, 0, 255} // doré
+                SDL_Color{255, 215, 0, 255}, // doré
+                true // Centered Nativement
             );
-            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+            xpValue.draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
         }
         else {
             // --- TEXTE NORMAL XP: x / y ---
@@ -558,10 +552,9 @@ void UI::Session::drawUI(SDL_Renderer* r) {
                 18,
                 SDL_Color{255,255,255,255}
             );
-            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+            xpValue.draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
         }
     }
-
 }
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
