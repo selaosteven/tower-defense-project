@@ -41,8 +41,6 @@ class PrimitiveForm : public Sprite
     friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side);
     std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size, int points);
 
-    
-
 };
 
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color);
@@ -52,6 +50,7 @@ std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float 
 std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size, int points = 20);
 std::shared_ptr<PrimitiveForm> triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
 std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex);
+std::shared_ptr<PrimitiveForm> createColoredCircle(float radius,SDL_Color color,float zindex,const std::array<float, 3> &pos);
 std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex);
 std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float size, SDL_Color color);
 std::shared_ptr<PrimitiveForm> hexagone(const std::array<float, 3> &pos, float size, SDL_Color color);
