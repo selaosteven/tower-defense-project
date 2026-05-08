@@ -19,7 +19,7 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
     } else if (augmentName == "AllTargetAugment") { // targeting everyone
         return std::make_unique<TargetingAugment>(true, true); // Targets both ground and air
     } else if(augmentName == "SlowAugment") { // freezing / slow
-        return std::make_unique<SlownessAugment>(0.3f);
+        return std::make_unique<SlownessAugment>(0.8f);
     } else if(augmentName == "SplashAugment") { // AOE => degat de zone
         return std::make_unique<AoeAugment>(0.5f);
     } else if(augmentName == "DamageAugment") {

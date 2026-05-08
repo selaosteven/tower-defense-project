@@ -1,7 +1,7 @@
 {
   "type": "Cannon",
   "baseRange": 2.5,
-  "baseDamage": 40.0,
+  "baseDamage": 10,
   "baseAs": 0.8,
   "baseRs": 30.0,
   "upgrades": {

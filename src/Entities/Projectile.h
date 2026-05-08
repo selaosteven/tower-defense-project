@@ -50,7 +50,8 @@ public:
     inline void setPosition(Point position){ position_ = position; }
     inline void setDamage(float damage) { damage_ = damage; }
     inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
-    
+    inline void setSize(float size_incr) {size_+=size_incr;}
+
     std::unique_ptr<Projectile> clone() const;
 };
 

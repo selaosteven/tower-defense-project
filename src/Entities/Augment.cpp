@@ -104,12 +104,8 @@ void DamageAugment::onUnequip(Tower &tower){
 
 AoeAugment::AoeAugment(float size) : Augment("Zone Buff"), size_incr_(size) {}
 
-void AoeAugment::onEquip(Tower &tower){
-    tower.setDamage(10.0);
-}
-
-void AoeAugment::onUnequip(Tower &tower){
-    tower.setDamage(10.0);
+void AoeAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {
+    p.setSize(p.getSize() + size_incr_);
 }
 
 
