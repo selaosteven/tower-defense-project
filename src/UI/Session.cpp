@@ -12,6 +12,7 @@
 #include "Entities/TowerTree.h"
 #include "Entities/EnemyBlueprint.h"
 #include "Entities/Projectile.h"
+#include "QuadTree/QuadTree.h"
 
 
 UI::Session::Session(std::string name_map): 
@@ -695,6 +696,11 @@ void UI::Session::mainSession() {
                     removeEntity(enemy.get());
                 }
             }
+            
+            map_ope_.clear(); // Simply clear the existing persistent tree
+            for (auto& enemy : el) {
+                if (enemy->isAlive()) map_ope_.addEnemy(enemy.get());
+            }
              // Update projectiles
             for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ) {
                 auto& proj = *it;
@@ -703,24 +709,20 @@ void UI::Session::mainSession() {
                 if (proj->hasHit()) {
                     std::vector<Enemy*> hit_enemies;
                     if (proj->getSize() > 0.0f) { // Splash damage
-                        for (auto& enemy : el) {
-                            if (!enemy->isAlive()) continue;
-                            Point dir = proj->getPosition() ^ enemy->getPosition();
-                            float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
-                            if (dist <= proj->getSize()) {
-                                hit_enemies.push_back(enemy.get());
-                            }
+                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), proj->getSize());
+                        for (auto* enemy : nearby) {
+                            hit_enemies.push_back(enemy);
                         }
                     } else { // Single target
                         Enemy* closest = nullptr;
                         float min_dist = 1.0f; // Max acceptable dist for single target splash search
-                        for (auto& enemy : el) {
-                            if (!enemy->isAlive()) continue;
+                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), min_dist);
+                        for (auto* enemy : nearby) {
                             Point dir = proj->getPosition() ^ enemy->getPosition();
                             float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
                             if (dist <= min_dist) {
                                 min_dist = dist;
-                                closest = enemy.get();
+                                closest = enemy;
                             }
                         }
                         if (closest) hit_enemies.push_back(closest);
@@ -735,12 +737,9 @@ void UI::Session::mainSession() {
                 }
             }
             // Update towers with enemy list
-            std::vector<Enemy*> raw_el;
-            for(auto& e : el) {
-                raw_el.push_back(e.get());
-            }
             for (auto& tower : placed_towers_) {
-                tower->live(dt, raw_el);
+                std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
+                tower->live(dt, nearby_enemies);
                 auto new_projs = tower->fetchSpawnedProjectiles();
                 for(auto& p : new_projs) {
                     addEntity(p.get());

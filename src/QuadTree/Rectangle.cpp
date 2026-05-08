@@ -5,8 +5,8 @@ Rectangle::Rectangle(float x , float y , float w , float h)
     : x_{x}, y_{y}, w_{w}, h_{h} {}
 
 bool Rectangle::contains(Point point) {
-    int x = point.getX();
-    int y = point.getY();
+    float x = point.getX();
+    float y = point.getY();
 
     return (x >= x_ - w_/2 && x <= x_ + w_/2 &&
             y >= y_ - h_/2 && y <= y_ + h_/2);
@@ -29,4 +29,3 @@ bool Rectangle::checkOverlap(Point center, float range){
     return dx * dx + dy * dy <= range * range;
 
 }
-

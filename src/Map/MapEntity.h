@@ -11,6 +11,7 @@
 #include "QuadTree/QuadTree.h"
 #include "Entities/Entity.h"
 #include "Map.h"
+#include "Entities/Tower.h"
 
 namespace Map {
     
@@ -22,9 +23,11 @@ private:
     QuadTree qdtree_;
 public:
     MapEntity(float width, float height);
-    std::vector<std::shared_ptr<Enemy>> allWithinRange(const Tower& t);
-    void addEnemy(std::shared_ptr<Enemy> e);
-    void removeEnemy(std::shared_ptr<Enemy> e);
+    std::vector<Enemy*> allWithinRange(const Tower& t);
+    std::vector<Enemy*> query(Point center, float range);
+    void addEnemy(Enemy* e);
+    void removeEnemy(Enemy* e);
+    void clear();
 };
 
 }
