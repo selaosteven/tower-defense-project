@@ -133,8 +133,6 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
         }
     }
 
-    
-
     return tree;
 }
 
