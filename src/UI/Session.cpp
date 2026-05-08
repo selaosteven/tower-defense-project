@@ -30,6 +30,8 @@ UI::Session::Session(std::string name_map):
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/sniper.json"));
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/basic.json"));
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/antiair.json"));
+        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/cannon.json"));
+        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/freezing.json"));
     }
 
 void UI::Session::startNextWave() {
@@ -86,6 +88,7 @@ void UI::Session::openBuildUI(Point cell) {
         std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
 
         auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
+
         button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
         
         auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
@@ -116,7 +119,7 @@ void UI::Session::openBuildUI(Point cell) {
         addUISprite(button);
         startY += stepY;
     }
-    
+
 }
 
 void UI::Session::openUpgradeUI(Tower* tower) {
@@ -171,6 +174,52 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         addUISprite(button);
         startY += stepY;
     }
+
+    // Création du boutton de vente
+
+    // Récupération des infos de la tour sélectionnée
+    int id = tower->getId();
+    int cost = tower->getCurrentUpgradeNode()->cost;
+
+    auto buttonSell = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
+    buttonSell->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
+
+    auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "SELL", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonSell->addSubSprite(text);
+    
+    buttonSell->setOnLeftClick([this,id,cost](){
+        
+        // 1) Sauvegarder la tour sélectionnée
+        Tower* to_delete = selected_tower_;
+
+        // 2) Couper le pointeur AVANT destruction
+        selected_tower_ = nullptr;
+
+        // 3) Retirer la tour du moteur
+        if (to_delete) {
+            removeEntity(to_delete);
+        }
+        
+        
+        money_+=(cost/2);
+
+        // 3) La retirer de la liste des tours
+        placed_towers_.erase(
+            std::remove_if(
+                placed_towers_.begin(),
+                placed_towers_.end(),
+                [id](const std::unique_ptr<Tower>& t) {
+                    return t->getId() == id;
+                }
+            ),
+            placed_towers_.end()
+        );
+        closeTowerUI();
+    });
+
+    active_ui_elements_.push_back(buttonSell);
+    menu_buttons_.push_back(buttonSell);
+    addUISprite(buttonSell);
     
 }
 
@@ -393,7 +442,7 @@ void UI::Session::mainSession() {
     auto lastSpawnTime = clock::now();
     bool running = true;
 
-    Enemy ground_ref{5.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
+    Enemy ground_ref{20.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
     Enemy flying_ref{3.0f, 2.0f, 0.1f, true};  // Fast flying enemy with slightly lower LP
     std::vector<std::unique_ptr<Enemy>> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));

@@ -1,0 +1,26 @@
+{
+  "type": "Freezing",
+  "baseRange": 3.5,
+  "baseDamage": 10.0,
+  "baseAs": 1.0,
+  "baseRs": 40.0,
+  "upgrades": {
+    "name": "Base Freezing Tower",
+    "cost": 110,
+    "augments": ["SlowAugment"],
+    "children": [
+      {
+        "name": "Deep Freeze",
+        "cost": 160,
+        "augments": ["SlowStrongerAugment"],
+        "children": []
+      },
+      {
+        "name": "Cold Winds",
+        "cost": 180,
+        "augments": ["RangeAugment"],
+        "children": []
+      }
+    ]
+  }
+}
