@@ -20,13 +20,13 @@ UI::Session::Session(std::string name_map):
     map_ope_{map_.getWidth(), map_.getHeight()},
     hp_player_{50},
     round_{0},
+    money_{1000},
+    showUI_{false},
     waveActive_{false},
     enemiesToSpawn_{0},
     spawnTimer_{0.0f},
-    money_{1000},
-    showUI_{false},
-    selected_cell_{},
     ticks_per_seconds_{120},
+    selected_cell_{},
     selected_tower_{nullptr}
     {   
         const std::string tower_folder = "../src/Ressources/Towers";
@@ -417,13 +417,12 @@ void UI::Session::mainSession() {
 
             switch (bloc) {
                 case Case::Tower:
-                    s = Sprites::circle({px, py, 99}, cellSize/2); // circle already returns std::shared_ptr
+                    s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
                     break;
                 case Case::Path:
-                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
+                    s = Sprites::rectangle({px, py, 99}, cellSize/3);
                     break;
                 case Case::Wall:
-                    s = Sprites::rectangle({px, py, 99}, cellSize/2);
                     break;
                 case Case::Start:
                     s = Sprites::triangle({px, py, 99}, cellSize/4);
@@ -433,7 +432,8 @@ void UI::Session::mainSession() {
                     break;
                 
                 default:
-                    continue; // On passe au suivant si c'est du vide
+                    s = Sprites::rectangle({px, py, 99}, cellSize/8,cellSize/8,(SDL_Color){125,80,125,200});
+                    break; // On passe au suivant si c'est du vide
             }
 
             if (s) {                                
@@ -456,8 +456,6 @@ void UI::Session::mainSession() {
     float baseY = path.front().getY();
 
     using clock = std::chrono::steady_clock;
-    auto lastTickTime = clock::now();
-    auto lastSpawnTime = clock::now();
     bool running = true;
 
     std::vector<std::unique_ptr<Enemy>> el = {};
