@@ -252,17 +252,21 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         
         money_+=(cost/2);
 
-        // 3) La retirer de la liste des tours
-        placed_towers_.erase(
-            std::remove_if(
-                placed_towers_.begin(),
-                placed_towers_.end(),
-                [id](const std::unique_ptr<Tower>& t) {
-                    return t->getId() == id;
-                }
-            ),
-            placed_towers_.end()
+        // 3) La retirer de la liste des tours en différant la destruction
+        auto it = std::find_if(
+            placed_towers_.begin(),
+            placed_towers_.end(),
+            [id](const std::unique_ptr<Tower>& t) {
+                return t->getId() == id;
+            }
         );
+        if (it != placed_towers_.end()) {
+            std::thread([t = std::move(*it)]() mutable {
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                // La tour est détruite en toute sécurité ici quand `t` sort de la portée
+            }).detach();
+            placed_towers_.erase(it);
+        }
         closeTowerUI();
     });
     
