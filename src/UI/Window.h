@@ -69,6 +69,8 @@ protected:
     float ui_scale_;
     Point camera_position_;
     bool wants_to_die_;
+    bool is_dragging_[4] = {false, false, false, false}; // Indices 1, 2, 3 correspond to SDL_BUTTON_LEFT, MIDDLE, RIGHT
+    Point drag_start_pos_[4] = {Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}};
 
 public:
     Window();
@@ -98,7 +100,12 @@ public:
     virtual void drawSelection(SDL_Renderer* r) {}
 
 protected:
-    virtual void clickLeft(Point click); 
+    virtual void clickLeft(Point click) {}
+    virtual void clickRight(Point click) {}
+    virtual void clickMiddle(Point click) {}
+    virtual void onMouseScroll(float scrollX, float scrollY) {}
+    virtual void onMouseDrag(Point current_pos, Point start_pos, Uint8 button) {}
+    virtual void onMouseDrop(Point drop_pos, Point start_pos, Uint8 button) {}
     virtual void onArrowLeft() {}
     virtual void onArrowRight() {}
     virtual void onArrowUp() {}

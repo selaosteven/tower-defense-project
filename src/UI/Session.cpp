@@ -404,6 +404,36 @@ void UI::Session::onSpace(){
     startNextWave();
 }
 
+void UI::Session::onMouseDrag(Point current_pos, Point start_pos, Uint8 button) {
+    // Use right click (3) or middle click (2) to pan the camera
+    if (button == SDL_BUTTON_RIGHT || button == SDL_BUTTON_MIDDLE) {
+        camera_position_ += (current_pos - start_pos);
+    }
+}
+
+void UI::Session::onMouseScroll(float scrollX, float scrollY) {
+    std::cout << "scroll "<< scrollX <<" -  " <<  scrollY << std::endl;
+    if (scrollY == 0) return;
+
+    float old_scale = scale_;
+    float zoom_factor = 1.1f; // 10% zoom per scroll tick
+
+    if (scrollY > 0) scale_ *= zoom_factor;
+    else scale_ /= zoom_factor;
+
+    // Clamp the scale to prevent zooming too far in or out
+    scale_ = std::max(5.0f, std::min(scale_, 300.0f));
+
+    // Zoom towards the center of the screen so it feels natural
+    float cx = getWinWidth() / 2.0f;
+    float cy = getWinHeight() / 2.0f;
+
+    float worldX = (cx - camera_position_.getX()) / old_scale;
+    float worldY = (cy - camera_position_.getY()) / old_scale;
+
+    camera_position_ = Point{cx - worldX * scale_, cy - worldY * scale_};
+}
+
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
     

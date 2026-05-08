@@ -205,21 +205,59 @@ werrors UI::Window::inputs(){
                 }
 
                 if (!consumed) {
+                    Uint8 btn = event_->button.button;
+                    if (btn <= 3) {
+                        is_dragging_[btn] = true;
+                        drag_start_pos_[btn] = click;
+                    }
+                    
                     if(event_->button.button == SDL_BUTTON_LEFT){ // Clic gauche
                         clickLeft(click);
                     }
                     else if(event_->button.button == SDL_BUTTON_RIGHT){ // Clic droit
-                        std::cout << "clic droit | x : " << event_->button.x << " y : " << event_->button.y << "\n" << std::endl;
+                        clickRight(click);
+                    }
+                    else if(event_->button.button == SDL_BUTTON_MIDDLE){ // Clic molette
+                        clickMiddle(click);
                     }
                 }
                 break;
             }
         
             case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
-                if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if (event_->button.windowID == SDL_GetWindowID(window_)) {
+                    is_for_me = true;
+                    Uint8 btn = event_->button.button;
+                    if (btn <= 3 && is_dragging_[btn]) {
+                        Point drop_pos{static_cast<float>(event_->button.x), static_cast<float>(event_->button.y)};
+                        onMouseDrop(drop_pos, drag_start_pos_[btn], btn);
+                        is_dragging_[btn] = false;
+                    }
+                }
                 break;
             case SDL_MOUSEMOTION:
-                if (event_->motion.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if (event_->motion.windowID == SDL_GetWindowID(window_)) {
+                    is_for_me = true;
+                    Point current_pos{static_cast<float>(event_->motion.x), static_cast<float>(event_->motion.y)};
+                    for (Uint8 i = 1; i <= 3; ++i) {
+                        if (is_dragging_[i]) {
+                            onMouseDrag(current_pos, drag_start_pos_[i], i);
+                            drag_start_pos_[i] = current_pos;
+                        }
+                    }
+                }
+                break;
+            case SDL_MOUSEWHEEL:
+                if (event_->wheel.windowID == SDL_GetWindowID(window_)) {
+                    is_for_me = true;
+                    float scrollX = static_cast<float>(event_->wheel.x);
+                    float scrollY = static_cast<float>(event_->wheel.y);
+                    if (event_->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+                        scrollX *= -1.0f;
+                        scrollY *= -1.0f;
+                    }
+                    onMouseScroll(scrollX, scrollY);
+                }
                 break;
             default:
                 break;
@@ -375,17 +413,4 @@ werrors UI::Window::init_sdl(Uint32 flags){
 
 bool UI::Window::isThereAnInstance() {
     return number_of_instances > 0;
-}
-
-void UI::Window::clickLeft(Point click) {
-
-    // float seuil = 10;
-
-    // float px = position_.getX();
-    // float py = position_.getY();
-
-    // float dx = px - click.getX();
-    // float dy = py - click.getY();
-
-    // return (dx*dx + dy*dy <= seuil * seuil);
 }

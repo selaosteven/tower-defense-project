@@ -72,6 +72,8 @@ protected:
     void onValidateSelection() override;
     void onEscape() override;
     void onSpace() override;
+    void onMouseDrag(Point current_pos, Point start_pos, Uint8 button) override;
+    void onMouseScroll(float scrollX, float scrollY) override;
 
     void drawUI(SDL_Renderer* r) override;
     void drawSelection(SDL_Renderer* r) override;
