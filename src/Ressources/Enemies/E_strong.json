@@ -1,0 +1,8 @@
+{
+    "type": "Strong",
+    "lp": 25.0,
+    "speed": 0.75,
+    "resistance": 0.3,
+    "isFlying": false,
+    "chars": "ixzOEWY"
+}

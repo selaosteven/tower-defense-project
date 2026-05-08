@@ -1,6 +1,7 @@
 #include "Session.h"
 #include <thread>
 
+#include <filesystem>
 #include <iostream>
 #include <thread>
 #include "Sprites/PrimitiveForm.h"
@@ -28,14 +29,27 @@ UI::Session::Session(std::string name_map):
     ticks_per_seconds_{120},
     selected_tower_{nullptr}
     {   
-        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/sniper.json"));
-        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/basic.json"));
-        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/antiair.json"));
-        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/cannon.json"));
-        tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/freezing.json"));
+        const std::string tower_folder = "../src/Ressources/Towers";
+        if (std::filesystem::exists(tower_folder)) {
+            for (const auto& entry : std::filesystem::directory_iterator(tower_folder)) {
+                if (entry.path().extension() == ".json") {
+                    if (auto tower = TowerTree::loadFromFile(entry.path().string())) {
+                        tower_catalog_.push_back(std::move(tower));
+                    }
+                }
+            }
+        }
 
-        enemy_catalog_.push_back(EnemyBlueprint::loadFromFile("../src/Ressources/ground_enemy.json"));
-        enemy_catalog_.push_back(EnemyBlueprint::loadFromFile("../src/Ressources/flying_enemy.json"));
+        const std::string enemy_folder = "../src/Ressources/Enemies";
+        if (std::filesystem::exists(enemy_folder)) {
+            for (const auto& entry : std::filesystem::directory_iterator(enemy_folder)) {
+                if (entry.path().extension() == ".json") {
+                    if (auto enemy = EnemyBlueprint::loadFromFile(entry.path().string())) {
+                        enemy_catalog_.push_back(std::move(enemy));
+                    }
+                }
+            }
+        }
     }
 
 void UI::Session::startNextWave() {

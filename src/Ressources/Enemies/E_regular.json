@@ -1,0 +1,8 @@
+{
+    "type": "Regular",
+    "lp": 10.0,
+    "speed": 1.0,
+    "resistance": 0.0,
+    "isFlying": false,
+    "chars": "PAFbDNny"
+}
