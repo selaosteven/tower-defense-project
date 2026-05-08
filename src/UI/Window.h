@@ -99,11 +99,13 @@ public:
 
 protected:
     virtual void clickLeft(Point click); 
-    virtual void onArrowLeft();
-    virtual void onArrowRight();
-    virtual void onArrowUp();
-    virtual void onArrowDown();
-    virtual void onValidateSelection();
+    virtual void onArrowLeft() {}
+    virtual void onArrowRight() {}
+    virtual void onArrowUp() {}
+    virtual void onArrowDown() {}
+    virtual void onValidateSelection() {}
+    virtual void onEscape() {}
+    virtual void onSpace() {}
     
     const std::list<std::shared_ptr<Sprites::Sprite>>& getSprites() const { return sprites_; }
 

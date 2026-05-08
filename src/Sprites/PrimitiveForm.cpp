@@ -30,7 +30,6 @@ Sprite{pos}, vertices_{std::move(points)}
 
 PrimitiveForm::~PrimitiveForm(){}
 void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
-    static const float pi = std::acos(-1.0f);
 
     // Animation
     static const float rotVelocity = 0;// (2 * pi) / 4; // 360 degrée sur 4 seconde
