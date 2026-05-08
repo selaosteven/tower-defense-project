@@ -4,5 +4,6 @@
     "speed": 2.2,
     "resistance": 0.2,
     "isFlying": true,
-    "chars": "HKSghJ"
+    "chars": "HKSghJ",
+    "color": [26, 147, 234]
 }

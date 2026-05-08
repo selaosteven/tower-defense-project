@@ -99,6 +99,34 @@ class AoeAugment : public Augment {
 
     public:
         AoeAugment(float size);
-        void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;};
+        void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;
+};
+class RotationSpeedAugment : public Augment {
+    float amount_;
+public:
+    RotationSpeedAugment(float amount);
+    void onEquip(Tower& tower) override;
+};
+
+class AttackSpeedAugment : public Augment {
+    float multiplier_;
+public:
+    AttackSpeedAugment(float multiplier);
+    void onEquip(Tower& tower) override;
+};
+
+class ProjectileSpeedAugment : public Augment {
+    float multiplier_;
+public:
+    ProjectileSpeedAugment(float multiplier);
+    void onEquip(Tower& tower) override;
+};
+
+class SplashRadiusAugment : public Augment {
+    float amount_;
+public:
+    SplashRadiusAugment(float amount);
+    void onEquip(Tower& tower) override;
+};
 
 #endif

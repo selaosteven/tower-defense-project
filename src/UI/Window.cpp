@@ -35,7 +35,7 @@ std::mutex Window::event_mutex;
 //                  CONSTRUCTORS 
 // ------------------------------------------------
 
-UI::Window::Window() : Window{1280, 720, auto_flags_sdl_window}{}
+UI::Window::Window() : Window{1368, 960, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 

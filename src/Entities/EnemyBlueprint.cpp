@@ -39,11 +39,24 @@ std::unique_ptr<EnemyBlueprint> EnemyBlueprint::loadFromFile(const std::string& 
     blueprint->baseResistance_ = j.value("resistance", 0.0f);
     blueprint->isFlying_ = j.value("isFlying", false);
     blueprint->possibleChars_ = j.value("chars", "X");
+    
+    if (j.contains("color") && j["color"].is_array() && j["color"].size() >= 3) {
+        blueprint->color_.r = j["color"][0].get<uint8_t>();
+        blueprint->color_.g = j["color"][1].get<uint8_t>();
+        blueprint->color_.b = j["color"][2].get<uint8_t>();
+        blueprint->color_.a = j["color"].size() >= 4 ? j["color"][3].get<uint8_t>() : 255;
+    } else {
+        if (blueprint->isFlying_) {
+            blueprint->color_ = {100, 200, 255, 255}; // Blue for flying enemies
+        } else {
+            blueprint->color_ = {255, 100, 100, 255}; // Red for ground enemies
+        }
+    }
 
     return blueprint;
 }
 
-std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end) const {
+std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size) const {
     
     char displayChar = ' ';
     if (!possibleChars_.empty()) {
@@ -52,7 +65,7 @@ std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float of
     }
 
     auto enemy = std::make_unique<Enemy>(
-        baseLp_, baseSpeed_, baseResistance_, isFlying_, std::string(1, displayChar)
+        baseLp_, baseSpeed_, baseResistance_, isFlying_, std::string(1, displayChar), color_, size
     );
 
     enemy->setPosition(position);

@@ -51,6 +51,7 @@ public:
     inline void setDamage(float damage) { damage_ = damage; }
     inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
     inline void setSize(float size_incr) {size_+=size_incr;}
+    inline void setPs(float ps) { ps_ = ps; }
 
     std::unique_ptr<Projectile> clone() const;
 };
