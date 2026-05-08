@@ -43,42 +43,39 @@ void QuadTree::subDivide(){
 
 }
 
-void QuadTree::insert(std::shared_ptr<Enemy> e){
+void QuadTree::insert(Enemy* e){
 
     Point point = e->getPosition();
-    if(!boundary_.contains(point)){ // les cordoonnées de l'ennemie n'appartient pas au rectangle
+    if(!boundary_.contains(point)){
         return;
     }
 
-    // Si jamais il n'y a aucun ennemy dans le rectangle et qu'il n'est pas déjà divisé, on l'insere dans la liste des points 
-    if(lst_enemy_.size() < capacity_ && !divided_) {      
-        lst_enemy_.push_back(e); 
+    // If this node is already divided, pass the point down to the correct child.
+    if (divided_) {
+        if (topLeftTree_->boundary_.contains(point))
+            topLeftTree_->insert(e);
+        else if (topRightTree_->boundary_.contains(point))
+            topRightTree_->insert(e);
+        else if (botLeftTree_->boundary_.contains(point))
+            botLeftTree_->insert(e);
+        else if (botRightTree_->boundary_.contains(point))
+            botRightTree_->insert(e);
         return;
-    } 
+    }
 
-    if (!divided_){ // Si il n'est toujours pas divisé, on le divise
+    // This is a leaf node, so add the point.
+    lst_enemy_.push_back(e);
+
+    // If capacity is now exceeded, subdivide and redistribute all points.
+    if(lst_enemy_.size() > capacity_) {
         subDivide();
         divided_ = true;
     }
-
-    // Trouver dans quel sous-rectangles placer l'ennemie qu'on veut insérer
-    if (topLeftTree_->boundary_.contains(point))      
-        topLeftTree_->insert(e);
-    else if (topRightTree_->boundary_.contains(point)) 
-        topRightTree_->insert(e);
-    else if (botLeftTree_->boundary_.contains(point))  
-        botLeftTree_->insert(e);
-    else if (botRightTree_->boundary_.contains(point)) 
-        botRightTree_->insert(e);
-    
 }
 
-std::vector<std::shared_ptr<Enemy>> QuadTree::query(const Tower& t){
-
-    Point center = t.getPosition();
-    float range = t.getRange();
+std::vector<Enemy*> QuadTree::query(Point center, float range){
     
-    std::vector<std::shared_ptr<Enemy>> res;
+    std::vector<Enemy*> res;
 
     if(!boundary_.checkOverlap(center,range)){ // Pas d'intersection entre le cercle et le rectangle
         return res; // liste vide 
@@ -94,16 +91,16 @@ std::vector<std::shared_ptr<Enemy>> QuadTree::query(const Tower& t){
     }
 
     if(divided_){ // Si cela est divisé
-        auto tl = topLeftTree_->query(t);
+        auto tl = topLeftTree_->query(center, range);
         res.insert(res.end(), tl.begin(), tl.end());
 
-        auto tr = topRightTree_->query(t);
+        auto tr = topRightTree_->query(center, range);
         res.insert(res.end(), tr.begin(), tr.end());
 
-        auto bl = botLeftTree_->query(t);
+        auto bl = botLeftTree_->query(center, range);
         res.insert(res.end(), bl.begin(), bl.end());
 
-        auto br = botRightTree_->query(t);
+        auto br = botRightTree_->query(center, range);
         res.insert(res.end(), br.begin(), br.end());
 
     }
@@ -111,7 +108,7 @@ std::vector<std::shared_ptr<Enemy>> QuadTree::query(const Tower& t){
     return res;
 }
 
-void QuadTree::remove(std::shared_ptr<Enemy> e){
+void QuadTree::remove(Enemy* e){
 
     // On cherche dans le noeud actuel l'ennemy
     auto find = std::find(lst_enemy_.begin(),lst_enemy_.end(),e);
