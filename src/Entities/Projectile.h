@@ -11,7 +11,7 @@ class Augment;
 class Projectile : public Entity {
 // Static
 public:
-    std::vector<Sprites::Sprite*> createSprites(SDL_Color color = {125,255,200,255});
+    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
 
 
 protected:
@@ -50,7 +50,8 @@ public:
     inline void setPosition(Point position){ position_ = position; }
     inline void setDamage(float damage) { damage_ = damage; }
     inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
-    
+    inline void setSize(float size_incr) {size_+=size_incr;}
+
     std::unique_ptr<Projectile> clone() const;
 };
 

@@ -31,11 +31,14 @@ void Projectile::do_hit(std::vector<Enemy*> enemies){
     }
 }
 
+
+
 void Projectile::hit(std::vector<Enemy*> enemies){
     for(auto* a : augments_) {
         a->projectile_hit_prefix(enemies, *this);
     }
     do_hit(enemies);
+
     for(auto* a : augments_) {
         a->projectile_hit_postfix(enemies, *this);
     }
@@ -57,7 +60,7 @@ void Projectile::live(float deltaTime) {
     position_ += velocity;
 }
 
-std::vector<Sprites::Sprite*> Projectile::createSprites(SDL_Color color) {
-    Sprites::PrimitiveForm * Core = Sprites::circle({0.0f,0.0f,1.0f}, 0.15f);
+std::vector<std::shared_ptr<Sprites::Sprite>> Projectile::createSprites(SDL_Color color) {
+    auto Core = Sprites::circle({0.0f,0.0f,1.0f}, 0.15f);
     return {Core};
 }

@@ -131,8 +131,48 @@ werrors UI::Window::inputs(){
                 }
                 break;
             case SDL_KEYDOWN:
+                if (event_->key.windowID == SDL_GetWindowID(window_)) {
+                    is_for_me = true;
+
+                    switch(event_->key.keysym.sym) {
+
+                        case SDLK_LEFT:
+                            std::cout << "fleche gauche" << std::endl;
+                            onArrowLeft();
+                            break;
+
+                        case SDLK_RIGHT:
+                            std::cout << "fleche droite" << std::endl;
+                            onArrowRight();
+                            break;
+
+                        case SDLK_UP:
+                            std::cout << "fleche haut" << std::endl;
+                            onArrowUp();
+                            break;
+
+                        case SDLK_DOWN:
+                            std::cout << "fleche bas" << std::endl;
+                            onArrowDown();
+                            break;
+
+                        case SDLK_RETURN:
+                            std::cout << "validation clavier" << std::endl;
+                            onValidateSelection();
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+                break;
+
+                
+
             case SDL_KEYUP:
-                if (event_->key.windowID == SDL_GetWindowID(window_)) is_for_me = true;
+                if (event_->key.windowID == SDL_GetWindowID(window_)){
+                    is_for_me = true;
+                }
                 break;
             case SDL_MOUSEBUTTONDOWN: { // Clic de la souris qui vient d'être pressé
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
@@ -144,13 +184,14 @@ werrors UI::Window::inputs(){
                 {
                     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                     for(auto it = ui_sprites_.rbegin(); it != ui_sprites_.rend(); ++it){
-                        auto s = *it;
-                        Point pos = s->getPosition();
-                        float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
-                        float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
-                        if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
-                            consumed = true;
-                            break;
+                        if (auto s = it->lock()) {
+                            Point pos = s->getPosition();
+                            float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                            float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                            if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
+                                consumed = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -165,6 +206,7 @@ werrors UI::Window::inputs(){
                 }
                 break;
             }
+        
             case SDL_MOUSEBUTTONUP: // Clic de la souris qui vient d'être relaché
                 if (event_->button.windowID == SDL_GetWindowID(window_)) is_for_me = true;
                 break;
@@ -208,15 +250,20 @@ void UI::Window::loop(){
             for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             
-            
+            drawSelection(renderer_);
             drawUI(renderer_);
             
             // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
-            for(auto s : ui_sprites_) {
-                Point pos = s->getPosition();
-                float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
-                float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
-                s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+            for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ) {
+                if (auto s = it->lock()) {
+                    Point pos = s->getPosition();
+                    float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                    float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                    s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+                    ++it;
+                } else {
+                    it = ui_sprites_.erase(it); // Auto-prune destroyed UI sprites!
+                }
             }
         }
             
@@ -225,7 +272,7 @@ void UI::Window::loop(){
     return;
 }
 
-void UI::Window::addSprite(Sprites::Sprite *sprite){
+void UI::Window::addSprite(std::shared_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(sprites_.empty()) {
         sprites_.push_front(sprite);
@@ -240,32 +287,30 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
     }
 }
 
-void UI::Window::addUISprite(Sprites::Sprite *sprite){
+void UI::Window::addUISprite(std::weak_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    auto sp = sprite.lock();
+    if (!sp) return;
+
     if(ui_sprites_.empty()) {
         ui_sprites_.push_front(sprite);
     } else {
         for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ++it){
-            if((*it)->zindex_ > sprite->zindex_) {
-                ui_sprites_.insert(it, sprite);
-                return;
+            if (auto current = it->lock()) {
+                if(current->zindex_ > sp->zindex_) {
+                    ui_sprites_.insert(it, sprite);
+                    return;
+                }
             }
         }
         ui_sprites_.push_back(sprite);        
     }
 }
 
-void UI::Window::removeSprite(Sprites::Sprite *sprite){
+void UI::Window::removeSprite(std::shared_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(!sprites_.empty()) {
         sprites_.remove(sprite);
-    }
-}
-
-void UI::Window::removeUISprite(Sprites::Sprite *sprite){
-    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
-    if(!ui_sprites_.empty()) {
-        ui_sprites_.remove(sprite);
     }
 }
 
@@ -336,3 +381,9 @@ void UI::Window::clickLeft(Point click) {
 
     // return (dx*dx + dy*dy <= seuil * seuil);
 }
+
+void UI::Window::onArrowLeft(){}
+void UI::Window::onArrowRight(){}
+void UI::Window::onArrowUp(){}
+void UI::Window::onArrowDown(){}
+void UI::Window::onValidateSelection(){}

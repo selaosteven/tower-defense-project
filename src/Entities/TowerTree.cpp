@@ -10,14 +10,20 @@ TowerTree::~TowerTree() {}
 
 std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName) {
     // Mapping string names to their actual C++ class definitions
-    if (augmentName == "CritAugment") {
+    if (augmentName == "CritAugment") { // crit damage
         return std::make_unique<CritAugment>(0.2f, 2.0f); 
-    } else if (augmentName == "RangeAugment") {
+    } else if (augmentName == "RangeAugment") { // la range
         return std::make_unique<RangeAugment>(25.0f);
-    } else if (augmentName == "AntiAirAugment") {
+    } else if (augmentName == "AntiAirAugment") { // able to hit flying enemy
         return std::make_unique<TargetingAugment>(false, true); // Targets ONLY air
-    } else if (augmentName == "AllTargetAugment") {
+    } else if (augmentName == "AllTargetAugment") { // targeting everyone
         return std::make_unique<TargetingAugment>(true, true); // Targets both ground and air
+    } else if(augmentName == "SlowAugment") { // freezing / slow
+        return std::make_unique<SlownessAugment>(0.8f);
+    } else if(augmentName == "SplashAugment") { // AOE => degat de zone
+        return std::make_unique<AoeAugment>(0.5f);
+    } else if(augmentName == "DamageAugment") {
+        return std::make_unique<DamageAugment>();
     }
     // If the augment name doesn't exist, we skip it
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;

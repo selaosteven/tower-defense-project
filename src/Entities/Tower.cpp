@@ -29,9 +29,9 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     target_flying_{false} // By default, towers only target ground enemies!
     {
         sprites_ = Tower::createSprites();
-        range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
-        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
-        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
+        range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
+        cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
+        cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
     }
 
 Tower::Tower(Point position, Tower &t) : Entity{position},
@@ -53,16 +53,16 @@ target_ground_{t.target_ground_},
 target_flying_{t.target_flying_}
   {
     sprites_ = Tower::createSprites();
-    range_sprite_.reset(Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f));
-    cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+    range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
+    cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
     if (t.cannon_sprite_) {
-        cannon_sprite_.reset(Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f));
+        cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
     }
   }
 
 void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
     if (cone_changed_) {
-        cone_sprite_.reset(Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f));
+        cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
         if (cone_sprite_) cone_sprite_->setScale(range_);
         cone_changed_ = false;
     }
@@ -246,11 +246,11 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
 
 // Static methods 
 
-std::vector<Sprites::Sprite*> Tower::createSprites(SDL_Color color) {
+std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(SDL_Color color) {
     // Sizes are now in logical units, relative to a 1x1 cell, to match the map sprites.
     // A tower should fit comfortably within a single cell.
-    Sprites::PrimitiveForm * base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
-    Sprites::PrimitiveForm * socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
+    auto base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
+    auto socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
 
     return {base, socle};
 }

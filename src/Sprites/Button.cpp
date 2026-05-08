@@ -8,9 +8,9 @@ Button::Button(const std::array<float, 3>& pos, float width, float height)
 
 Button::~Button() {}
 
-void Button::addSubSprite(Sprite* sprite) {
+void Button::addSubSprite(std::shared_ptr<Sprite> sprite) {
     if (sprite) {
-        children_.push_back(std::unique_ptr<Sprite>(sprite));
+        children_.push_back(sprite);
     }
 }
 

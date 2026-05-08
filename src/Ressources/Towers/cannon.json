@@ -1,0 +1,26 @@
+{
+  "type": "Cannon",
+  "baseRange": 2.5,
+  "baseDamage": 10,
+  "baseAs": 0.8,
+  "baseRs": 30.0,
+  "upgrades": {
+    "name": "Base Cannon",
+    "cost": 120,
+    "augments": ["SplashAugment"],
+    "children": [
+      {
+        "name": "Bigger Explosion",
+        "cost": 180,
+        "augments": ["SplashRadiusAugment"],
+        "children": []
+      },
+      {
+        "name": "Reinforced Barrel",
+        "cost": 200,
+        "augments": ["DamageAugment"],
+        "children": []
+      }
+    ]
+  }
+}

@@ -77,4 +77,28 @@ public:
     void onUnequip(Tower& tower) override;
 };
 
+class SlownessAugment : public Augment {
+    private:
+        float slowAmount_;
+
+    public:
+        SlownessAugment(float amount);
+        void projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) override;
+};
+
+class DamageAugment : public Augment {
+    public:
+        DamageAugment();
+        void onEquip(Tower& tower) override;
+        void onUnequip(Tower& tower) override;
+};
+
+class AoeAugment : public Augment {
+    private:
+        float size_incr_;
+
+    public:
+        AoeAugment(float size);
+        void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;};
+
 #endif

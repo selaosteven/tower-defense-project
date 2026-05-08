@@ -72,3 +72,40 @@ void TargetingAugment::onUnequip(Tower& tower) {
     tower.setTargetGround(true);
     tower.setTargetFlying(false);
 }
+
+// SlownessAugment
+
+SlownessAugment::SlownessAugment(float amount)
+    : Augment("Slowness"), slowAmount_(amount) {}
+
+void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) {
+    for (auto* e : enemies) {
+        if (!e || !e->isAlive()) continue;
+
+        // Appliquer un slow directement à l’ennemi
+        e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
+        // Tu peux ajouter un vrai SlowEffect plus tard
+    }
+}
+
+// DamageAugment
+
+DamageAugment::DamageAugment() : Augment("Damage+") {}
+
+void DamageAugment::onEquip(Tower &tower){
+    tower.setDamage(tower.getDamage()*2);
+}
+
+void DamageAugment::onUnequip(Tower &tower){
+    tower.setDamage(tower.getDamage()/2);
+}
+
+// AoeAugment
+
+AoeAugment::AoeAugment(float size) : Augment("Zone Buff"), size_incr_(size) {}
+
+void AoeAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {
+    p.setSize(p.getSize() + size_incr_);
+}
+
+

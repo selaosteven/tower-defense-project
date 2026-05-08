@@ -1,18 +1,16 @@
 #include <iostream>
 #include "Entities/Enemy.h"
 #include "Sprites/PrimitiveForm.h"
+#include "Sprites/Text.h"
 
 Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
-Entity{{0,0}}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, path_{}, offset_{0.0f} {
-    if (fly_) {
-        sprites_ = createSprites({100, 200, 255, 255}); // Blue for flying enemies
-    } else {
-        sprites_ = createSprites({255, 100, 100, 255}); // Red for ground enemies
-    }
-}
+    Enemy(lp, speed, resistance, fly, "A") {}
+
+Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string display_char) :
+    Entity{{0,0}, 0.0f, Enemy::createSprites(fly, display_char)}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, display_char_{display_char}, path_{}, offset_{0.0f} {}
 
 Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end) 
-    : Enemy{ref.lp_, ref.speed_, ref.resistance_, ref.fly_} {
+    : Enemy{ref.lp_, ref.speed_, ref.resistance_, ref.fly_, ref.display_char_} {
     position_ = position;
     path_ = ++start;
     path_end_ = end;
@@ -53,13 +51,21 @@ void Enemy::addEffect(std::unique_ptr<Effect> effect) {
     effects_.push_back(std::move(effect));
 }
 
-
 // static method
 
-std::vector<Sprites::Sprite*> Enemy::createSprites(SDL_Color color) {
-    // base : 
-    Sprites::PrimitiveForm * Core = Sprites::triangle({0.0f,0.0f,1.0f}, 0.5f, color);
-    Sprites::PrimitiveForm * Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
+std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(bool is_flying, const std::string& display_char) {
+    SDL_Color color;
+    if (is_flying) {
+        color = {100, 200, 255, 255}; // Blue for flying enemies
+    } else {
+        color = {255, 100, 100, 255}; // Red for ground enemies
+    }
 
-    return {Core, Behind};
+    // auto Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
+    auto core = std::make_shared<Sprites::Text>(std::array<float, 3>{-0.5f, -0.5f, 0.0f}, display_char,
+        Sprites::Text::POK1,
+        24,
+        color
+    );
+    return {core};
 }

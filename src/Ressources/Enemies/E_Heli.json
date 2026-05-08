@@ -1,0 +1,8 @@
+{
+    "type": "Heli",
+    "lp": 12.0,
+    "speed": 1.2,
+    "resistance": 0.1,
+    "isFlying": true,
+    "chars": "CGv"
+}

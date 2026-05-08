@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <list>
+#include <memory>
 
 #include "QuadTree/Point.h"
 
@@ -54,8 +55,8 @@ private:
     SDL_Thread * thread_;
     Uint64 ticks_;
     bool destroyed_;
-    std::list<Sprites::Sprite*> sprites_;
-    std::list<Sprites::Sprite*> ui_sprites_;
+    std::list<std::shared_ptr<Sprites::Sprite>> sprites_;
+    std::list<std::weak_ptr<Sprites::Sprite>> ui_sprites_;
     std::list<Entity*> entities_;
 
 protected:
@@ -80,10 +81,9 @@ public:
     void loop();
     void waitForClose();
 
-    void addSprite(Sprites::Sprite *sprite);
-    void removeSprite(Sprites::Sprite *sprite);
-    void addUISprite(Sprites::Sprite *sprite);
-    void removeUISprite(Sprites::Sprite *sprite);
+    void addSprite(std::shared_ptr<Sprites::Sprite> sprite);
+    void removeSprite(std::shared_ptr<Sprites::Sprite> sprite);
+    void addUISprite(std::weak_ptr<Sprites::Sprite> sprite);
     void addEntity(Entity *entity);
     void removeEntity(Entity *entity);
 
@@ -95,9 +95,17 @@ public:
     inline float getUIScale() const { return ui_scale_; }
 
     virtual void drawUI(SDL_Renderer*) {}
+    virtual void drawSelection(SDL_Renderer* r) {}
+
 protected:
     virtual void clickLeft(Point click); 
-    const std::list<Sprites::Sprite*>& getSprites() const { return sprites_; }
+    virtual void onArrowLeft();
+    virtual void onArrowRight();
+    virtual void onArrowUp();
+    virtual void onArrowDown();
+    virtual void onValidateSelection();
+    
+    const std::list<std::shared_ptr<Sprites::Sprite>>& getSprites() const { return sprites_; }
 
 
 };

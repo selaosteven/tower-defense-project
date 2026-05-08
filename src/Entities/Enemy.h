@@ -4,13 +4,13 @@
 #include "Entities/Entity.h"
 #include "Entities/Effect.h"
 #include <memory>
+#include <string>
 
 class Enemy : public Entity {
 
     // Static
 public:
-    static std::vector<Sprites::Sprite*> createSprites(SDL_Color color = {125,255,200,255});
-
+    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(bool is_flying, const std::string& display_char);
 
 protected:
     // Stats de chaque ennemies
@@ -18,6 +18,7 @@ protected:
     float speed_; // Speed
     float resistance_; // Resistance
     bool fly_; // Fly
+    std::string display_char_;
     std::vector<std::unique_ptr<Effect>> effects_; // The Effect "stack"
 public:
     std::list<Point>::iterator path_;
@@ -28,6 +29,7 @@ public:
    
 public:
     Enemy(float lp, float speed, float resistance, bool fly); // constructeur
+    Enemy(float lp, float speed, float resistance, bool fly, std::string display_char);
     Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end);
     virtual ~Enemy() = default;
 
@@ -46,6 +48,11 @@ public:
     void setSpeed(float speed) { speed_ = speed; }
     float getLp() const { return lp_; }
     void takeDamage(float amount) { lp_ -= amount; }
+
+    // Setters for instantiation
+    void setPosition(Point p) { position_ = p; }
+    void setPath(std::list<Point>::iterator start, std::list<Point>::iterator end) { path_ = start; path_end_ = end; }
+    void setOffset(float offset) { offset_ = offset; }
 
 };
 
