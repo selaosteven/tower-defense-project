@@ -21,6 +21,7 @@ private:
     float baseDamage_;
     float baseAs_;
     float baseRs_;
+    float cone_angle_;
     std::unique_ptr<UpgradeNode> rootUpgrade_;
     std::vector<float> shapes_;
 

@@ -1,9 +1,10 @@
 {
   "type": "Freezing",
   "baseRange": 3.5,
-  "baseDamage": 10.0,
-  "baseAs": 1.0,
-  "baseRs": 40.0,
+  "baseDamage": 1.0,
+  "baseAs": 0.5,
+  "baseRs": 5.0,
+  "cone_angle": 140,
   "formes": [
     { "type": "hexagone", "size": 0.45, "color": [120,200,255,255] },
     { "type": "triangle", "size": 0.35, "orientation": 0, "color": [180,240,255,255] }

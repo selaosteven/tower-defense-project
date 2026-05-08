@@ -134,8 +134,9 @@ std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL
         vertices.push_back(center);
         float a1 = -half_angle + i * step;
         float a2 = -half_angle + (i + 1) * step;
-        vertices.push_back({{static_cast<float>(std::cos(-a1)) * radius, static_cast<float>(std::sin(-a1)) * radius}, color, {0.0f, 0.0f}});
-        vertices.push_back({{static_cast<float>(std::cos(-a2)) * radius, static_cast<float>(std::sin(-a2)) * radius}, color, {0.0f, 0.0f}});
+        // Add pi (180 degrees) to flip the cone's direction
+        vertices.push_back({{static_cast<float>(std::cos(pi - a1)) * radius, static_cast<float>(std::sin(pi - a1)) * radius}, color, {0.0f, 0.0f}});
+        vertices.push_back({{static_cast<float>(std::cos(pi - a2)) * radius, static_cast<float>(std::sin(pi - a2)) * radius}, color, {0.0f, 0.0f}});
     }
     return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
 }

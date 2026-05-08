@@ -15,7 +15,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     damage_{damage}, 
     as_{as}, 
     rs_{rs},
-    cone_angle_{60.0f},
+    cone_angle_{30.0f},
     proj_{proj},
     type_{type},
     id_{compteur_++},
@@ -23,7 +23,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     time_since_shot_{0.0f},
     show_range_{false},
     range_changed_{true},
-    show_cone_{false},
+    show_cone_{true},
     cone_changed_{false},
     target_ground_{true},
     target_flying_{false}, // By default, towers only target ground enemies!

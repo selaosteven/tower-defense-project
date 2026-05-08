@@ -3,7 +3,8 @@
   "baseRange": 2.5,
   "baseDamage": 10,
   "baseAs": 0.8,
-  "baseRs": 30.0,
+  "baseRs": 10.0,
+  "cone_angle": 40,
   "formes": [
     { "type": "rectangle", "width": 1.0, "height": 0.25, "color": [90,90,90,255] },
     { "type": "cercle", "radius": 0.45, "points": 30,  "color": [150,150,150,255] },

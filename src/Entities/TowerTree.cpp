@@ -26,6 +26,8 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
         return std::make_unique<DamageAugment>();
     } else if(augmentName == "ProjectileSpeedAugment") {
         return std::make_unique<ProjectileSpeedAugment>(1.5f); // 50% faster projectiles
+    } else if(augmentName == "FasterThanLightProjectileAugment") {
+        return std::make_unique<ProjectileSpeedAugment>(99.0f); // 50% faster projectiles
     } else if(augmentName == "RotationSpeedAugment") {
         return std::make_unique<RotationSpeedAugment>(90.0f); // Adds 90 degrees/sec rotation
     } else if(augmentName == "AttackSpeedAugment") {
@@ -80,6 +82,7 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
     tree->baseDamage_ = j.value("baseDamage", 10.0f);
     tree->baseAs_ = j.value("baseAs", 1.0f);
     tree->baseRs_ = j.value("baseRs", 1.0f);
+    tree->cone_angle_ = j.value("cone_angle", 60.0f);
 
     if (j.contains("upgrades")) {
         tree->rootUpgrade_ = parseUpgradeNode(j["upgrades"]);
