@@ -22,6 +22,8 @@ private:
     float baseAs_;
     float baseRs_;
     std::unique_ptr<UpgradeNode> rootUpgrade_;
+    std::vector<float> shapes_;
+
 
 public:
     TowerTree();
@@ -38,6 +40,8 @@ public:
     
     const UpgradeNode* getRootUpgrade() const { return rootUpgrade_.get(); }
     const std::string getTowerType() const {return towerType_;}
+
+
 };
 
 #endif

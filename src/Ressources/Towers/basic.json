@@ -4,6 +4,10 @@
   "baseDamage": 15.0,
   "baseAs": 1.0,
   "baseRs": 120.0,
+  "formes": [
+    { "type": "carre", "side": 0.9, "color": [180,180,180,255] },
+    { "type": "cercle", "radius": 0.35, "points": 30,"color": [255,255,255,255] }
+  ],
   "upgrades": {
     "name": "Basic Tower",
     "cost": 60,

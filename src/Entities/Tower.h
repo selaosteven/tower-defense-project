@@ -21,7 +21,7 @@ class Tower : public Entity {
 protected:
     static int compteur_;
 
-    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
+    std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(const std::vector<float>& shapes);
 
 private:
     // Stats de chaque tours
@@ -57,8 +57,8 @@ public:
     Tower(const Tower&) = delete;
     Tower& operator=(const Tower&) = delete;
 
-    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type); // Constructeur
-    Tower(Point position, Tower &t);
+    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type,const std::vector<float>& shapes); // Constructeur
+    Tower(Point position, Tower &t,const std::vector<float>& shapes);
 
 // Core methods
 

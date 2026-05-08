@@ -9,7 +9,7 @@
 
 int Tower::compteur_ = 0;
 
-Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type) : 
+Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes) : 
     Entity{{0,0}},
     range_{range}, 
     damage_{damage}, 
@@ -28,13 +28,13 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     target_ground_{true},
     target_flying_{false} // By default, towers only target ground enemies!
     {
-        sprites_ = Tower::createSprites();
+        sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
         cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
         cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
     }
 
-Tower::Tower(Point position, Tower &t) : Entity{position},
+Tower::Tower(Point position, Tower &t,const std::vector<float>& shapes) : Entity{position},
 range_{t.range_}, 
 damage_{t.damage_}, 
 as_{t.as_}, 
@@ -52,7 +52,7 @@ cone_changed_{false},
 target_ground_{t.target_ground_},
 target_flying_{t.target_flying_}
   {
-    sprites_ = Tower::createSprites();
+    sprites_ = Tower::createSprites(shapes);
     range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
     cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
     if (t.cannon_sprite_) {
@@ -246,11 +246,67 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
 
 // Static methods 
 
-std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(SDL_Color color) {
-    // Sizes are now in logical units, relative to a 1x1 cell, to match the map sprites.
-    // A tower should fit comfortably within a single cell.
-    auto base = Sprites::rectangle({0.0f, 0.0f, 1.0f}, 0.9f, 0.9f); // A square base almost filling the cell
-    auto socle = Sprites::circle({0.0f, 0.0f, 2.0f}, 0.4f, 30);      // A circular platform on top of the base
+std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::vector<float>& shapes) {
+    std::vector<std::shared_ptr<Sprites::Sprite>> out;
 
-    return {base, socle};
+    size_t i = 0;
+    while (i < shapes.size()) {
+
+        int type = static_cast<int>(shapes[i++]);
+
+        // Position 2D + zindex = 0
+        std::array<float,3> pos = {
+            0.0f,
+            0.0f,
+            0.0f
+        };
+
+        if (type == 0) { // rectangle
+            float w = shapes[i++];
+            float h = shapes[i++];
+            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
+                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+
+            out.push_back(Sprites::rectangle(pos, w, h, col));
+        }
+
+        else if (type == 1) { // circle coloré
+            float r = shapes[i++];
+            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
+                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+
+            auto c = Sprites::createColoredCircle(r, col, 0.0f);
+            out.push_back(c);
+        }
+
+        else if (type == 2) { // triangle
+            float size = shapes[i++];
+            float orientation = shapes[i++];
+            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
+                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+
+            Sprites::Orientation ori = static_cast<Sprites::Orientation>(orientation);
+            out.push_back(
+                Sprites::triangle(pos, size, col, ori)
+            );
+        }
+
+        else if (type == 3) { // octogone
+            float size = shapes[i++];
+            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
+                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+
+            out.push_back(Sprites::octone(pos, size, col));
+        }
+
+        else if (type == 4) { // carré
+            float side = shapes[i++];
+            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
+                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+
+            out.push_back(Sprites::rectangle(pos, side, side, col));
+        }
+    }
+
+    return out;
 }

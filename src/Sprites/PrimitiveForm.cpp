@@ -166,8 +166,57 @@ std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float 
     return rectangle(pos, width, height, {125,255,30,255});
 }
 
+// carré
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side) {
     return rectangle(pos, side, side);
+}
+
+std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float size, SDL_Color color) {
+    static const float pi = std::acos(-1.0f);
+    const int sides = 8; // Octogone
+    const float r = size;
+    const float angleStep = 2.0f * pi / sides;
+
+    std::vector<SDL_Vertex> vertices;
+    SDL_Vertex center{{0.0f, 0.0f}, color, {0, 0}};
+
+    for (int i = 0; i < sides; i++) {
+        float a1 = i * angleStep;
+        float a2 = (i + 1) * angleStep;
+
+        SDL_Vertex v1{{std::cos(a1) * r, std::sin(a1) * r}, color, {0, 0}};
+        SDL_Vertex v2{{std::cos(a2) * r, std::sin(a2) * r}, color, {0, 0}};
+
+        vertices.push_back(center);
+        vertices.push_back(v1);
+        vertices.push_back(v2);
+    }
+
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm(pos, std::move(vertices)));
+}
+
+std::shared_ptr<PrimitiveForm> hexagone(const std::array<float, 3> &pos, float size, SDL_Color color) {
+    static const float pi = std::acos(-1.0f);
+    const int sides = 6; // Hexagone
+    const float r = size;
+    const float angleStep = 2.0f * pi / sides;
+
+    std::vector<SDL_Vertex> vertices;
+    SDL_Vertex center{{0.0f, 0.0f}, color, {0, 0}};
+
+    for (int i = 0; i < sides; i++) {
+        float a1 = i * angleStep;
+        float a2 = (i + 1) * angleStep;
+
+        SDL_Vertex v1{{std::cos(a1) * r, std::sin(a1) * r}, color, {0, 0}};
+        SDL_Vertex v2{{std::cos(a2) * r, std::sin(a2) * r}, color, {0, 0}};
+
+        vertices.push_back(center);
+        vertices.push_back(v1);
+        vertices.push_back(v2);
+    }
+
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm(pos, std::move(vertices)));
 }
 
 }

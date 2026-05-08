@@ -4,6 +4,11 @@
   "baseDamage": 10.0,
   "baseAs": 1.0,
   "baseRs": 40.0,
+  "formes": [
+    { "type": "hexagone", "size": 0.45, "color": [120,200,255,255] },
+    { "type": "triangle", "size": 0.35, "orientation": 0, "color": [180,240,255,255] }
+  ],
+
   "upgrades": {
     "name": "Base Freezing Tower",
     "cost": 110,
