@@ -58,19 +58,70 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
 
 
 
-std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex) {
+// std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex) {
+//     std::vector<SDL_Vertex> vertices;
+//     const float pi = std::acos(-1.0f);
+//     const int points = 60; // Higher point count for smooth big circles
+//     const float bangle = 2.0f * pi / points;
+//     SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
+//     for (int i = 0; i < points; i++) {
+//         vertices.push_back(center);
+//         vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
+//         vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
+//     }
+//     return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
+// }
+
+std::shared_ptr<PrimitiveForm> createColoredCircle(
+    float radius,
+    SDL_Color color,
+    float zindex
+) {
+    // zindex ignoré, pos = {0,0,0}
+    return createColoredCircle(radius, color, zindex, {0.0f, 0.0f, 0.0f});
+}
+
+std::shared_ptr<PrimitiveForm> createColoredCircle(
+    float radius,
+    SDL_Color color,
+    float zindex,                      // gardé mais ignoré
+    const std::array<float, 3> &pos
+) {
     std::vector<SDL_Vertex> vertices;
     const float pi = std::acos(-1.0f);
-    const int points = 60; // Higher point count for smooth big circles
+    const int points = 60;
     const float bangle = 2.0f * pi / points;
+
+    // VERTICES EN LOCAL (0,0)
     SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
+
     for (int i = 0; i < points; i++) {
         vertices.push_back(center);
-        vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
-        vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
+
+        vertices.push_back({
+            {std::cos(i * -bangle) * radius,
+             std::sin(i * -bangle) * radius},
+            color,
+            {0.0f, 0.0f}
+        });
+
+        vertices.push_back({
+            {std::cos((i + 1) * -bangle) * radius,
+             std::sin((i + 1) * -bangle) * radius},
+            color,
+            {0.0f, 0.0f}
+        });
     }
-    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
+
+    // pos = position du cercle dans le monde
+    return std::make_shared<PrimitiveForm>(
+        pos,
+        std::move(vertices)
+    );
 }
+
+
+
 
 std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex) {
     std::vector<SDL_Vertex> vertices;

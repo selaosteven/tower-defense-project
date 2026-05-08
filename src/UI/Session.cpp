@@ -610,7 +610,8 @@ void UI::Session::mainSession() {
 
             switch (bloc) {
                 case Case::Tower:
-                    s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
+                    // s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
+                    s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
                     break;
                 case Case::Path:
                     s = Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255});
