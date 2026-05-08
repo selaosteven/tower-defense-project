@@ -82,6 +82,7 @@ private:
     void openUpgradeUI(Tower* tower);
     void closeTowerUI();
     void updateMenuButtonHighlight();
+    void spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el);
     static void drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col);
     
 

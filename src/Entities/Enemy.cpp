@@ -7,7 +7,13 @@ Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
     Enemy(lp, speed, resistance, fly, "A") {}
 
 Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string display_char) :
-    Entity{{0,0}, 0.0f, Enemy::createSprites(fly, display_char)}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, display_char_{display_char}, path_{}, offset_{0.0f} {}
+    Enemy(lp, speed, resistance, fly, display_char, {255, 255, 0, 255}) {}
+
+Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string display_char, SDL_Color color) :
+    Enemy(lp, speed, resistance, fly, display_char, color, 0.7f) {}
+
+Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string display_char, SDL_Color color, float size) :
+    Entity{{0,0}, 0.0f, Enemy::createSprites(fly, display_char, color, size)}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, display_char_{display_char}, path_{}, offset_{0.0f} {}
 
 Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end) 
     : Enemy{ref.lp_, ref.speed_, ref.resistance_, ref.fly_, ref.display_char_} {
@@ -53,19 +59,16 @@ void Enemy::addEffect(std::unique_ptr<Effect> effect) {
 
 // static method
 
-std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(bool is_flying, const std::string& display_char) {
-    SDL_Color color;
-    if (is_flying) {
-        color = {100, 200, 255, 255}; // Blue for flying enemies
-    } else {
-        color = {255, 100, 100, 255}; // Red for ground enemies
-    }
+std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(bool is_flying, const std::string& display_char, SDL_Color color, float size) {
 
-    // auto Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
-    auto core = std::make_shared<Sprites::Text>(std::array<float, 3>{-0.5f, -0.5f, 0.0f}, display_char,
+    auto core = std::make_shared<Sprites::Text>(std::array<float, 3>{0.0f, 0.0f, 1.0f}, display_char,
         Sprites::Text::POK1,
         24,
-        color
+        color,
+        true
     );
+    
+    core->setScale(size / 24.0f); // Calibrates a 24px font to logically fit inside our custom size block
+    
     return {core};
 }

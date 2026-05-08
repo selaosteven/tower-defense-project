@@ -10,7 +10,7 @@ class Enemy : public Entity {
 
     // Static
 public:
-    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(bool is_flying, const std::string& display_char);
+    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(bool is_flying, const std::string& display_char, SDL_Color color, float size);
 
 protected:
     // Stats de chaque ennemies
@@ -30,6 +30,8 @@ public:
 public:
     Enemy(float lp, float speed, float resistance, bool fly); // constructeur
     Enemy(float lp, float speed, float resistance, bool fly, std::string display_char);
+    Enemy(float lp, float speed, float resistance, bool fly, std::string display_char, SDL_Color color);
+    Enemy(float lp, float speed, float resistance, bool fly, std::string display_char, SDL_Color color, float size);
     Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end);
     virtual ~Enemy() = default;
 

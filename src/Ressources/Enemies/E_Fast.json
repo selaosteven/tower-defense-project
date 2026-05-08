@@ -4,5 +4,6 @@
     "speed": 1.8,
     "resistance": 0.0,
     "isFlying": false,
-    "chars": "MBVX46s"
+    "chars": "MBVX46s",
+    "color": [230, 30, 57, 255]
 }

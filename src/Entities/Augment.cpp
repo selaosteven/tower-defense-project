@@ -109,3 +109,26 @@ void AoeAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p)
 }
 
 
+RotationSpeedAugment::RotationSpeedAugment(float amount) : Augment("Rotation Speed"), amount_(amount) {}
+void RotationSpeedAugment::onEquip(Tower& tower) {
+    tower.setRs(tower.getRs() + amount_);
+}
+
+AttackSpeedAugment::AttackSpeedAugment(float multiplier) : Augment("Attack Speed"), multiplier_(multiplier) {}
+void AttackSpeedAugment::onEquip(Tower& tower) {
+    // Multiplies Attack Speed
+    tower.setAs(tower.getAs() * multiplier_);
+}
+
+ProjectileSpeedAugment::ProjectileSpeedAugment(float multiplier) : Augment("Projectile Speed"), multiplier_(multiplier) {}
+void ProjectileSpeedAugment::onEquip(Tower& tower) {
+    // Updates the core template projectile that the tower clones
+    tower.getBaseProjectile().setPs(tower.getBaseProjectile().getVelocity() * multiplier_);
+}
+
+SplashRadiusAugment::SplashRadiusAugment(float amount) : Augment("Splash Radius"), amount_(amount) {}
+void SplashRadiusAugment::onEquip(Tower& tower) {
+    // Increases the projectile's area of effect size! 
+    // (This works seamlessly since Session.cpp checks `if (proj->getSize() > 0.0f)` for splash collisions!)
+    tower.getBaseProjectile().setSize(amount_);
+}

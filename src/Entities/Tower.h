@@ -94,6 +94,7 @@ public:
     inline float getRs() const {return rs_;} // Getter Rotation Speed
     inline std::string getType() const {return type_;} // Getter Type
     inline int getId() const {return id_;} // Getter ID
+    inline Projectile& getBaseProjectile() { return proj_; }
 
     inline void setRange(float range) { range_ = range; range_changed_ = true; }
     inline void setDamage(float damage) { damage_ = damage; }

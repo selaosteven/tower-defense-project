@@ -24,6 +24,16 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
         return std::make_unique<AoeAugment>(0.5f);
     } else if(augmentName == "DamageAugment") {
         return std::make_unique<DamageAugment>();
+    } else if(augmentName == "ProjectileSpeedAugment") {
+        return std::make_unique<ProjectileSpeedAugment>(1.5f); // 50% faster projectiles
+    } else if(augmentName == "RotationSpeedAugment") {
+        return std::make_unique<RotationSpeedAugment>(90.0f); // Adds 90 degrees/sec rotation
+    } else if(augmentName == "AttackSpeedAugment") {
+        return std::make_unique<AttackSpeedAugment>(1.2f); // 20% faster Attack Speed
+    } else if(augmentName == "SplashRadiusAugment") {
+        return std::make_unique<SplashRadiusAugment>(0.5f); // Increase splash radius by 0.5 tiles
+    } else if(augmentName == "SlowStrongerAugment") {
+        return std::make_unique<SlownessAugment>(0.4f); // Harsher slow multiplier than the standard one
     }
     // If the augment name doesn't exist, we skip it
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;

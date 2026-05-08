@@ -4,5 +4,6 @@
     "speed": 0.75,
     "resistance": 0.3,
     "isFlying": false,
-    "chars": "ixzOEWY"
+    "chars": "ixzOEWY",
+    "color": [130, 215, 45, 255]
 }

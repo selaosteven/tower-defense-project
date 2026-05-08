@@ -4,5 +4,6 @@
     "speed": 1.2,
     "resistance": 0.1,
     "isFlying": true,
-    "chars": "CGv"
+    "chars": "CGv",
+    "color": [28, 51, 233]
 }

@@ -169,7 +169,6 @@ void UI::Session::openUpgradeUI(Tower* tower) {
 
     float startY = ui_panel_y_ + 10.0f;
     float stepY = 20.0f;
-    float UI_WIDTH = 300.0f; //, 400.0f
     float margin = 20.0f;
     float buttonWidth = ui_panel_w_ - 2 * margin;
     int max_width_text = buttonWidth - 30; // padding of 15px per side
@@ -276,6 +275,36 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     
     startY += 50.0f + 10.0f;
     ui_panel_h_ = startY - ui_panel_y_;
+}
+
+void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
+    // Spread the enemies across 80% of the cell width so they are visibly spaced out
+    float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.9f;
+    Point spawnOffset = Point{-spawningDirection.getY(), spawningDirection.getX()} * offsetSpawn;
+    Point spawnPosition{baseX, baseY};
+    spawnPosition += spawnOffset;
+    
+    // Make every 3rd enemy a flying enemy!
+    bool is_flying = (enemiesToSpawn_ % 3 == 0);
+
+    std::vector<const EnemyBlueprint*> matching_blueprints;
+    for(const auto& bp : enemy_catalog_) {
+        if (bp->isFlying() == is_flying) {
+            matching_blueprints.push_back(bp.get());
+        }
+    }
+
+    if (matching_blueprints.empty()) return; // Should not happen if blueprints are loaded
+
+    int randomIndex = rand() % matching_blueprints.size();
+    const EnemyBlueprint* blueprint = matching_blueprints[randomIndex];
+    
+    // Visually scale the enemy to occupy 70% of a tile
+    float enemySize = cellSize * 0.205f;
+    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize));
+    addEntity(el.back().get());
+    enemiesToSpawn_--;
+    spawnTimer_ = 0.0f;
 }
 
 void UI::Session::clickLeft(Point click) {
@@ -474,7 +503,7 @@ void UI::Session::mainSession() {
                     s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
                     break;
                 case Case::Path:
-                    s = Sprites::rectangle({px, py, 99}, cellSize/3);
+                    s = Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255});
                     break;
                 case Case::Wall:
                     break;
@@ -538,27 +567,7 @@ void UI::Session::mainSession() {
             
             // Spawn enemies if we still have some left to spawn for this wave
             if (enemiesToSpawn_ > 0 && spawnTimer_ >= 1.0f) { // spawn every 1 second
-                float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.3f;
-                Point spawnOffset = spawningDirection*offsetSpawn;
-                Point spawnPosition{baseX,baseY};
-                spawnPosition += spawnOffset;
-                
-                // Make every 3rd enemy a flying enemy!
-                bool is_flying = (enemiesToSpawn_ % 3 == 0);
-
-                const EnemyBlueprint* blueprint = nullptr;
-                for(const auto& bp : enemy_catalog_) {
-                    if (bp->isFlying() == is_flying) {
-                        blueprint = bp.get();
-                        break;
-                    }
-                }
-
-                if (!blueprint) continue; // Should not happen if blueprints are loaded
-                el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end()));
-                addEntity(el.back().get());
-                enemiesToSpawn_--;
-                spawnTimer_ = 0.0f;
+                spawnEnemy(cellSize, spawningDirection, baseX, baseY, path, el);
             }
 
             // Update existing enemies

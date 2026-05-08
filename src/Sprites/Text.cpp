@@ -98,8 +98,8 @@ void Text::draw(SDL_Renderer* win, float deltaTime, Point offset, float scale, f
     float py = position_.getY() * scale;
 
     SDL_FRect destRect;
-    destRect.w = width_ * scale_;
-    destRect.h = height_ * scale_;
+    destRect.w = width_ * scale_ * scale;
+    destRect.h = height_ * scale_ * scale;
     
     destRect.x = offset.getX() + px - (centered_ ? (destRect.w / 2.0f) : 0);
     destRect.y = offset.getY() + py - (centered_ ? (destRect.h / 2.0f) : 0);

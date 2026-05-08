@@ -4,5 +4,6 @@
     "speed": 1.0,
     "resistance": 0.0,
     "isFlying": false,
-    "chars": "PAFbDNny"
+    "chars": "PAFbDNny",
+    "color": [176, 170, 84, 255]
 }
