@@ -38,7 +38,7 @@ private:
 
     // --- Menu Navigation ---
     int menu_button_index_ = 0;
-    std::vector<Sprites::Button*> menu_buttons_;
+    std::vector<std::shared_ptr<Sprites::Button>> menu_buttons_;
 
     // --- Tower UI Members ---
     std::optional<Point> selected_cell_;
@@ -46,7 +46,7 @@ private:
     std::vector<std::unique_ptr<TowerTree>> tower_catalog_;
     std::list<std::unique_ptr<Tower>> placed_towers_;
     std::list<std::unique_ptr<Projectile>> active_projectiles_;
-    std::vector<Sprites::Sprite*> active_ui_elements_;
+    std::vector<std::shared_ptr<Sprites::Sprite>> active_ui_elements_;
 
 public:
     Session(std::string name_map);

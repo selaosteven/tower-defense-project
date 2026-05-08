@@ -9,7 +9,7 @@ class Enemy : public Entity {
 
     // Static
 public:
-    static std::vector<Sprites::Sprite*> createSprites(SDL_Color color = {125,255,200,255});
+    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
 
 
 protected:

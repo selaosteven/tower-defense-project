@@ -184,13 +184,14 @@ werrors UI::Window::inputs(){
                 {
                     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                     for(auto it = ui_sprites_.rbegin(); it != ui_sprites_.rend(); ++it){
-                        auto s = *it;
-                        Point pos = s->getPosition();
-                        float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
-                        float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
-                        if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
-                            consumed = true;
-                            break;
+                        if (auto s = it->lock()) {
+                            Point pos = s->getPosition();
+                            float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                            float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                            if(s->onClick(click, event_->button.button, Point{offsetX, offsetY}, ui_scale_)) {
+                                consumed = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -253,11 +254,16 @@ void UI::Window::loop(){
             drawUI(renderer_);
             
             // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
-            for(auto s : ui_sprites_) {
-                Point pos = s->getPosition();
-                float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
-                float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
-                s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+            for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ) {
+                if (auto s = it->lock()) {
+                    Point pos = s->getPosition();
+                    float offsetX = (pos.getX() < 0) ? static_cast<float>(win_width_) : 0.0f;
+                    float offsetY = (pos.getY() < 0) ? static_cast<float>(win_height_) : 0.0f;
+                    s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
+                    ++it;
+                } else {
+                    it = ui_sprites_.erase(it); // Auto-prune destroyed UI sprites!
+                }
             }
         }
             
@@ -266,7 +272,7 @@ void UI::Window::loop(){
     return;
 }
 
-void UI::Window::addSprite(Sprites::Sprite *sprite){
+void UI::Window::addSprite(std::shared_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(sprites_.empty()) {
         sprites_.push_front(sprite);
@@ -281,32 +287,30 @@ void UI::Window::addSprite(Sprites::Sprite *sprite){
     }
 }
 
-void UI::Window::addUISprite(Sprites::Sprite *sprite){
+void UI::Window::addUISprite(std::weak_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    auto sp = sprite.lock();
+    if (!sp) return;
+
     if(ui_sprites_.empty()) {
         ui_sprites_.push_front(sprite);
     } else {
         for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ++it){
-            if((*it)->zindex_ > sprite->zindex_) {
-                ui_sprites_.insert(it, sprite);
-                return;
+            if (auto current = it->lock()) {
+                if(current->zindex_ > sp->zindex_) {
+                    ui_sprites_.insert(it, sprite);
+                    return;
+                }
             }
         }
         ui_sprites_.push_back(sprite);        
     }
 }
 
-void UI::Window::removeSprite(Sprites::Sprite *sprite){
+void UI::Window::removeSprite(std::shared_ptr<Sprites::Sprite> sprite){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(!sprites_.empty()) {
         sprites_.remove(sprite);
-    }
-}
-
-void UI::Window::removeUISprite(Sprites::Sprite *sprite){
-    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
-    if(!ui_sprites_.empty()) {
-        ui_sprites_.remove(sprite);
     }
 }
 

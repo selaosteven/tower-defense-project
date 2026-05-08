@@ -56,10 +56,10 @@ void Enemy::addEffect(std::unique_ptr<Effect> effect) {
 
 // static method
 
-std::vector<Sprites::Sprite*> Enemy::createSprites(SDL_Color color) {
+std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(SDL_Color color) {
     // base : 
-    Sprites::PrimitiveForm * Core = Sprites::triangle({0.0f,0.0f,1.0f}, 0.5f, color);
-    Sprites::PrimitiveForm * Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
+    auto Core = Sprites::triangle({0.0f,0.0f,1.0f}, 0.5f, color);
+    auto Behind = Sprites::rectangle({0.0f,0.0f,1.0f}, 0.5f, 0.5f, color);
 
     return {Core, Behind};
 }

@@ -59,7 +59,7 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
 
 
 
-PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex) {
+std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex) {
     std::vector<SDL_Vertex> vertices;
     const float pi = std::acos(-1.0f);
     const int points = 60; // Higher point count for smooth big circles
@@ -70,10 +70,10 @@ PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex) 
         vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
         vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
     }
-    return new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices));
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
 }
 
-PrimitiveForm* createCone(float radius, float angle_degrees, SDL_Color color, float zindex) {
+std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex) {
     std::vector<SDL_Vertex> vertices;
     const float pi = std::acos(-1.0f);
     int points = std::max(10, static_cast<int>(60 * angle_degrees / 360.0f));
@@ -87,10 +87,10 @@ PrimitiveForm* createCone(float radius, float angle_degrees, SDL_Color color, fl
         vertices.push_back({{static_cast<float>(std::cos(-a1)) * radius, static_cast<float>(std::sin(-a1)) * radius}, color, {0.0f, 0.0f}});
         vertices.push_back({{static_cast<float>(std::cos(-a2)) * radius, static_cast<float>(std::sin(-a2)) * radius}, color, {0.0f, 0.0f}});
     }
-    return new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices));
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
 }
 
-PrimitiveForm * triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
+std::shared_ptr<PrimitiveForm> triangle(const std::array<float, 3> &pos, float size, SDL_Color color, Orientation orientation) {
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
     
@@ -117,12 +117,12 @@ PrimitiveForm * triangle(const std::array<float, 3> &pos, float size, SDL_Color 
     SDL_Vertex B = get_vertex(2.0f * pi / 3.0f);
     SDL_Vertex C = get_vertex(4.0f * pi / 3.0f);
 
-    PrimitiveForm *t = new PrimitiveForm{pos, {A, B, C}};
+    auto t = std::shared_ptr<PrimitiveForm>(new PrimitiveForm{pos, {A, B, C}});
     t->setScale(size / unit);
     return t;
 }
 
-PrimitiveForm * circle(const std::array<float, 3> &pos, float size,const int points){
+std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size,const int points){
     static const float pi = std::acos(-1.0f);
     const float unit = Sprite::unit_size_pixels;
     if (size <= 0) size = unit;
@@ -148,11 +148,10 @@ PrimitiveForm * circle(const std::array<float, 3> &pos, float size,const int poi
         vertices.push_back(get_vertex(i, bangle));
         vertices.push_back(get_vertex(i + 1, bangle));
     }
-    PrimitiveForm * c = new PrimitiveForm{pos,vertices};
-    return c;
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm{pos,vertices});
 }
 
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color) {
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color) {
     const float unit = Sprite::unit_size_pixels;
     if (width <= 0) width = unit;
     if (height <= 0) height = unit;
@@ -162,13 +161,13 @@ PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float he
     SDL_Vertex C {{width/2.0f, -height/2.0f}, color, {0, 0}};
     SDL_Vertex D {{-width/2.0f, -height/2.0f}, color, {0, 0}};
 
-    return new PrimitiveForm{pos, {A, B, C, A, C, D}};
+    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm{pos, {A, B, C, A, C, D}});
 }
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height) {
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height) {
     return rectangle(pos, width, height, {125,255,30,255});
 }
 
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side) {
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side) {
     return rectangle(pos, side, side);
 }
 

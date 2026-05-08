@@ -3,6 +3,7 @@
 #include <vector>
 #include "Sprite.h"
 #include "QuadTree/Point.h"
+#include <memory>
 
 namespace Sprites
 {
@@ -34,24 +35,24 @@ class PrimitiveForm : public Sprite
     }
 
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
-    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color);
-    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height);
-    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
-    friend PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side);
-    PrimitiveForm * circle(const std::array<float, 3> &pos, float size, int points);
+    friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color);
+    friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height);
+    friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
+    friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side);
+    std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size, int points);
 
     
 
 };
 
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color);
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float width, float height);
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
-PrimitiveForm * rectangle(const std::array<float, 3> &pos, float side);
-PrimitiveForm * circle(const std::array<float, 3> &pos, float size, int points = 20);
-PrimitiveForm * triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
-PrimitiveForm* createColoredCircle(float radius, SDL_Color color, float zindex);
-PrimitiveForm* createCone(float radius, float angle_degrees, SDL_Color color, float zindex);
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color);
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height);
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
+std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side);
+std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size, int points = 20);
+std::shared_ptr<PrimitiveForm> triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
+std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex);
+std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex);
 
 }
 

@@ -21,7 +21,7 @@ class Tower : public Entity {
 protected:
     static int compteur_;
 
-    std::vector<Sprites::Sprite*> createSprites(SDL_Color color = {125,255,200,255});
+    static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
 
 private:
     // Stats de chaque tours
@@ -39,11 +39,11 @@ private:
     float time_since_shot_; // Time since last shot 
     bool show_range_;
     bool range_changed_;
-    std::unique_ptr<Sprites::Sprite> range_sprite_;
+    std::shared_ptr<Sprites::Sprite> range_sprite_;
     bool show_cone_;
     bool cone_changed_;
-    std::unique_ptr<Sprites::Sprite> cone_sprite_;
-    std::unique_ptr<Sprites::Sprite> cannon_sprite_;
+    std::shared_ptr<Sprites::Sprite> cone_sprite_;
+    std::shared_ptr<Sprites::Sprite> cannon_sprite_;
     bool target_ground_;
     bool target_flying_;
     std::vector<std::unique_ptr<Projectile>> spawned_projectiles_;
@@ -112,7 +112,7 @@ public:
     inline void setTargetFlying(bool val) { target_flying_ = val; }
     inline bool getTargetFlying() const { return target_flying_; }
 
-    inline void setCannonSprite(std::unique_ptr<Sprites::Sprite> sprite) { cannon_sprite_ = std::move(sprite); }
+    inline void setCannonSprite(std::shared_ptr<Sprites::Sprite> sprite) { cannon_sprite_ = sprite; }
     inline void removeCannonSprite() { cannon_sprite_.reset(); }
     inline Sprites::Sprite* getCannonSprite() const { return cannon_sprite_.get(); }
     inline bool hasCannon() const { return cannon_sprite_ != nullptr; }

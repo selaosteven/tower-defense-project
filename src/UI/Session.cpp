@@ -51,10 +51,8 @@ void UI::Session::hpSetter(int new_hp) {
 }
 
 void UI::Session::closeTowerUI() {
-    for (auto* sprite : active_ui_elements_) {
-        removeUISprite(sprite);
-        delete sprite; // The UI owns these temporary sprites
-    }
+    // With std::shared_ptr here and std::weak_ptr in Window, clearing this vector
+    // automatically triggers cleanup from Window's ui_sprites_ list!
     active_ui_elements_.clear();
     menu_buttons_.clear();
     menu_button_index_ = 0;
@@ -78,7 +76,7 @@ void UI::Session::openBuildUI(Point cell) {
     float stepY = 60.0f;
 
     // Title
-    auto title = new Sprites::Text({110.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, {255, 255, 255, 255});
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{110.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
     active_ui_elements_.push_back(title);
     addUISprite(title);
     startY += 40;
@@ -87,10 +85,10 @@ void UI::Session::openBuildUI(Point cell) {
         int cost = blueprint->getRootUpgrade() ? blueprint->getRootUpgrade()->cost : 0;
         std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
 
-        auto button = new Sprites::Button({120.0f, startY, 10.0f}, 260.0f, 50.0f);
+        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
         button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
         
-        auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
         button->addSubSprite(text);
 
         button->setOnLeftClick([this, blueprint = blueprint.get(), cost, cell = *selected_cell_]() {
@@ -134,14 +132,14 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     float startY = 110.0f;
     float stepY = 60.0f;
 
-    auto title = new Sprites::Text({110.0f, startY, 11.0f}, "Upgrades", Sprites::Text::POKETEXT, 24, {255, 255, 255, 255});
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{110.0f, startY, 11.0f}, "Upgrades", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
     active_ui_elements_.push_back(title);
     addUISprite(title);
     startY += 40;
 
     const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
     if (!current_node || current_node->children.empty()) {
-        auto text = new Sprites::Text({120.0f, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{120.0f, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
         active_ui_elements_.push_back(text);
         addUISprite(text);
         return;
@@ -151,10 +149,10 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         const UpgradeNode* upgrade = upgrade_node_ptr.get();
         std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
 
-        auto button = new Sprites::Button({120.0f, startY, 10.0f}, 260.0f, 50.0f);
+        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
         button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
         
-        auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
         button->addSubSprite(text);
 
         button->setOnLeftClick([this, upgrade]() { // Pour faire un upgrade
@@ -261,11 +259,11 @@ void UI::Session::onArrowDown() {
 
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
-    static std::unique_ptr<Sprites::PrimitiveForm> background(Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200}));
+    static auto background = Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200});
     background->draw(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, 0.0f);
     
     // Draw selection highlight on the currently selected menu button
-    if (!menu_buttons_.empty() && menu_button_index_ < menu_buttons_.size()) {
+    if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
         auto selected_button = menu_buttons_[menu_button_index_];
         
         // Draw a bright border around the selected button
@@ -294,10 +292,10 @@ void UI::Session::drawSelection(SDL_Renderer* r) {
 
 
 void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col) {
-    std::unique_ptr<Sprites::PrimitiveForm> top(Sprites::rectangle({x + w / 2.0f, y + thickness / 2.0f, 999.0f}, w, thickness, col));
-    std::unique_ptr<Sprites::PrimitiveForm> bottom(Sprites::rectangle({x + w / 2.0f, y + h - thickness / 2.0f, 999.0f}, w, thickness, col));
-    std::unique_ptr<Sprites::PrimitiveForm> left(Sprites::rectangle({x + thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col));
-    std::unique_ptr<Sprites::PrimitiveForm> right(Sprites::rectangle({x + w - thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col));
+    auto top = Sprites::rectangle({x + w / 2.0f, y + thickness / 2.0f, 999.0f}, w, thickness, col);
+    auto bottom = Sprites::rectangle({x + w / 2.0f, y + h - thickness / 2.0f, 999.0f}, w, thickness, col);
+    auto left = Sprites::rectangle({x + thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col);
+    auto right = Sprites::rectangle({x + w - thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col);
 
     top->draw(r, dt, offset, scale, 0.0f);
     bottom->draw(r, dt, offset, scale, 0.0f);
@@ -320,15 +318,15 @@ void UI::Session::mainSession() {
 
 
     // Status UI Elements
-    auto moneyText = new Sprites::Text({20.0f, 20.0f, 10.0f}, "Money: " + std::to_string(money_) + "$", Sprites::Text::POKETEXT, 24, {255, 215, 0, 255});
+    auto moneyText = std::make_shared<Sprites::Text>(std::array<float, 3>{20.0f, 20.0f, 10.0f}, "Money: " + std::to_string(money_) + "$", Sprites::Text::POKETEXT, 24, SDL_Color{255, 215, 0, 255});
     addUISprite(moneyText);
     
-    auto hpText = new Sprites::Text({getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, {255, 50, 50, 255}, true);
+    auto hpText = std::make_shared<Sprites::Text>(std::array<float, 3>{getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, SDL_Color{255, 50, 50, 255}, true);
     addUISprite(hpText);
 
     // START WAVE BUTTON
-    auto bouton_next_wave = new Sprites::Button({60.0f, -60, 10.0f}, 260.0f, 50.0f);
-    auto text = new Sprites::Text({15.0f, 15.0f, 1.0f}, "START WAVE", Sprites::Text::POKETEXT, 18, {255, 255, 255, 255});
+    auto bouton_next_wave = std::make_shared<Sprites::Button>(std::array<float, 3>{60.0f, -60, 10.0f}, 260.0f, 50.0f);
+    auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "START WAVE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
     bouton_next_wave->addSubSprite(text);
 
     bouton_next_wave->setOnLeftClick([this]() {
@@ -345,16 +343,14 @@ void UI::Session::mainSession() {
             if(bloc == Case::Tower){
                 tower_build_cells_.push_back(Point{(float)x, (float)y});
             }
-            Sprites::Sprite* s = nullptr; // On prépare un pointeur vide
+            std::shared_ptr<Sprites::Sprite> s = nullptr; // On prépare un pointeur vide
 
             float px = x * cellSize + cellSize / 2.0f;
             float py = y * cellSize + cellSize / 2.0f;
 
-            // 3. ALLOCATION "NEW" : L'objet est créé sur le TAS (Heap).
-            // Il ne sera PAS détruit à la sortie du switch ou de la boucle.
             switch (bloc) {
                 case Case::Tower:
-                    s = Sprites::circle({px, py, 99}, cellSize/2);
+                    s = Sprites::circle({px, py, 99}, cellSize/2); // circle already returns std::shared_ptr
                     break;
                 case Case::Path:
                     s = Sprites::rectangle({px, py, 99}, cellSize/2);
@@ -399,7 +395,7 @@ void UI::Session::mainSession() {
 
     Enemy ground_ref{5.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
     Enemy flying_ref{3.0f, 2.0f, 0.1f, true};  // Fast flying enemy with slightly lower LP
-    std::vector<Enemy*> el = {};
+    std::vector<std::unique_ptr<Enemy>> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
     // Start the first wave automatically for testing, or rely on UI to trigger it
@@ -434,8 +430,8 @@ void UI::Session::mainSession() {
                 bool is_flying = (enemiesToSpawn_ % 3 == 0); 
                 const Enemy& spawn_ref = is_flying ? flying_ref : ground_ref;
                 
-                el.push_back(new Enemy{spawnPosition, offsetSpawn, spawn_ref, path.begin(), path.end()});
-                addEntity(el.back());
+                el.push_back(std::make_unique<Enemy>(spawnPosition, offsetSpawn, spawn_ref, path.begin(), path.end()));
+                addEntity(el.back().get());
                 enemiesToSpawn_--;
                 spawnTimer_ = 0.0f;
             }
@@ -449,11 +445,11 @@ void UI::Session::mainSession() {
                     hpSetter(hp_player_ - 1);
                     std::cout << "Player took damage! HP: " << hp_player_ << "\n";
                     enemy->kill();
-                    removeEntity(enemy);
+                    removeEntity(enemy.get());
                 } else if (enemy->getLp() <= 0) {
                     moneySetter(money_ + 10);
                     enemy->kill();
-                    removeEntity(enemy);
+                    removeEntity(enemy.get());
                 }
             }
              // Update projectiles
@@ -469,7 +465,7 @@ void UI::Session::mainSession() {
                             Point dir = proj->getPosition() ^ enemy->getPosition();
                             float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
                             if (dist <= proj->getSize()) {
-                                hit_enemies.push_back(enemy);
+                                hit_enemies.push_back(enemy.get());
                             }
                         }
                     } else { // Single target
@@ -481,7 +477,7 @@ void UI::Session::mainSession() {
                             float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
                             if (dist <= min_dist) {
                                 min_dist = dist;
-                                closest = enemy;
+                                closest = enemy.get();
                             }
                         }
                         if (closest) hit_enemies.push_back(closest);
@@ -496,8 +492,12 @@ void UI::Session::mainSession() {
                 }
             }
             // Update towers with enemy list
+            std::vector<Enemy*> raw_el;
+            for(auto& e : el) {
+                raw_el.push_back(e.get());
+            }
             for (auto& tower : placed_towers_) {
-                tower->live(dt, el);
+                tower->live(dt, raw_el);
                 auto new_projs = tower->fetchSpawnedProjectiles();
                 for(auto& p : new_projs) {
                     addEntity(p.get());
@@ -516,10 +516,10 @@ void UI::Session::mainSession() {
             
             if (enemiesToSpawn_ <= 0 && allEnemiesDead) {
                 // Clean up all dead enemies at wave end
-                for (auto it = el.begin(); it != el.end(); ) {
-                    delete *it;
-                    it = el.erase(it);
+                for (auto& enemy : el) {
+                    removeEntity(enemy.get());
                 }
+                el.clear();
                 
                 // Clean up remaining projectiles from the wave so they don't hold dangling pointers
                 for (auto& proj : active_projectiles_) {
