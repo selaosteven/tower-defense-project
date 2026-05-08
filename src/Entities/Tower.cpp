@@ -9,7 +9,7 @@
 
 int Tower::compteur_ = 0;
 
-Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp) : 
+Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp,int level) : 
     Entity{{0,0}},
     range_{range}, 
     damage_{damage}, 
@@ -27,7 +27,8 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     cone_changed_{false},
     target_ground_{true},
     target_flying_{false}, // By default, towers only target ground enemies!
-    xp_{xp}
+    xp_{xp},
+    level_{level}
     {
         sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
@@ -66,6 +67,8 @@ void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
         float radians = current_angle_ * M_PI / 180.0f;
         cannon_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
     }
+
+
 }
 
 void Tower::rotate(Enemy& target){
@@ -88,7 +91,7 @@ void Tower::shoot(Enemy& target){
 
     do_shoot(target);
 
-    xp_+=1;
+    xp_+=100;
 
     for(auto& a : augments_){
         a->tower_shoot_postfix(*this, target, proj_);
@@ -218,6 +221,42 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
     if (isInCone(*target) && time_since_shot_ >= (1.0f / as_)) {
         shoot(*target);
         time_since_shot_ = 0.0f;
+    }
+
+    // --- GESTION DU LEVEL-UP SANS MÉTHODE ---
+    if (level_ < levelMax_) {  // tant qu'on n'est pas au niveau max
+
+        if(level_ == 4){
+            setAs(as_);
+        }
+        if(level_ == 7){
+            setAs(as_*2);
+        }
+        if(level_ == 11){
+            setAs(as_*2);
+        }
+
+
+        if (xp_ >= xpMax_) {
+            xp_ -= xpMax_;
+            level_++;
+
+            // Bonus optionnels
+            damage_ += 0.5f;
+            range_  += 0.1f;
+            as_     += 0.02f;
+
+            std::cout << "Tower " << id_ << " leveled up to " << level_ << "!\n";
+        }
+    } else {
+        // Niveau max atteint → XP bloquée
+        xp_ = xpMax_; // pour que la barre soit pleine
+        std::array<float,3> pos = {
+            0.0f,
+            0.0f,
+            0.0f
+        };
+        addSprite(Sprites::rectangle(pos, 1.0,0.25, {90,90,90,90}));
     }
 }
 

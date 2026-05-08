@@ -424,12 +424,72 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 
+    if (showUI_ && selected_tower_) {
+
+        int lvl = selected_tower_->getLevel();
+
+        // Couleur selon le niveau
+        SDL_Color badgeColor;
+        if (lvl == 1)      badgeColor = SDL_Color{180, 180, 180, 255};
+        else if (lvl == 2) badgeColor = SDL_Color{100, 220, 100, 255};
+        else if (lvl == 3) badgeColor = SDL_Color{100, 150, 255, 255};
+        else if (lvl == 4) badgeColor = SDL_Color{180, 100, 255, 255};
+        else               badgeColor = SDL_Color{255, 215, 0, 255};
+
+        // Position du titre (même que dans openUpgradeUI)
+        float titleX = ui_panel_x_ + 10.0f;
+        float titleY = ui_panel_y_ + 10.0f;
+
+        // Taille du badge
+        float badgeSize = 26.0f * ui_scale_;
+
+        // Position du badge (à droite du nom)
+        float badgeX = (titleX + 200.0f) * ui_scale_;  // ajuste 200 si ton texte est plus long
+        float badgeY = (titleY + 4.0f) * ui_scale_;
+
+        // Fond du carré
+        SDL_FRect badgeRect = { badgeX, badgeY, badgeSize, badgeSize };
+        SDL_SetRenderDrawColor(r, badgeColor.r, badgeColor.g, badgeColor.b, badgeColor.a);
+        SDL_RenderFillRectF(r, &badgeRect);
+
+        // --- TEXTE CENTRÉ DANS LE CARRÉ ---
+        {
+            Sprites::Text lvlText(
+                {0, 0, 12.0f},                // position temporaire
+                std::to_string(lvl),
+                Sprites::Text::POKETEXT,
+                20,
+                SDL_Color{0,0,0,255}
+            );
+
+            // Taille réelle du texte
+            float textW = lvlText.getWidth()  * ui_scale_;
+            float textH = lvlText.getHeight() * ui_scale_;
+
+            // Position centrée
+            float textX = badgeX + (badgeSize - textW) / 2.0f;
+            float textY = badgeY + (badgeSize - textH) / 2.0f;
+
+            // On dessine directement, sans setPosition()
+            lvlText.draw(
+                r,
+                delta_time_,
+                Point{ textX / ui_scale_, textY / ui_scale_ },
+                ui_scale_,
+                0.0f
+            );
+        }
+    }
+
     // --- BARRE D'XP DYNAMIQUE ---
     if (showUI_ && selected_tower_) {
 
         int xp = selected_tower_->getXp();
-        int xpMax = 100;
-        float xpRatio = std::min(1.0f, xp / (float)xpMax);
+        int xpMax = selected_tower_->getXpMax();
+        int level = selected_tower_->getLevel();
+        int levelMax = selected_tower_->getLevelMax();
+        float xpRatio = (level >= 11) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
+
 
         float margin = 20.0f;
         float barX = ui_panel_x_ + margin;
@@ -447,10 +507,21 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         SDL_SetRenderDrawColor(r, 100, 180, 255, 255);
         SDL_RenderFillRectF(r, &fill);
 
-        // --- TEXTE DYNAMIQUE "XP: x / y" ---
-        {
+        if (level >= levelMax) {
+            // --- TEXTE "MAX" ---
             Sprites::Text xpValue(
-                {barX, barY - 20.0f, 12.0f},
+                {barX + barW/2 - 20.0f, barY - 4.0f, 12.0f},
+                "MAX",
+                Sprites::Text::POKETEXT,
+                20,
+                SDL_Color{255, 215, 0, 255} // doré
+            );
+            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+        }
+        else {
+            // --- TEXTE NORMAL XP: x / y ---
+            Sprites::Text xpValue(
+                {barX, barY - 28.0f, 12.0f},
                 "XP: " + std::to_string(xp) + " / " + std::to_string(xpMax),
                 Sprites::Text::POKETEXT,
                 18,
