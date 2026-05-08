@@ -33,6 +33,7 @@ private:
     Projectile proj_; // Classe Projectile 
     std::string type_; // Type de la tour
     int id_;
+    int xp_;
     
     // Targeting and orientation
     float current_angle_; // Current tower orientation (-180 to 180)
@@ -57,8 +58,7 @@ public:
     Tower(const Tower&) = delete;
     Tower& operator=(const Tower&) = delete;
 
-    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type,const std::vector<float>& shapes); // Constructeur
-    Tower(Point position, Tower &t,const std::vector<float>& shapes);
+    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp); // Constructeur
 
 // Core methods
 
@@ -116,6 +116,8 @@ public:
     inline void removeCannonSprite() { cannon_sprite_.reset(); }
     inline Sprites::Sprite* getCannonSprite() const { return cannon_sprite_.get(); }
     inline bool hasCannon() const { return cannon_sprite_ != nullptr; }
+
+    inline int getXp() const {return xp_;}
 
     std::vector<std::unique_ptr<Projectile>> fetchSpawnedProjectiles() {
         return std::move(spawned_projectiles_);

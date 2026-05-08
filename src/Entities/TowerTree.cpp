@@ -140,7 +140,7 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
 
 std::unique_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& proj) const {
     auto tower = std::make_unique<Tower>(
-        baseRange_, baseDamage_, baseAs_, baseRs_, proj, towerType_,shapes_
+        baseRange_, baseDamage_, baseAs_, baseRs_, proj, towerType_,shapes_,0
     );
     tower->setPosition(position);
     
