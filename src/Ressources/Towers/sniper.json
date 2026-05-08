@@ -4,6 +4,12 @@
   "baseDamage": 50.0,
   "baseAs": 0.5,
   "baseRs": 40.0,
+  "formes": [
+    { "type": "octogone", "size": 0.45, "color": [200,100,255,255] },
+    { "type": "rectangle", "width": 0.15, "height": 0.75, "color": [230,230,230,255] },
+    { "type": "cercle", "radius": 0.15, "points": 20, "color": [255,255,255,255] }
+  ],
+
   "upgrades": {
     "name": "Base Sniper",
     "cost": 100,

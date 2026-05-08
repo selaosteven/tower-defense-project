@@ -75,12 +75,72 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
         tree->rootUpgrade_ = parseUpgradeNode(j["upgrades"]);
     }
 
+    if (j.contains("formes") && j["formes"].is_array()) {
+        for (const auto& shape : j["formes"]) {
+
+            std::string type = shape.value("type", "");
+
+            SDL_Color col = {255, 255, 255, 255};
+            if (shape.contains("color") && shape["color"].is_array() && shape["color"].size() == 4) {
+                col.r = shape["color"][0];
+                col.g = shape["color"][1];
+                col.b = shape["color"][2];
+                col.a = shape["color"][3];
+            }
+
+            if (type == "rectangle") {
+                tree->shapes_.push_back(0);
+                tree->shapes_.push_back(shape.value("width", 1.0f));
+                tree->shapes_.push_back(shape.value("height", 1.0f));
+                tree->shapes_.push_back(col.r);
+                tree->shapes_.push_back(col.g);
+                tree->shapes_.push_back(col.b);
+                tree->shapes_.push_back(col.a);
+            }
+            else if (type == "circle") {
+                tree->shapes_.push_back(1);
+                tree->shapes_.push_back(shape.value("radius", 0.5f));
+                tree->shapes_.push_back(col.r);
+                tree->shapes_.push_back(col.g);
+                tree->shapes_.push_back(col.b);
+                tree->shapes_.push_back(col.a);
+            }
+            else if (type == "triangle") {
+                tree->shapes_.push_back(2);
+                tree->shapes_.push_back(shape.value("size", 1.0f));
+                tree->shapes_.push_back(shape.value("orientation", 0.0f));
+                tree->shapes_.push_back(col.r);
+                tree->shapes_.push_back(col.g);
+                tree->shapes_.push_back(col.b);
+                tree->shapes_.push_back(col.a);
+            }
+            else if (type == "octogone") {
+                tree->shapes_.push_back(3);
+                tree->shapes_.push_back(shape.value("size", 1.0f));
+                tree->shapes_.push_back(col.r);
+                tree->shapes_.push_back(col.g);
+                tree->shapes_.push_back(col.b);
+                tree->shapes_.push_back(col.a);
+            }
+            else if (type == "carre") {
+                tree->shapes_.push_back(4);
+                tree->shapes_.push_back(shape.value("side", 1.0f));
+                tree->shapes_.push_back(col.r);
+                tree->shapes_.push_back(col.g);
+                tree->shapes_.push_back(col.b);
+                tree->shapes_.push_back(col.a);
+            }
+        }
+    }
+
+    
+
     return tree;
 }
 
 std::unique_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& proj) const {
     auto tower = std::make_unique<Tower>(
-        baseRange_, baseDamage_, baseAs_, baseRs_, proj, towerType_
+        baseRange_, baseDamage_, baseAs_, baseRs_, proj, towerType_,shapes_
     );
     tower->setPosition(position);
     
