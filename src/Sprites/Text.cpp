@@ -1,7 +1,12 @@
 #include "Sprites/Text.h"
 #include <iostream>
+#include <map>
 
 namespace Sprites {
+
+namespace {
+    std::map<std::pair<std::string, int>, TTF_Font*> font_cache;
+}
 
 Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::string& fontPath, int fontSize, SDL_Color color, bool centered)
     : Text(pos, text, fontPath, fontSize, color, 0, centered) {}
@@ -9,7 +14,12 @@ Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::
 Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::string& fontPath, int fontSize, SDL_Color color, int maxWidth, bool centered)
     : Sprite{pos}, text_{text}, font_{nullptr}, color_{color}, texture_{nullptr}, width_{0}, height_{0}, centered_{centered}, maxWidth_{maxWidth}, needs_update_{false} 
 {
-    font_ = TTF_OpenFont(fontPath.c_str(), fontSize);
+    auto key = std::make_pair(fontPath, fontSize);
+    if (font_cache.find(key) == font_cache.end()) {
+        font_cache[key] = TTF_OpenFont(fontPath.c_str(), fontSize);
+    }
+    font_ = font_cache[key];
+
     if (!font_) {
         std::cerr << "Failed to load font " << fontPath << ": " << TTF_GetError() << std::endl;
     } else {
@@ -31,7 +41,7 @@ Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::
 
 Text::~Text() {
     if (texture_) SDL_DestroyTexture(texture_);
-    if (font_) TTF_CloseFont(font_);
+    // Do not close font since it's cached globally
 }
 
 void Text::updateTexture(SDL_Renderer* renderer) {

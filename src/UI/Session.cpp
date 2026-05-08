@@ -120,7 +120,7 @@ void UI::Session::openBuildUI(Point cell) {
                 float logicX = cell.getX() + 0.5f;
                 float logicY = cell.getY() + 0.5f;
 
-                Projectile dummyProj(0.0f, 5.0f); 
+                Projectile dummyProj(-0.1f, 5.0f); 
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
                 
                 addEntity(new_tower.get());
