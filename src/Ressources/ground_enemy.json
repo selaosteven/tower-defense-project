@@ -1,0 +1,8 @@
+{
+    "type": "Ground",
+    "lp": 20.0,
+    "speed": 1.5,
+    "resistance": 0.2,
+    "isFlying": false,
+    "chars": "PAFbDNny"
+}

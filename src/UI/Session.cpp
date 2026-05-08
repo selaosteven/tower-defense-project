@@ -9,6 +9,7 @@
 #include "Entities/Enemy.h"
 #include "Entities/Tower.h"
 #include "Entities/TowerTree.h"
+#include "Entities/EnemyBlueprint.h"
 #include "Entities/Projectile.h"
 
 
@@ -32,6 +33,9 @@ UI::Session::Session(std::string name_map):
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/antiair.json"));
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/cannon.json"));
         tower_catalog_.push_back(TowerTree::loadFromFile("../src/Ressources/freezing.json"));
+
+        enemy_catalog_.push_back(EnemyBlueprint::loadFromFile("../src/Ressources/ground_enemy.json"));
+        enemy_catalog_.push_back(EnemyBlueprint::loadFromFile("../src/Ressources/flying_enemy.json"));
     }
 
 void UI::Session::startNextWave() {
@@ -442,8 +446,6 @@ void UI::Session::mainSession() {
     auto lastSpawnTime = clock::now();
     bool running = true;
 
-    Enemy ground_ref{20.0f, 1.5f, 0.2f, false}; // Standard Ground enemy
-    Enemy flying_ref{3.0f, 2.0f, 0.1f, true};  // Fast flying enemy with slightly lower LP
     std::vector<std::unique_ptr<Enemy>> el = {};
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
@@ -476,10 +478,18 @@ void UI::Session::mainSession() {
                 spawnPosition += spawnOffset;
                 
                 // Make every 3rd enemy a flying enemy!
-                bool is_flying = (enemiesToSpawn_ % 3 == 0); 
-                const Enemy& spawn_ref = is_flying ? flying_ref : ground_ref;
-                
-                el.push_back(std::make_unique<Enemy>(spawnPosition, offsetSpawn, spawn_ref, path.begin(), path.end()));
+                bool is_flying = (enemiesToSpawn_ % 3 == 0);
+
+                const EnemyBlueprint* blueprint = nullptr;
+                for(const auto& bp : enemy_catalog_) {
+                    if (bp->isFlying() == is_flying) {
+                        blueprint = bp.get();
+                        break;
+                    }
+                }
+
+                if (!blueprint) continue; // Should not happen if blueprints are loaded
+                el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end()));
                 addEntity(el.back().get());
                 enemiesToSpawn_--;
                 spawnTimer_ = 0.0f;

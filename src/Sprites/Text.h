@@ -11,6 +11,7 @@ class Text : public Sprite {
 
 public:
     static inline const std::string POKETEXT{"../src/Ressources/PokemonClassic.ttf"};
+    static inline const std::string POK1{"../src/Ressources/POKPIX1.TTF"};
 
 private:
     std::string text_;

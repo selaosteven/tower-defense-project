@@ -1,0 +1,8 @@
+{
+    "type": "Flying",
+    "lp": 8.0,
+    "speed": 2.0,
+    "resistance": 0.1,
+    "isFlying": true,
+    "chars": "GHKSghvC"
+}
