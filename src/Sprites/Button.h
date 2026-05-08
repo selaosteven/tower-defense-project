@@ -26,6 +26,8 @@ public:
 
     void setOnLeftClick(std::function<void()> cb) { onLeftClick_ = cb; }
     void setOnRightClick(std::function<void()> cb) { onRightClick_ = cb; }
+    
+    void triggerLeftClick() { if (onLeftClick_) onLeftClick_(); }
 
     void draw(SDL_Renderer* win, float deltaTime, Point offset, float scale, float rot) override;
     bool onClick(Point click, int button, Point offset, float scale) override;

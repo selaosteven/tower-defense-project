@@ -11,6 +11,7 @@
 #include "Entities/TowerTree.h"
 #include "Entities/Projectile.h"
 
+
 UI::Session::Session(std::string name_map): 
     UI::Window{},
     map_{name_map},
@@ -55,6 +56,8 @@ void UI::Session::closeTowerUI() {
         delete sprite; // The UI owns these temporary sprites
     }
     active_ui_elements_.clear();
+    menu_buttons_.clear();
+    menu_button_index_ = 0;
     if (selected_tower_) {
         selected_tower_->setShowRange(false);
     }
@@ -68,6 +71,8 @@ void UI::Session::openBuildUI(Point cell) {
 
     showUI_ = true;
     selected_cell_ = cell;
+    menu_button_index_ = 0;
+    menu_buttons_.clear();
     
     float startY = 110.0f;
     float stepY = 60.0f;
@@ -109,9 +114,11 @@ void UI::Session::openBuildUI(Point cell) {
         });
 
         active_ui_elements_.push_back(button);
+        menu_buttons_.push_back(button);
         addUISprite(button);
         startY += stepY;
     }
+    
 }
 
 void UI::Session::openUpgradeUI(Tower* tower) {
@@ -121,6 +128,8 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     showUI_ = true;
     selected_tower_ = tower;
     selected_tower_->setShowRange(true);
+    menu_button_index_ = 0;
+    menu_buttons_.clear();
 
     float startY = 110.0f;
     float stepY = 60.0f;
@@ -160,9 +169,11 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         });
 
         active_ui_elements_.push_back(button);
+        menu_buttons_.push_back(button);
         addUISprite(button);
         startY += stepY;
     }
+    
 }
 
 void UI::Session::clickLeft(Point click) {
@@ -221,6 +232,12 @@ void UI::Session::onArrowLeft(){
 }
 
 void UI::Session::onValidateSelection() {
+    // If UI menu is open, trigger the selected button
+    if (showUI_ && !menu_buttons_.empty()) {
+        menu_buttons_[menu_button_index_]->triggerLeftClick();
+        return;
+    }
+    
     if (!selected_cell_) return;
 
     float screenX = selected_cell_->getX() * scale_ + camera_position_.getX() + scale_ * 0.5f;
@@ -229,12 +246,34 @@ void UI::Session::onValidateSelection() {
     clickLeft(Point{screenX, screenY});
 }
 
+void UI::Session::onArrowUp() {
+    if (!showUI_ || menu_buttons_.empty()) return;
+    
+    menu_button_index_ = (menu_button_index_ - 1 + menu_buttons_.size()) % menu_buttons_.size();
+}
+
+void UI::Session::onArrowDown() {
+    if (!showUI_ || menu_buttons_.empty()) return;
+    
+    menu_button_index_ = (menu_button_index_ + 1) % menu_buttons_.size();
+}
 
 
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
     static std::unique_ptr<Sprites::PrimitiveForm> background(Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200}));
     background->draw(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, 0.0f);
+    
+    // Draw selection highlight on the currently selected menu button
+    if (!menu_buttons_.empty() && menu_button_index_ < menu_buttons_.size()) {
+        auto selected_button = menu_buttons_[menu_button_index_];
+        
+        // Draw a bright border around the selected button
+        auto pos = selected_button->getPosition();
+        SDL_Color col = {255, 200, 0, 255}; // Gold color
+        // The width and height are mapped from the original dimensions, with added spacing so the highlight is visibly framing the button boundaries 
+        Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, 260.0f + 8.0f, 50.0f + 8.0f, 2.0f, col);
+    }
 }
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
@@ -249,26 +288,22 @@ void UI::Session::drawSelection(SDL_Renderer* r) {
 
     float thickness = 0.05f; // épaisseur du cadre
 
-    // Ligne du haut
-    auto top = Sprites::rectangle({x + 0.5f, y + thickness/2, 999}, 1.0f, thickness, col);
-
-    // Ligne du bas
-    auto bottom = Sprites::rectangle({x + 0.5f, y + 1 - thickness/2, 999}, 1.0f, thickness, col);
-
-    // Ligne gauche
-    auto left = Sprites::rectangle({x + thickness/2, y + 0.5f, 999}, thickness, 1.0f, col);
-
-    // Ligne droite
-    auto right = Sprites::rectangle({x + 1 - thickness/2, y + 0.5f, 999}, thickness, 1.0f, col);
-
-    top->draw(r, delta_time_, camera_position_, scale_, 0.0f);
-    bottom->draw(r, delta_time_, camera_position_, scale_, 0.0f);
-    left->draw(r, delta_time_, camera_position_, scale_, 0.0f);
-    right->draw(r, delta_time_, camera_position_, scale_, 0.0f);
+    Session::drawHighlightBox(r, delta_time_, camera_position_, scale_, x, y, 1.0f, 1.0f, thickness, col);
 }
 
 
 
+void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col) {
+    std::unique_ptr<Sprites::PrimitiveForm> top(Sprites::rectangle({x + w / 2.0f, y + thickness / 2.0f, 999.0f}, w, thickness, col));
+    std::unique_ptr<Sprites::PrimitiveForm> bottom(Sprites::rectangle({x + w / 2.0f, y + h - thickness / 2.0f, 999.0f}, w, thickness, col));
+    std::unique_ptr<Sprites::PrimitiveForm> left(Sprites::rectangle({x + thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col));
+    std::unique_ptr<Sprites::PrimitiveForm> right(Sprites::rectangle({x + w - thickness / 2.0f, y + h / 2.0f, 999.0f}, thickness, h, col));
+
+    top->draw(r, dt, offset, scale, 0.0f);
+    bottom->draw(r, dt, offset, scale, 0.0f);
+    left->draw(r, dt, offset, scale, 0.0f);
+    right->draw(r, dt, offset, scale, 0.0f);
+}
 
 
 void UI::Session::mainSession() {

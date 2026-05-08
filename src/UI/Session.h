@@ -15,6 +15,10 @@
 
 struct UpgradeNode;
 
+namespace Sprites {
+    class Button;
+}
+
 namespace UI
 {
 class Session : public Window{
@@ -31,6 +35,10 @@ private:
     int ticks_per_seconds_;
     std::vector<Point> tower_build_cells_;
     int tower_cursor_index_ = 0;
+
+    // --- Menu Navigation ---
+    int menu_button_index_ = 0;
+    std::vector<Sprites::Button*> menu_buttons_;
 
     // --- Tower UI Members ---
     std::optional<Point> selected_cell_;
@@ -51,6 +59,8 @@ protected:
     void clickLeft(Point click) override;
     void onArrowLeft() override;
     void onArrowRight() override;
+    void onArrowUp() override;
+    void onArrowDown() override;
     void onValidateSelection() override;
     void drawUI(SDL_Renderer* r) override;
     void drawSelection(SDL_Renderer* r) override;
@@ -60,7 +70,8 @@ private:
     void openBuildUI(Point cell);
     void openUpgradeUI(Tower* tower);
     void closeTowerUI();
-    
+    void updateMenuButtonHighlight();
+    static void drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col);
     
 
 };

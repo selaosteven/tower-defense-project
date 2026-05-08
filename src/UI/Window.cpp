@@ -146,6 +146,15 @@ werrors UI::Window::inputs(){
                             onArrowRight();
                             break;
 
+                        case SDLK_UP:
+                            std::cout << "fleche haut" << std::endl;
+                            onArrowUp();
+                            break;
+
+                        case SDLK_DOWN:
+                            std::cout << "fleche bas" << std::endl;
+                            onArrowDown();
+                            break;
 
                         case SDLK_RETURN:
                             std::cout << "validation clavier" << std::endl;
@@ -371,4 +380,6 @@ void UI::Window::clickLeft(Point click) {
 
 void UI::Window::onArrowLeft(){}
 void UI::Window::onArrowRight(){}
+void UI::Window::onArrowUp(){}
+void UI::Window::onArrowDown(){}
 void UI::Window::onValidateSelection(){}

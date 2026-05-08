@@ -101,6 +101,8 @@ protected:
     virtual void clickLeft(Point click); 
     virtual void onArrowLeft();
     virtual void onArrowRight();
+    virtual void onArrowUp();
+    virtual void onArrowDown();
     virtual void onValidateSelection();
     
     const std::list<Sprites::Sprite*>& getSprites() const { return sprites_; }
