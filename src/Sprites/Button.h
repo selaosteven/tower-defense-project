@@ -31,6 +31,8 @@ public:
 
     void draw(SDL_Renderer* win, float deltaTime, Point offset, float scale, float rot) override;
     bool onClick(Point click, int button, Point offset, float scale) override;
+    float getWidth() {return width_;}
+    float getHeight() {return height_;}
 };
 
 }

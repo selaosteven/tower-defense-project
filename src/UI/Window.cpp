@@ -35,7 +35,7 @@ std::mutex Window::event_mutex;
 //                  CONSTRUCTORS 
 // ------------------------------------------------
 
-UI::Window::Window() : Window{800, 600, auto_flags_sdl_window}{}
+UI::Window::Window() : Window{1280, 720, auto_flags_sdl_window}{}
 
 UI::Window::Window(int width, int height) : Window{height, width, auto_flags_sdl_window} {}
 
@@ -160,7 +160,15 @@ werrors UI::Window::inputs(){
                             std::cout << "validation clavier" << std::endl;
                             onValidateSelection();
                             break;
-
+                        case SDLK_ESCAPE:
+                            std::cout << "Escape" << std::endl;
+                            onEscape();
+                            break;
+                            
+                        case SDLK_SPACE:
+                            std::cout << "SPACE" << std::endl;
+                            onSpace();
+                            break;
                         default:
                             break;
                     }
@@ -381,9 +389,3 @@ void UI::Window::clickLeft(Point click) {
 
     // return (dx*dx + dy*dy <= seuil * seuil);
 }
-
-void UI::Window::onArrowLeft(){}
-void UI::Window::onArrowRight(){}
-void UI::Window::onArrowUp(){}
-void UI::Window::onArrowDown(){}
-void UI::Window::onValidateSelection(){}

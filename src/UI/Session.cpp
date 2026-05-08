@@ -92,11 +92,13 @@ void UI::Session::openBuildUI(Point cell) {
     menu_button_index_ = 0;
     menu_buttons_.clear();
     
-    float startY = 110.0f;
+    float startY = ui_panel_y_ + 10.0f;
     float stepY = 60.0f;
+    float margin = 20.0f;
+    float buttonWidth = ui_panel_w_ - 2 * margin;
 
     // Title
-    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{110.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
     active_ui_elements_.push_back(title);
     addUISprite(title);
     startY += 40;
@@ -105,9 +107,8 @@ void UI::Session::openBuildUI(Point cell) {
         int cost = blueprint->getRootUpgrade() ? blueprint->getRootUpgrade()->cost : 0;
         std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
 
-        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
-
-        button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
+        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+        button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
         
         auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
         button->addSubSprite(text);
@@ -138,6 +139,22 @@ void UI::Session::openBuildUI(Point cell) {
         startY += stepY;
     }
 
+    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
+    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonClose->addSubSprite(textClose);
+
+    buttonClose->setOnLeftClick([this]() {
+        closeTowerUI();
+    });
+
+    active_ui_elements_.push_back(buttonClose);
+    menu_buttons_.push_back(buttonClose);
+    addUISprite(buttonClose);
+
+    startY += 50.0f + 10.0f;
+    ui_panel_h_ = startY - ui_panel_y_;
+
 }
 
 void UI::Session::openUpgradeUI(Tower* tower) {
@@ -150,47 +167,60 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     menu_button_index_ = 0;
     menu_buttons_.clear();
 
-    float startY = 110.0f;
-    float stepY = 60.0f;
+    float startY = ui_panel_y_ + 10.0f;
+    float stepY = 20.0f;
+    float UI_WIDTH = 300.0f; //, 400.0f
+    float margin = 20.0f;
+    float buttonWidth = ui_panel_w_ - 2 * margin;
+    int max_width_text = buttonWidth - 30; // padding of 15px per side
 
-    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{110.0f, startY, 11.0f}, "Upgrades", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, tower->getType(), Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
     active_ui_elements_.push_back(title);
     addUISprite(title);
     startY += 40;
 
+    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
+    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonClose->addSubSprite(textClose);
+    buttonClose->setOnLeftClick([this]() {
+        closeTowerUI();
+    });
+    active_ui_elements_.push_back(buttonClose);
+    menu_buttons_.push_back(buttonClose);
+    addUISprite(buttonClose);
+    startY += 50.0f + stepY;
     const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
     if (!current_node || current_node->children.empty()) {
-        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{120.0f, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + margin, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 14, SDL_Color{255, 255, 255, 255});
         active_ui_elements_.push_back(text);
         addUISprite(text);
-        return;
-    }
-
-    for (const auto& upgrade_node_ptr : current_node->children) {
-        const UpgradeNode* upgrade = upgrade_node_ptr.get();
-        std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
-
-        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
-        button->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
-        
-        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
-        button->addSubSprite(text);
-
-        button->setOnLeftClick([this, upgrade]() { // Pour faire un upgrade
-            if (money_ >= upgrade->cost) {
-                money_ -= upgrade->cost;
-                selected_tower_->applyUpgrade(upgrade); 
-                std::cout << "Upgraded tower with " << upgrade->name << std::endl;
-                closeTowerUI();
-            } else {
-                std::cout << "Not enough money!" << std::endl;
-            }
-        });
-
-        active_ui_elements_.push_back(button);
-        menu_buttons_.push_back(button);
-        addUISprite(button);
-        startY += stepY;
+        startY += 40.0f;
+    } 
+    else {
+        for (const auto& upgrade_node_ptr : current_node->children) {
+            const UpgradeNode* upgrade = upgrade_node_ptr.get();
+            std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
+            auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255}, max_width_text);
+            float buttonHeight = std::max(50.0f, static_cast<float>(text->getHeight() + 30.0f));
+            auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, buttonHeight);
+            button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, buttonHeight / 2.0f, 0.0f}, buttonWidth, buttonHeight, {80, 80, 150, 255}));
+            button->addSubSprite(text);
+            button->setOnLeftClick([this, upgrade]() { // Pour faire un upgrade
+                if (money_ >= upgrade->cost) {
+                    money_ -= upgrade->cost;
+                    selected_tower_->applyUpgrade(upgrade); 
+                    std::cout << "Upgraded tower with " << upgrade->name << std::endl;
+                    closeTowerUI();
+                } else {
+                    std::cout << "Not enough money!" << std::endl;
+                }
+            });
+            active_ui_elements_.push_back(button);
+            menu_buttons_.push_back(button);
+            addUISprite(button);
+            startY += buttonHeight + stepY;
+        }
     }
 
     // Création du boutton de vente
@@ -199,8 +229,9 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     int id = tower->getId();
     int cost = tower->getCurrentUpgradeNode()->cost;
 
-    auto buttonSell = std::make_shared<Sprites::Button>(std::array<float, 3>{120.0f, startY, 10.0f}, 260.0f, 50.0f);
-    buttonSell->addSubSprite(Sprites::rectangle({130.0f, 25.0f, 0.0f}, 260.0f, 50.0f, {80, 80, 150, 255}));
+    auto buttonSell = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonSell->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {150, 80, 80, 255})); // Distinct reddish color
+
 
     auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "SELL", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
     buttonSell->addSubSprite(text);
@@ -234,18 +265,25 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         );
         closeTowerUI();
     });
-
+    
     active_ui_elements_.push_back(buttonSell);
     menu_buttons_.push_back(buttonSell);
     addUISprite(buttonSell);
     
+    startY += 50.0f + 10.0f;
+    ui_panel_h_ = startY - ui_panel_y_;
 }
 
 void UI::Session::clickLeft(Point click) {
     // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
     // We only need to check for clicks *outside* the UI panel to close it.
     if (showUI_) {
-        SDL_Rect uiRect = { 100, 100, 300, 400 };
+        SDL_Rect uiRect = {
+            static_cast<int>(ui_panel_x_ * ui_scale_),
+            static_cast<int>(ui_panel_y_ * ui_scale_),
+            static_cast<int>(ui_panel_w_ * ui_scale_),
+            static_cast<int>(ui_panel_h_ * ui_scale_)
+        };
 
         if (click.getX() < uiRect.x || click.getX() > uiRect.x + uiRect.w ||
             click.getY() < uiRect.y || click.getY() > uiRect.y + uiRect.h)
@@ -323,11 +361,21 @@ void UI::Session::onArrowDown() {
     menu_button_index_ = (menu_button_index_ + 1) % menu_buttons_.size();
 }
 
+void UI::Session::onEscape(){
+    if(showUI_) closeTowerUI();
+}
+
+void UI::Session::onSpace(){
+    startNextWave();
+}
 
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
-    static auto background = Sprites::rectangle({250.0f, 300.0f, 0.0f}, 300.0f, 400.0f, {20, 20, 40, 200});
-    background->draw(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, 0.0f);
+    
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 20, 20, 40, 200);
+    SDL_FRect bgRect = {ui_panel_x_ * ui_scale_, ui_panel_y_ * ui_scale_, ui_panel_w_ * ui_scale_, ui_panel_h_ * ui_scale_};
+    SDL_RenderFillRectF(r, &bgRect);
     
     // Draw selection highlight on the currently selected menu button
     if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
@@ -337,7 +385,9 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         auto pos = selected_button->getPosition();
         SDL_Color col = {255, 200, 0, 255}; // Gold color
         // The width and height are mapped from the original dimensions, with added spacing so the highlight is visibly framing the button boundaries 
-        Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, 260.0f + 8.0f, 50.0f + 8.0f, 2.0f, col);
+        float btn_w = selected_button->getWidth();
+        float btn_h = selected_button->getHeight();
+        Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 }
 
@@ -373,13 +423,13 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
 
 void UI::Session::mainSession() {
     while(!Window::sdl_initiated);
-    float cellWidth  = getWinWidth() / static_cast<float>(map_.getWidth());
+    float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
     float cellSize = 1.0f;
 
     // Center the map on the screen for the rendering engine
-    float offsetX = (getWinWidth()  - scale_ * map_.getWidth())  / 2.0f;
+    float offsetX = ((getWinWidth()-300)  - scale_ * map_.getWidth())  / 2.0f;
     float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
     camera_position_ = Point{offsetX, offsetY};
 
