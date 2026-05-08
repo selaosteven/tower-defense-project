@@ -587,11 +587,6 @@ void UI::Session::mainSession() {
     // startNextWave(); 
     auto lastTime = clock::now();
 
-    // Instantiate the QuadTree once outside the loop
-    float mapW = map_.getWidth() * cellSize;
-    float mapH = map_.getHeight() * cellSize;
-    QuadTree qt(Rectangle(mapW / 2.0f, mapH / 2.0f, mapW, mapH));
-
     while(running && !wants_to_die_) {
         auto now = clock::now();
         float dt = std::chrono::duration<float>(now - lastTime).count();
@@ -631,9 +626,9 @@ void UI::Session::mainSession() {
                 }
             }
             
-            qt.clear(); // Simply clear the existing persistent tree
+            map_ope_.clear(); // Simply clear the existing persistent tree
             for (auto& enemy : el) {
-                if (enemy->isAlive()) qt.insert(enemy.get());
+                if (enemy->isAlive()) map_ope_.addEnemy(enemy.get());
             }
              // Update projectiles
             for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ) {
@@ -643,14 +638,14 @@ void UI::Session::mainSession() {
                 if (proj->hasHit()) {
                     std::vector<Enemy*> hit_enemies;
                     if (proj->getSize() > 0.0f) { // Splash damage
-                        std::vector<Enemy*> nearby = qt.query(proj->getPosition(), proj->getSize());
+                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), proj->getSize());
                         for (auto* enemy : nearby) {
                             hit_enemies.push_back(enemy);
                         }
                     } else { // Single target
                         Enemy* closest = nullptr;
                         float min_dist = 1.0f; // Max acceptable dist for single target splash search
-                        std::vector<Enemy*> nearby = qt.query(proj->getPosition(), min_dist);
+                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), min_dist);
                         for (auto* enemy : nearby) {
                             Point dir = proj->getPosition() ^ enemy->getPosition();
                             float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
@@ -672,7 +667,7 @@ void UI::Session::mainSession() {
             }
             // Update towers with enemy list
             for (auto& tower : placed_towers_) {
-                std::vector<Enemy*> nearby_enemies = qt.query(tower->getPosition(), tower->getRange());
+                std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
                 tower->live(dt, nearby_enemies);
                 auto new_projs = tower->fetchSpawnedProjectiles();
                 for(auto& p : new_projs) {

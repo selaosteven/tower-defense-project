@@ -161,3 +161,14 @@ void QuadTree::print(int level) const {
     botLeftTree_->print(level + 1);
     botRightTree_->print(level + 1);
 }
+
+void QuadTree::clear(){
+    lst_enemy_.clear();
+    if (divided_) {
+        topLeftTree_.reset();
+        topRightTree_.reset();
+        botLeftTree_.reset();
+        botRightTree_.reset();
+        divided_ = false;
+    }
+}

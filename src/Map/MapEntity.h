@@ -24,8 +24,10 @@ private:
 public:
     MapEntity(float width, float height);
     std::vector<Enemy*> allWithinRange(const Tower& t);
+    std::vector<Enemy*> query(Point center, float range);
     void addEnemy(Enemy* e);
     void removeEnemy(Enemy* e);
+    void clear();
 };
 
 }
