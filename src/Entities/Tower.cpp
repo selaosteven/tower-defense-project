@@ -9,7 +9,7 @@
 
 int Tower::compteur_ = 0;
 
-Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes) : 
+Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp) : 
     Entity{{0,0}},
     range_{range}, 
     damage_{damage}, 
@@ -26,39 +26,14 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     show_cone_{false},
     cone_changed_{false},
     target_ground_{true},
-    target_flying_{false} // By default, towers only target ground enemies!
+    target_flying_{false}, // By default, towers only target ground enemies!
+    xp_{xp}
     {
         sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
         cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
         cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
     }
-
-Tower::Tower(Point position, Tower &t,const std::vector<float>& shapes) : Entity{position},
-range_{t.range_}, 
-damage_{t.damage_}, 
-as_{t.as_}, 
-rs_{t.rs_},
-cone_angle_{t.cone_angle_},
-proj_{t.proj_},
-type_{t.type_},
-id_{compteur_++},
-current_angle_{0.0f},
-time_since_shot_{0.0f},
-show_range_{false},
-range_changed_{true},
-show_cone_{false},
-cone_changed_{false},
-target_ground_{t.target_ground_},
-target_flying_{t.target_flying_}
-  {
-    sprites_ = Tower::createSprites(shapes);
-    range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
-    cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
-    if (t.cannon_sprite_) {
-        cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
-    }
-  }
 
 void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
     if (cone_changed_) {
@@ -112,6 +87,8 @@ void Tower::shoot(Enemy& target){
     }
 
     do_shoot(target);
+
+    xp_+=1;
 
     for(auto& a : augments_){
         a->tower_shoot_postfix(*this, target, proj_);

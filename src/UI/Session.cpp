@@ -153,7 +153,7 @@ void UI::Session::openBuildUI(Point cell) {
     addUISprite(buttonClose);
 
     startY += 50.0f + 10.0f;
-    ui_panel_h_ = startY - ui_panel_y_;
+    ui_panel_h_ = (startY - ui_panel_y_);
 
 }
 
@@ -274,7 +274,8 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     addUISprite(buttonSell);
     
     startY += 50.0f + 10.0f;
-    ui_panel_h_ = startY - ui_panel_y_;
+
+    ui_panel_h_ = (startY - ui_panel_y_) + 120.0f;
 }
 
 void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
@@ -422,6 +423,43 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         float btn_h = selected_button->getHeight();
         Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
+
+    // --- BARRE D'XP DYNAMIQUE ---
+    if (showUI_ && selected_tower_) {
+
+        int xp = selected_tower_->getXp();
+        int xpMax = 100;
+        float xpRatio = std::min(1.0f, xp / (float)xpMax);
+
+        float margin = 20.0f;
+        float barX = ui_panel_x_ + margin;
+        float barY = ui_panel_y_ + ui_panel_h_ - 80.0f; // position basse
+        float barW = ui_panel_w_ - 2 * margin;
+        float barH = 25.0f;
+
+        // Fond gris
+        SDL_FRect bg = { barX * ui_scale_, barY * ui_scale_, barW * ui_scale_, barH * ui_scale_ };
+        SDL_SetRenderDrawColor(r, 80, 80, 80, 255);
+        SDL_RenderFillRectF(r, &bg);
+
+        // Barre bleue
+        SDL_FRect fill = { barX * ui_scale_, barY * ui_scale_, (barW * xpRatio) * ui_scale_, barH * ui_scale_ };
+        SDL_SetRenderDrawColor(r, 100, 180, 255, 255);
+        SDL_RenderFillRectF(r, &fill);
+
+        // --- TEXTE DYNAMIQUE "XP: x / y" ---
+        {
+            Sprites::Text xpValue(
+                {barX, barY - 20.0f, 12.0f},
+                "XP: " + std::to_string(xp) + " / " + std::to_string(xpMax),
+                Sprites::Text::POKETEXT,
+                18,
+                SDL_Color{255,255,255,255}
+            );
+            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+        }
+    }
+
 }
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
