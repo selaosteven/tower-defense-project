@@ -1,0 +1,40 @@
+{
+    "enemies": [
+        {
+            "type": "Regular",
+            "baseQuantity": 50,
+            "linearScaler": 2.0,
+            "exponentialScaler": 1.05
+        },
+        {
+            "type": "Fast",
+            "baseQuantity": 0,
+            "linearScaler": 1.5,
+            "exponentialScaler": 1.1
+        },
+        {
+            "type": "Strong",
+            "baseQuantity": 0,
+            "linearScaler": 0.5,
+            "exponentialScaler": 1.2
+        },
+        {
+            "type": "Heli",
+            "baseQuantity": 0,
+            "linearScaler": 1.0,
+            "exponentialScaler": 1.05
+        },
+        {
+            "type": "Jet",
+            "baseQuantity": 0,
+            "linearScaler": 0.5,
+            "exponentialScaler": 1.15
+        },
+        {
+            "type": "Armored",
+            "baseQuantity": 0,
+            "linearScaler": 0.2,
+            "exponentialScaler": 1.25
+        }
+    ]
+}

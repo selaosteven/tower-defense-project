@@ -13,6 +13,9 @@
 #include "Entities/EnemyBlueprint.h"
 #include "Entities/Projectile.h"
 #include "QuadTree/QuadTree.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <algorithm>
 
 
 // ------------------------------------------------
@@ -55,6 +58,8 @@ UI::Session::Session(std::string name_map):
                 }
             }
         }
+        
+        wave_configs_ = EnemyBlueprint::loadWaveCreator("../src/Ressources/waveCreator.json");
     }
 
 
@@ -468,6 +473,7 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         money_+=(cost/2);
 
         // We remove it from the tower list if it still exists
+        // first we find it
         auto it = std::find_if(
             placed_towers_.begin(),
             placed_towers_.end(),
@@ -475,6 +481,7 @@ void UI::Session::openUpgradeUI(Tower* tower) {
                 return t->getId() == id;
             }
         );
+        // We use the mutex to correctly remove it when no other thread use it.
         if (it != placed_towers_.end()) {
             std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             sold_towers_.push_back(std::move(*it));
@@ -604,16 +611,11 @@ void UI::Session::drawUI(SDL_Renderer* r) {
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
     if (!selected_cell_ || hp_player_ <= 0) return;
-
     Point c = *selected_cell_;
-
     float x = c.getX();
     float y = c.getY();
-
     SDL_Color col = {255, 255, 0, 255}; // jaune
-
     float thickness = 0.05f; // épaisseur du cadre
-
     Session::drawHighlightBox(r, delta_time_, camera_position_, scale_, x, y, 1.0f, 1.0f, thickness, col);
 }
 
@@ -631,6 +633,7 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
     right->draw(r, dt, offset, scale, 0.0f);
 }
 
+
 // ------------------------------------------------
 //                  GAMEPLAY LOOP 
 // ------------------------------------------------
@@ -638,7 +641,42 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
 void UI::Session::startNextWave() {
     if (!waveActive_) {
         round_++;
-        enemiesToSpawn_ = 5 + round_ * 6; 
+        wave_spawns_.clear();
+        // If we have wave config we use it
+        if (!wave_configs_.empty()) {
+            // We iterate through every type of the config to prepare each enemy.
+            for (const auto& config : wave_configs_) {
+                // We use a base amount, a linear scale and a exponential for late game
+                int quantity = config.baseQuantity;
+                quantity += static_cast<int>(round_ * config.linearScaler);
+                quantity += static_cast<int>(std::pow(round_, config.exponentialScaler));
+                
+                std::weak_ptr<EnemyBlueprint> bp;
+                // We search the blueprint corresponding to the type
+                // if it's not found we just skip this type
+                for (const auto& cat : enemy_catalog_) {
+                    if (cat->getType() == config.enemyType) {
+                        bp = cat;
+                        break;
+                    }
+                }
+                if (!bp.expired())
+                for (int i = 0; i < quantity; ++i) {
+                    wave_spawns_.push_back(bp);
+                }
+            }
+            // The wave is packed by type, we shuffle the list to get a mixed wave.
+            // Simple Fisher-Yates shuffle :: https://fr.wikipedia.org/wiki/M%C3%A9lange_de_Fisher-Yates
+            for (int i = static_cast<int>(wave_spawns_.size()) - 1; i > 0; --i) {
+                int j = rand() % (i + 1);
+                std::swap(wave_spawns_[i], wave_spawns_[j]);
+            }
+            
+            enemiesToSpawn_ = wave_spawns_.size();
+        } else { // just set a fix amount to spawn if no wave config given
+            enemiesToSpawn_ = 5 + round_ * 6; 
+        }
+        
         spawnTimer_ = 0.0f;
         waveActive_ = true;
         std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
@@ -652,20 +690,34 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     Point spawnPosition{baseX, baseY};
     spawnPosition += spawnOffset;
     
-    // Make every 3rd enemy a flying enemy!
-    bool is_flying = (enemiesToSpawn_ % 3 == 0);
+    std::shared_ptr<EnemyBlueprint> blueprint = nullptr;
 
-    std::vector<const EnemyBlueprint*> matching_blueprints;
-    for(const auto& bp : enemy_catalog_) {
-        if (bp->isFlying() == is_flying) {
-            matching_blueprints.push_back(bp.get());
+    // We check for elements in the wavespawn config array, if there's none means we're using the old way
+    if (!wave_spawns_.empty()) {
+        // we need to swap ownership of the vector for memory safe action
+        blueprint = wave_spawns_.back().lock();
+        wave_spawns_.pop_back();
+    } else {
+
+        // We use a 1/3 of the enemy to be flying.
+        bool is_flying = (enemiesToSpawn_ % 3 == 0);
+
+        // We iterate through the catalog to find flying/ground accordingly
+        std::vector<std::shared_ptr<EnemyBlueprint>> matching_blueprints;
+        for(const auto& bp : enemy_catalog_) {
+            if (bp->isFlying() == is_flying) {
+                matching_blueprints.push_back(bp);
+            }
         }
+
+        if (matching_blueprints.empty()) return; // Should not happen if blueprints are loaded
+
+        // We then take a random one to be spawn
+        int randomIndex = rand() % matching_blueprints.size();
+        blueprint = matching_blueprints[randomIndex];
     }
-
-    if (matching_blueprints.empty()) return; // Should not happen if blueprints are loaded
-
-    int randomIndex = rand() % matching_blueprints.size();
-    const EnemyBlueprint* blueprint = matching_blueprints[randomIndex];
+    
+    if (!blueprint) return;
     
     // Visually scale the enemy to fit within a tile
     float enemySize = cellSize * 0.205f;

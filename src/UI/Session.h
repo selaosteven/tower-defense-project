@@ -52,7 +52,9 @@ private:
     std::optional<Point> selected_cell_;
     Tower* selected_tower_;
     std::vector<std::unique_ptr<TowerTree>> tower_catalog_;
-    std::vector<std::unique_ptr<EnemyBlueprint>> enemy_catalog_;
+    std::vector<std::shared_ptr<EnemyBlueprint>> enemy_catalog_;
+    std::vector<WaveEnemyConfig> wave_configs_;
+    std::vector<std::weak_ptr<EnemyBlueprint>> wave_spawns_;
     std::list<std::unique_ptr<Tower>> placed_towers_;
     std::list<std::unique_ptr<Tower>> sold_towers_;
     std::list<std::unique_ptr<Projectile>> active_projectiles_;

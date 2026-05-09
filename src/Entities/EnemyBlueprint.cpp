@@ -78,3 +78,35 @@ std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float of
     
     return enemy;
 }
+
+
+std::vector<WaveEnemyConfig> EnemyBlueprint::loadWaveCreator(const std::string& filepath) {
+    std::vector<WaveEnemyConfig> waveConfig; 
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "Warning: Could not open " << filepath << ". Using default wave generation." << std::endl;
+        return waveConfig;
+    }
+
+    json j;
+    try {
+        file >> j;
+    } catch (const json::parse_error& e) {
+        std::cerr << "JSON parsing error in " << filepath << ": " << e.what() << std::endl;
+        return waveConfig;
+    }
+
+    // For each enemy, we gather the wave scaler
+    if (j.contains("enemies") && j["enemies"].is_array()) {
+        waveConfig.clear();
+        for (const auto& enemy_json : j["enemies"]) {
+            WaveEnemyConfig config;
+            config.enemyType = enemy_json.value("type", "Regular");
+            config.baseQuantity = enemy_json.value("baseQuantity", 1);
+            config.linearScaler = enemy_json.value("linearScaler", 1.0f);
+            config.exponentialScaler = enemy_json.value("exponentialScaler", 1.0f);
+            waveConfig.push_back(config);
+        }
+    }
+    return waveConfig;
+}

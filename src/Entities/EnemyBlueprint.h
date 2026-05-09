@@ -7,7 +7,19 @@
 #include "Entities/Enemy.h"
 #include <SDL2/SDL.h>
 
+
+struct WaveEnemyConfig {
+    std::string enemyType;
+    int baseQuantity;
+    float linearScaler;
+    float exponentialScaler;
+};
+
+
 class EnemyBlueprint {
+// Static methods
+public:
+    static std::vector<WaveEnemyConfig> loadWaveCreator(const std::string& filepath);
 private:
     std::string enemyType_; // type of enemy
     float baseLp_; // life point
@@ -48,6 +60,7 @@ public:
     std::unique_ptr<Enemy> instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size, int round) const;
     
     bool isFlying() const { return isFlying_; }
+    const std::string& getType() const { return enemyType_; }
 };
 
 #endif
