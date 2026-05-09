@@ -54,7 +54,7 @@ private:
     std::vector<std::shared_ptr<Sprites::Sprite>> active_ui_elements_;
 
     // --- UI Layout Settings ---
-    float ui_panel_x_ = 950.0f; // Easy to move: default is Right-side 
+    float ui_panel_x_ = -350.0f; // Easy to move: default is Right-side 
     float ui_panel_y_ = 100.0f;
     float ui_panel_w_ = 300.0f;
     float ui_panel_h_ = 400.0f; // Height updates dynamically based on content
@@ -75,6 +75,8 @@ protected:
     void onValidateSelection() override;
     void onEscape() override;
     void onSpace() override;
+    void onMouseDrag(Point current_pos, Point start_pos, Uint8 button) override;
+    void onMouseScroll(float scrollX, float scrollY) override;
 
     void drawUI(SDL_Renderer* r) override;
     void drawSelection(SDL_Renderer* r) override;
@@ -87,7 +89,8 @@ private:
     void updateMenuButtonHighlight();
     void spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el);
     static void drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col);
-    
+    void GameOverScreen();
+
 
 };
 

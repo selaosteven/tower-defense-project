@@ -56,7 +56,7 @@ UI::Session::Session(std::string name_map):
 void UI::Session::startNextWave() {
     if (!waveActive_) {
         round_++;
-        enemiesToSpawn_ = 5 + round_ * 2; // Increase difficulty: 7, 9, 11 enemies...
+        enemiesToSpawn_ = 5 + round_ * 6; // Increase difficulty: 7, 9, 11 enemies...
         spawnTimer_ = 0.0f;
         waveActive_ = true;
         std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
@@ -317,7 +317,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     
     // Visually scale the enemy to occupy 70% of a tile
     float enemySize = cellSize * 0.205f;
-    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize));
+    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
     addEntity(el.back().get());
     enemiesToSpawn_--;
     spawnTimer_ = 0.0f;
@@ -327,9 +327,12 @@ void UI::Session::clickLeft(Point click) {
     // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
     // We only need to check for clicks *outside* the UI panel to close it.
     if (showUI_) {
+        float offsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
+        float offsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
+
         SDL_Rect uiRect = {
-            static_cast<int>(ui_panel_x_ * ui_scale_),
-            static_cast<int>(ui_panel_y_ * ui_scale_),
+            static_cast<int>(offsetX + ui_panel_x_ * ui_scale_),
+            static_cast<int>(offsetY + ui_panel_y_ * ui_scale_),
             static_cast<int>(ui_panel_w_ * ui_scale_),
             static_cast<int>(ui_panel_h_ * ui_scale_)
         };
@@ -418,13 +421,45 @@ void UI::Session::onSpace(){
     startNextWave();
 }
 
+void UI::Session::onMouseDrag(Point current_pos, Point start_pos, Uint8 button) {
+    // Use right click (3) or middle click (2) to pan the camera
+    if (button == SDL_BUTTON_RIGHT || button == SDL_BUTTON_MIDDLE) {
+        camera_position_ += (current_pos - start_pos);
+    }
+}
+
+void UI::Session::onMouseScroll(float scrollX, float scrollY) {
+    std::cout << "scroll "<< scrollX <<" -  " <<  scrollY << std::endl;
+    if (scrollY == 0) return;
+
+    float old_scale = scale_;
+    float zoom_factor = 1.1f; // 10% zoom per scroll tick
+
+    if (scrollY > 0) scale_ *= zoom_factor;
+    else scale_ /= zoom_factor;
+
+    // Clamp the scale to prevent zooming too far in or out
+    scale_ = std::max(5.0f, std::min(scale_, 300.0f));
+
+    // Zoom towards the center of the screen so it feels natural
+    float cx = getWinWidth() / 2.0f;
+    float cy = getWinHeight() / 2.0f;
+
+    float worldX = (cx - camera_position_.getX()) / old_scale;
+    float worldY = (cy - camera_position_.getY()) / old_scale;
+
+    camera_position_ = Point{cx - worldX * scale_, cy - worldY * scale_};
+}
+
 void UI::Session::drawUI(SDL_Renderer* r) {
     if (!showUI_) return;    
     
-    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(r, 20, 20, 40, 200);
-    SDL_FRect bgRect = {ui_panel_x_ * ui_scale_, ui_panel_y_ * ui_scale_, ui_panel_w_ * ui_scale_, ui_panel_h_ * ui_scale_};
-    SDL_RenderFillRectF(r, &bgRect);
+    float panelOffsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
+    float panelOffsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
+    Point panel_offset{panelOffsetX, panelOffsetY};
+
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, 0.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    bg->draw(r, delta_time_, panel_offset, ui_scale_, 0.0f);
     
     // Draw selection highlight on the currently selected menu button
     if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
@@ -433,10 +468,13 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         // Draw a bright border around the selected button
         auto pos = selected_button->getPosition();
         SDL_Color col = {255, 200, 0, 255}; // Gold color
-        // The width and height are mapped from the original dimensions, with added spacing so the highlight is visibly framing the button boundaries 
         float btn_w = selected_button->getWidth();
         float btn_h = selected_button->getHeight();
-        Session::drawHighlightBox(r, delta_time_, Point{0.0f, 0.0f}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
+        
+        float btnOffsetX = (pos.getX() < 0) ? getWinWidth() : 0.0f;
+        float btnOffsetY = (pos.getY() < 0) ? getWinHeight() : 0.0f;
+        
+        Session::drawHighlightBox(r, delta_time_, Point{btnOffsetX, btnOffsetY}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 
     if (showUI_ && selected_tower_) {
@@ -456,44 +494,28 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         float titleY = ui_panel_y_ + 10.0f;
 
         // Taille du badge
-        float badgeSize = 26.0f * ui_scale_;
+        float badgeSize = 26.0f;
 
         // Position du badge (à droite du nom)
-        float badgeX = (titleX + 200.0f) * ui_scale_;  // ajuste 200 si ton texte est plus long
-        float badgeY = (titleY + 4.0f) * ui_scale_;
+        float badgeX = titleX + 200.0f;  // ajuste 200 si ton texte est plus long
+        float badgeY = titleY + 4.0f;
+        
+        float badgeOffsetX = (badgeX < 0) ? getWinWidth() : 0.0f;
+        float badgeOffsetY = (badgeY < 0) ? getWinHeight() : 0.0f;
+        Point badge_offset{badgeOffsetX, badgeOffsetY};
 
-        // Fond du carré
-        SDL_FRect badgeRect = { badgeX, badgeY, badgeSize, badgeSize };
-        SDL_SetRenderDrawColor(r, badgeColor.r, badgeColor.g, badgeColor.b, badgeColor.a);
-        SDL_RenderFillRectF(r, &badgeRect);
+        auto badge = Sprites::rectangle({badgeX + badgeSize / 2.0f, badgeY + badgeSize / 2.0f, 0.0f}, badgeSize, badgeSize, badgeColor);
+        badge->draw(r, delta_time_, badge_offset, ui_scale_, 0.0f);
 
-        // --- TEXTE CENTRÉ DANS LE CARRÉ ---
-        {
-            Sprites::Text lvlText(
-                {0, 0, 12.0f},                // position temporaire
-                std::to_string(lvl),
-                Sprites::Text::POKETEXT,
-                20,
-                SDL_Color{0,0,0,255}
-            );
-
-            // Taille réelle du texte
-            float textW = lvlText.getWidth()  * ui_scale_;
-            float textH = lvlText.getHeight() * ui_scale_;
-
-            // Position centrée
-            float textX = badgeX + (badgeSize - textW) / 2.0f;
-            float textY = badgeY + (badgeSize - textH) / 2.0f;
-
-            // On dessine directement, sans setPosition()
-            lvlText.draw(
-                r,
-                delta_time_,
-                Point{ textX / ui_scale_, textY / ui_scale_ },
-                ui_scale_,
-                0.0f
-            );
-        }
+        Sprites::Text lvlText(
+            {badgeX + badgeSize / 2.0f, badgeY + badgeSize / 2.0f, 12.0f},
+            std::to_string(lvl),
+            Sprites::Text::POKETEXT,
+            20,
+            SDL_Color{0,0,0,255},
+            true // Centered Nativement
+        );
+        lvlText.draw(r, delta_time_, badge_offset, ui_scale_, 0.0f);
     }
 
     // --- BARRE D'XP DYNAMIQUE ---
@@ -503,35 +525,37 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         int xpMax = selected_tower_->getXpMax();
         int level = selected_tower_->getLevel();
         int levelMax = selected_tower_->getLevelMax();
-        float xpRatio = (level >= 11) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
-
+        float xpRatio = (level >= levelMax) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
 
         float margin = 20.0f;
         float barX = ui_panel_x_ + margin;
         float barY = ui_panel_y_ + ui_panel_h_ - 80.0f; // position basse
         float barW = ui_panel_w_ - 2 * margin;
         float barH = 25.0f;
+        
+        float barOffsetX = (barX < 0) ? getWinWidth() : 0.0f;
+        float barOffsetY = (barY < 0) ? getWinHeight() : 0.0f;
+        Point bar_offset{barOffsetX, barOffsetY};
 
-        // Fond gris
-        SDL_FRect bg = { barX * ui_scale_, barY * ui_scale_, barW * ui_scale_, barH * ui_scale_ };
-        SDL_SetRenderDrawColor(r, 80, 80, 80, 255);
-        SDL_RenderFillRectF(r, &bg);
+        auto bg = Sprites::rectangle({barX + barW / 2.0f, barY + barH / 2.0f, 0.0f}, barW, barH, {80, 80, 80, 255});
+        bg->draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
 
-        // Barre bleue
-        SDL_FRect fill = { barX * ui_scale_, barY * ui_scale_, (barW * xpRatio) * ui_scale_, barH * ui_scale_ };
-        SDL_SetRenderDrawColor(r, 100, 180, 255, 255);
-        SDL_RenderFillRectF(r, &fill);
+        if (xpRatio > 0.0f) {
+            float fillW = barW * xpRatio;
+            auto fill = Sprites::rectangle({barX + fillW / 2.0f, barY + barH / 2.0f, 0.0f}, fillW, barH, {100, 180, 255, 255});
+            fill->draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
+        }
 
         if (level >= levelMax) {
-            // --- TEXTE "MAX" ---
             Sprites::Text xpValue(
-                {barX + barW/2 - 20.0f, barY - 4.0f, 12.0f},
+                {barX + barW / 2.0f, barY + barH / 2.0f, 12.0f},
                 "MAX",
                 Sprites::Text::POKETEXT,
                 20,
-                SDL_Color{255, 215, 0, 255} // doré
+                SDL_Color{255, 215, 0, 255}, // doré
+                true // Centered Nativement
             );
-            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+            xpValue.draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
         }
         else {
             // --- TEXTE NORMAL XP: x / y ---
@@ -542,10 +566,9 @@ void UI::Session::drawUI(SDL_Renderer* r) {
                 18,
                 SDL_Color{255,255,255,255}
             );
-            xpValue.draw(r, delta_time_, Point{0,0}, ui_scale_, 0.0f);
+            xpValue.draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
         }
     }
-
 }
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
@@ -577,8 +600,40 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
     right->draw(r, dt, offset, scale, 0.0f);
 }
 
+void UI::Session::GameOverScreen(){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    sprites_.clear();
+    entities_.clear();
+    ui_sprites_.clear();
+    active_ui_elements_.clear();
+    menu_buttons_.clear();
+    showUI_ = false;
+
+    float cx = getWinWidth() / 2.0f;
+    float cy = getWinHeight() / 2.0f;
+
+    auto go_title = std::make_shared<Sprites::Text>(std::array<float, 3>{cx, cy - 100.0f, 11.0f}, "GAME OVER", Sprites::Text::POKETEXT, 48, SDL_Color{255, 50, 50, 255}, true);
+    
+    auto go_btn = std::make_shared<Sprites::Button>(std::array<float, 3>{cx - 100.0f, cy, 10.0f}, 200.0f, 60.0f);
+    go_btn->addSubSprite(Sprites::rectangle({100.0f, 30.0f, 0.0f}, 200.0f, 60.0f, {150, 50, 50, 255}));
+    auto btn_text = std::make_shared<Sprites::Text>(std::array<float, 3>{100.0f, 30.0f, 1.0f}, "QUIT", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255}, true);
+    go_btn->addSubSprite(btn_text);
+
+    go_btn->setOnLeftClick([this]() {
+        wants_to_die_ = true;
+        SDL_Event quit_event;
+        quit_event.type = SDL_QUIT;
+        SDL_PushEvent(&quit_event);
+    });
+    
+    active_ui_elements_.push_back(go_title);
+    active_ui_elements_.push_back(go_btn);
+    addUISprite(go_title);
+    addUISprite(go_btn);
+}
 
 void UI::Session::mainSession() {
+    hp_player_ = 1;
     while(!Window::sdl_initiated);
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
@@ -702,7 +757,7 @@ void UI::Session::mainSession() {
             spawnTimer_ += dt;
             
             // Spawn enemies if we still have some left to spawn for this wave
-            if (enemiesToSpawn_ > 0 && spawnTimer_ >= 1.0f) { // spawn every 1 second
+            if (enemiesToSpawn_ > 0 && spawnTimer_ >= (0.1f + 0.4*static_cast<float>(rand()) / static_cast<float>(RAND_MAX))) { // spawn every 1 second
                 spawnEnemy(cellSize, spawningDirection, baseX, baseY, path, el);
             }
 
@@ -848,10 +903,27 @@ void UI::Session::mainSession() {
         
         if (hp_player_ <= 0) {
             std::cout << "GAME OVER!\n";
+            GameOverScreen();
+
+            while (!wants_to_die_) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
             running = false;
         }
 
         // Small sleep to prevent 100% CPU usage loop
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
+    }
+
+    // Cleanup all entities before exiting the session thread
+    // to prevent the rendering thread from accessing freed memory.
+    for (auto& enemy : el) {
+        removeEntity(enemy.get());
+    }
+    for (auto& tower : placed_towers_) {
+        removeEntity(tower.get());
+    }
+    for (auto& proj : active_projectiles_) {
+        removeEntity(proj.get());
     }
 }

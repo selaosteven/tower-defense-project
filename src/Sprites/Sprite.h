@@ -12,9 +12,13 @@ namespace Sprites
 class Sprite
 {
 
+// ----------------------------
+// Static - classwide
 public:
     static constexpr float unit_size_pixels = 10;
 
+// ----------------------------
+// Object elements
 protected:
     Point position_;
     float zindex_;
@@ -36,9 +40,6 @@ public:
     
     inline void setScale(const float scale) {
         scale_ = scale;
-    }
-    inline void move(Point velocity){
-        position_ += velocity;
     }
 
     inline Point getPosition() {return position_;}

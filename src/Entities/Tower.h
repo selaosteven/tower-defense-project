@@ -48,6 +48,7 @@ private:
     bool cone_changed_;
     std::shared_ptr<Sprites::Sprite> cone_sprite_;
     std::shared_ptr<Sprites::Sprite> cannon_sprite_;
+    std::shared_ptr<Sprites::Sprite> max_level_sprite_;
     bool target_ground_;
     bool target_flying_;
     std::vector<std::unique_ptr<Projectile>> spawned_projectiles_;

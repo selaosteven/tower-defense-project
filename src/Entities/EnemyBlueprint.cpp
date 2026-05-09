@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <cstdlib> // For rand()
 #include <ctime>   // For time()
+#include <cmath>
 
 using json = nlohmann::json;
 
@@ -56,7 +57,7 @@ std::unique_ptr<EnemyBlueprint> EnemyBlueprint::loadFromFile(const std::string& 
     return blueprint;
 }
 
-std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size) const {
+std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size, int round) const {
     
     char displayChar = ' ';
     if (!possibleChars_.empty()) {
@@ -64,8 +65,9 @@ std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float of
         displayChar = possibleChars_[randomIndex];
     }
 
+
     auto enemy = std::make_unique<Enemy>(
-        baseLp_, baseSpeed_, baseResistance_, isFlying_, std::string(1, displayChar), color_, size
+        baseLp_ + powf(round,1.5), baseSpeed_, baseResistance_, isFlying_, std::string(1, displayChar), color_, size
     );
 
     enemy->setPosition(position);

@@ -15,7 +15,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     damage_{damage}, 
     as_{as}, 
     rs_{rs},
-    cone_angle_{60.0f},
+    cone_angle_{30.0f},
     proj_{proj},
     type_{type},
     id_{compteur_++},
@@ -23,7 +23,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     time_since_shot_{0.0f},
     show_range_{false},
     range_changed_{true},
-    show_cone_{false},
+    show_cone_{true},
     cone_changed_{false},
     target_ground_{true},
     target_flying_{false}, // By default, towers only target ground enemies!
@@ -34,6 +34,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
         cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
         cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
+        max_level_sprite_ = Sprites::rectangle({0.0f, 0.0f, 9.0f}, 1.0f, 0.25f, {255, 215, 0, 200}); // Golden bar indicator
     }
 
 void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
@@ -68,6 +69,11 @@ void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
         cannon_sprite_->draw(win, deltaTime, my_offset, scale, rot + radians);
     }
 
+    // Draw the max level indicator on top if applicable
+    if (level_ >= levelMax_ && max_level_sprite_) {
+        Point my_offset = offset + position_ * scale;
+        max_level_sprite_->draw(win, deltaTime, my_offset, scale, rot);
+    }
 
 }
 
@@ -237,17 +243,6 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
     // --- GESTION DU LEVEL-UP SANS MÉTHODE ---
     if (level_ < levelMax_) {  // tant qu'on n'est pas au niveau max
 
-        if(level_ == 4){
-            setAs(as_);
-        }
-        if(level_ == 7){
-            setAs(as_*2);
-        }
-        if(level_ == 11){
-            setAs(as_*2);
-        }
-
-
         if (xp_ >= xpMax_) {
             xp_ -= xpMax_;
             level_++;
@@ -257,17 +252,22 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
             range_  += 0.1f;
             as_     += 0.02f;
 
+            // Appliquer les gros bonus UNE SEULE FOIS au moment du level up
+            if(level_ == 4){
+                // setAs(as_);
+            }
+            if(level_ == 7){
+                setAs(as_*2);
+            }
+            if(level_ == 11){
+                setAs(as_*2);
+            }
+
             std::cout << "Tower " << id_ << " leveled up to " << level_ << "!\n";
         }
     } else {
         // Niveau max atteint → XP bloquée
         xp_ = xpMax_; // pour que la barre soit pleine
-        std::array<float,3> pos = {
-            0.0f,
-            0.0f,
-            0.0f
-        };
-        addSprite(Sprites::rectangle(pos, 1.0,0.25, {90,90,90,90}));
     }
 }
 

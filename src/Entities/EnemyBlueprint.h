@@ -25,7 +25,7 @@ public:
     static std::unique_ptr<EnemyBlueprint> loadFromFile(const std::string& filepath);
 
     // Creates an Enemy based on this blueprint, ready for the map
-    std::unique_ptr<Enemy> instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size) const;
+    std::unique_ptr<Enemy> instantiateEnemy(Point position, float offset, std::list<Point>::iterator path_start, std::list<Point>::iterator path_end, float size, int round) const;
     
     // Accessors
     bool isFlying() const { return isFlying_; }

@@ -1,8 +1,8 @@
 {
     "type": "Armored",
-    "lp": 15.0,
+    "lp": 45.0,
     "speed": 0.8,
-    "resistance": 0.6,
+    "resistance": 0.8,
     "isFlying": false,
     "chars": "ixzO",
     "color": [239, 97, 21, 255]
