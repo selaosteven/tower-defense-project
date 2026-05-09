@@ -40,7 +40,12 @@ public:
         y_ += p.y_;
         return *this; 
     }
-
+    inline bool operator<(const Point& p) const {
+        if (x_ != p.x_) {
+            return x_ < p.x_;
+        }
+        return y_ < p.y_;
+    }
     Point operator*(float f) const {
         return Point(x_ * f, y_ * f);
     }

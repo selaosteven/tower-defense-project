@@ -91,7 +91,7 @@ void Tower::shoot(Enemy& target){
 
     do_shoot(target);
 
-    xp_+=100;
+    xp_+=10;
 
     for(auto& a : augments_){
         a->tower_shoot_postfix(*this, target, proj_);
@@ -101,6 +101,17 @@ void Tower::shoot(Enemy& target){
 void Tower::addAugment(std::unique_ptr<Augment> augment) {
     augment->onEquip(*this);
     augments_.push_back(std::move(augment));
+}
+
+void Tower::removeAugment(const std::string& name) {
+    auto it = std::find_if(augments_.begin(), augments_.end(),
+        [&name](const std::unique_ptr<Augment>& aug) {
+            return aug->getName() == name;
+        });
+    if (it != augments_.end()) {
+        (*it)->onUnequip(*this);
+        augments_.erase(it);
+    }
 }
 
 void Tower::applyUpgrade(const UpgradeNode* node) {

@@ -246,6 +246,20 @@ void UI::Session::openUpgradeUI(Tower* tower) {
 
         // 3) Retirer la tour du moteur
         if (to_delete) {
+            // Check if the tower was on an augment case
+            Point tower_cell{std::floor(to_delete->getPosition().getX()), std::floor(to_delete->getPosition().getY())};
+            auto it_tac = tac_towers.find(tower_cell);
+            if (it_tac != tac_towers.end()) {
+                // Remove the augment from all affected towers
+                for (auto* affected_tower : it_tac->second) {
+                    if (affected_tower) {
+                        affected_tower->removeAugment("Slowness");
+                    }
+                }
+                // Reset the augmented list
+                it_tac->second.clear();
+            }
+
             removeEntity(to_delete);
         }
         
@@ -615,6 +629,8 @@ void UI::Session::mainSession() {
                     if(r < 3){
                         s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 0, 255},  99.0f,{px, py, 99.0f});
                         tower_augment_cells.push_back(Point{(float)x, (float)y});
+                        tac_towers.insert({Point{(float)x, (float)y}, {}});
+                        
                     } else {
                         s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
                     }
@@ -766,6 +782,18 @@ void UI::Session::mainSession() {
                 float augX = augCell.getX();
                 float augY = augCell.getY();
 
+                // Check if there is actually a tower built on this augment cell
+                bool has_tower = false;
+                for (auto& t : placed_towers_) {
+                    if (std::floor(t->getPosition().getX()) == augX &&
+                        std::floor(t->getPosition().getY()) == augY) {
+                        has_tower = true;
+                        break;
+                    }
+                }
+                
+                if (!has_tower) continue;
+
                 // 3) Vérifier toutes les tours
                 for (auto& tower : placed_towers_) {
 
@@ -777,7 +805,15 @@ void UI::Session::mainSession() {
                     float dist = std::sqrt(dx*dx + dy*dy);
 
                     if (dist < auraRadius) {
-                        tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
+                        auto it = tac_towers.find(augCell);
+                        if (it != tac_towers.end()) {
+                            auto& affected_towers = it->second;
+                            auto found = std::find(affected_towers.begin(), affected_towers.end(), tower.get());
+                            if (found == affected_towers.end()) {
+                                tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
+                                affected_towers.push_back(tower.get());
+                            }
+                        }
                     }
                 }
             }
