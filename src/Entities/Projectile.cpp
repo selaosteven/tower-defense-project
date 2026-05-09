@@ -53,7 +53,7 @@ void Projectile::live(float deltaTime) {
         has_hit_ = true;
         return;
     }
-    
+    // Funny overload operator, we limit the velocity on both axes with the right and operand
     Point velocity = (direction | (getVelocity() * deltaTime));
     position_ += velocity;
 }

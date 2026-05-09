@@ -27,7 +27,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     show_cone_{true},
     cone_changed_{false},
     target_ground_{true},
-    target_flying_{false} // By default, towers only target ground enemies!
+    target_flying_{false}
     {
         sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
