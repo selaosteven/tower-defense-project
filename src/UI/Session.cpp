@@ -156,6 +156,10 @@ void UI::Session::openBuildUI(Point cell) {
     startY += 50.0f + 10.0f;
     ui_panel_h_ = (startY - ui_panel_y_);
 
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    active_ui_elements_.push_back(bg);
+    addUISprite(bg);
+
 }
 
 void UI::Session::openUpgradeUI(Tower* tower) {
@@ -291,6 +295,10 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     startY += 50.0f + 10.0f;
 
     ui_panel_h_ = (startY - ui_panel_y_) + 120.0f;
+
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    active_ui_elements_.push_back(bg);
+    addUISprite(bg);
 }
 
 void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
@@ -388,12 +396,12 @@ void UI::Session::onArrowLeft(){
 
 void UI::Session::onValidateSelection() {
     // If UI menu is open, trigger the selected button
-    if (showUI_ && !menu_buttons_.empty()) {
+    if (!menu_buttons_.empty()) {
         menu_buttons_[menu_button_index_]->triggerLeftClick();
         return;
     }
     
-    if (!selected_cell_) return;
+    if (!selected_cell_ || hp_player_ <= 0) return;
 
     float screenX = selected_cell_->getX() * scale_ + camera_position_.getX() + scale_ * 0.5f;
     float screenY = selected_cell_->getY() * scale_ + camera_position_.getY() + scale_ * 0.5f;
@@ -402,13 +410,13 @@ void UI::Session::onValidateSelection() {
 }
 
 void UI::Session::onArrowUp() {
-    if (!showUI_ || menu_buttons_.empty()) return;
+    if (menu_buttons_.empty()) return;
     
     menu_button_index_ = (menu_button_index_ - 1 + menu_buttons_.size()) % menu_buttons_.size();
 }
 
 void UI::Session::onArrowDown() {
-    if (!showUI_ || menu_buttons_.empty()) return;
+    if (menu_buttons_.empty()) return;
     
     menu_button_index_ = (menu_button_index_ + 1) % menu_buttons_.size();
 }
@@ -452,15 +460,6 @@ void UI::Session::onMouseScroll(float scrollX, float scrollY) {
 }
 
 void UI::Session::drawUI(SDL_Renderer* r) {
-    if (!showUI_) return;    
-    
-    float panelOffsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
-    float panelOffsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
-    Point panel_offset{panelOffsetX, panelOffsetY};
-
-    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, 0.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
-    bg->draw(r, delta_time_, panel_offset, ui_scale_, 0.0f);
-    
     // Draw selection highlight on the currently selected menu button
     if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
         auto selected_button = menu_buttons_[menu_button_index_];
@@ -477,6 +476,7 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         Session::drawHighlightBox(r, delta_time_, Point{btnOffsetX, btnOffsetY}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 
+    if (!showUI_) return;    
     if (showUI_ && selected_tower_) {
 
         int lvl = selected_tower_->getLevel();
@@ -572,7 +572,7 @@ void UI::Session::drawUI(SDL_Renderer* r) {
 }
 
 void UI::Session::drawSelection(SDL_Renderer* r) {
-    if (!selected_cell_) return;
+    if (!selected_cell_ || hp_player_ <= 0) return;
 
     Point c = *selected_cell_;
 
@@ -630,6 +630,8 @@ void UI::Session::GameOverScreen(){
     active_ui_elements_.push_back(go_btn);
     addUISprite(go_title);
     addUISprite(go_btn);
+    menu_button_index_ = 0;
+    menu_buttons_.push_back(go_btn);
 }
 
 void UI::Session::mainSession() {

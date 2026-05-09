@@ -302,7 +302,6 @@ void UI::Window::loop(){
             for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
             
             drawSelection(renderer_);
-            drawUI(renderer_);
             
             // Draw UI Elements fixed to the screen, anchoring to opposite sides if coordinate is negative
             for(auto it = ui_sprites_.begin(); it != ui_sprites_.end(); ) {
@@ -316,6 +315,8 @@ void UI::Window::loop(){
                     it = ui_sprites_.erase(it); // Auto-prune destroyed UI sprites!
                 }
             }
+            
+            drawUI(renderer_);
         }
             
         SDL_RenderPresent(renderer_);
