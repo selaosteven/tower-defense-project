@@ -234,10 +234,10 @@ void UI::Session::generateMapSprites(){
                 case Case::Wall:
                     break;
                 case Case::Start:
-                    s = Sprites::triangle({px, py, 99}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4, {255, 125, 30, 255}, Sprites::Orientation::Left);
                     break;
                 case Case::End:
-                    s = Sprites::triangle({px, py, 99}, cellSize/4);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4, {30, 160, 255, 255}, Sprites::Orientation::Right);
                     break;
                 
                 default:

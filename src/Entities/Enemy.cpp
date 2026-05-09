@@ -63,8 +63,8 @@ void Enemy::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
 
     float hp_ratio = std::max(0.0f, std::min(1.0f, lp_ / max_lp_));
 
-    float barW = 0.15f; // 50% of the cell width
-    float barH = 0.08f; // 8% of the cell height
+    float barW = 0.15f;
+    float barH = 0.03f;
     float barY = -0.1f; // Floating slightly above the enemy
     
     // The background will always be the same

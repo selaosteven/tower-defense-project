@@ -2,8 +2,8 @@
     "enemies": [
         {
             "type": "Regular",
-            "baseQuantity": 500,
-            "linearScaler": 300.0,
+            "baseQuantity": 50,
+            "linearScaler": 10.0,
             "exponentialScaler": 1.05
         },
         {
