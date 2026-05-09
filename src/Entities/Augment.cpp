@@ -88,10 +88,6 @@ public:
     void onEnd(Enemy& target) override {
         target.setSpeed(target.getSpeed() / (1.0f - slowAmount_));
     }
-
-    void resetTimer() {
-        timer_ = 0.0f;
-    }
 };
 
 // SlownessAugment
@@ -107,7 +103,7 @@ void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Project
         for (const auto& effect : e->getEffects()) {
             if (effect->getName() == "Slowness") {
                 already_slowed = true;
-                static_cast<SlownessEffect*>(effect.get())->resetTimer();
+                effect->resetTimer();
                 break;
             }
         }

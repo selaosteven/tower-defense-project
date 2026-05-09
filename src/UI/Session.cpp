@@ -70,6 +70,7 @@ UI::Session::Session(std::string name_map):
 void UI::Session::clickLeft(Point click) {
     // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
     // We only need to check for clicks *outside* the UI panel to close it.
+    if(hp_player_ <= 0) return;
     if (showUI_) {
         float offsetX = (ui_panel_x_ < 0) ? getWinWidth() : 0.0f;
         float offsetY = (ui_panel_y_ < 0) ? getWinHeight() : 0.0f;
@@ -828,8 +829,8 @@ void UI::Session::mainSession() {
     }
 
     // we scale the game map based on the window and the map size.
-    float cellWidth  = 120.0f;//(getWinWidth()-300) / static_cast<float>(map_.getWidth());
-    float cellHeight = 120.0f;//getWinHeight() / static_cast<float>(map_.getHeight());
+    float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
+    float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
     auraRadius = 3.0f; // Cell augment radius effect
 

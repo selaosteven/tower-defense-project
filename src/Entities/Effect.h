@@ -37,6 +37,11 @@ public:
     bool isExpired() const;
     bool isInstant() const;
     const std::string& getName() const;
+    
+    /**
+     * @brief Resets the timer of the effect (e.g. when an enemy is hit again to refresh the duration)
+     */
+    virtual void resetTimer() { timer_ = 0.0f; }
 };
 
 #endif
