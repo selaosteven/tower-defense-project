@@ -20,28 +20,90 @@ public:
     
     const std::string& getName() const { return name_; }
 
-    // Methods 
 public:
+    /**
+     * @brief applies the augment effect of the tower
+     * 
+     * @param tower 
+     */
     virtual void onEquip(Tower& tower);
+
+    /**
+     * @brief remove the augment effect of the tower
+     * 
+     * @param tower 
+     */
     virtual void onUnequip(Tower& tower);
 
+    /**
+     * @brief called before the creation of the projectile and apply effects
+     * 
+     * @param enemies 
+     * @param projectile 
+     */
     virtual void projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& projectile);
+
+    /**
+     * @brief called after the creation of the projectile and apply effects
+     * 
+     * @param enemies 
+     * @param projectile 
+     */
     virtual void projectile_hit_postfix(std::vector<Enemy*> enemies, Projectile& projectile);
 
-    // Before the tower shoot, it has a target but no projectile.
-    // After the shot there is now a projectil created. 
-    // ? keep or change this behaviour ? 
+    /**
+     * @brief called before the tower fires at its target
+     * 
+     * @param tower 
+     * @param target 
+     */
     virtual void tower_shoot_prefix(Tower& tower, Enemy& target);
+
+    /**
+     * @brief called after the tower fires and the projectile is created
+     * 
+     * @param tower 
+     * @param target 
+     * @param p
+     */
     virtual void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p);
 
+    /**
+     * @brief  called before the tower rotates toward its target
+     * 
+     * @param tower 
+     * @param target 
+     */
+    
     virtual void tower_rotate_prefix(Tower& tower, Enemy& target);
+    
+    /**
+     * @brief called after the tower rotates toward its target
+     * 
+     * @param effect 
+     * @param target 
+     */
     virtual void tower_rotate_postfix(Tower& tower, Enemy& target);
 
+    /**
+     * @brief called before an effect is applied to an enemy
+     * 
+     * @param effect 
+     * @param target 
+     */
     virtual void effect_apply_prefix(Effect& effect, Enemy& target);
+    
+    /**
+     * @brief called after an effect is applied to an enemy
+     * 
+     * @param effect
+     * @param target
+     */
     virtual void effect_apply_postfix(Effect& effect, Enemy& target);
+    
 };
 
-// Example of a Critical Hit Augment
+// CritAugment Class
 class CritAugment : public Augment {
 private:
     float critChance_;
@@ -56,7 +118,7 @@ public:
     void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;
 };
 
-// Example of a Stat Boost Augment (Base block modifier)
+// RangeAugment Class
 class RangeAugment : public Augment {
 private:
     float bonusRange_;
@@ -66,7 +128,7 @@ public:
     void onUnequip(Tower& tower) override;
 };
 
-// Modifies what type of enemies the tower can target
+// TargetingAugment Class
 class TargetingAugment : public Augment {
 private:
     bool targetGround_;
@@ -77,6 +139,7 @@ public:
     void onUnequip(Tower& tower) override;
 };
 
+// SlownessAugment Class
 class SlownessAugment : public Augment {
     private:
         float slowAmount_;
@@ -86,6 +149,7 @@ class SlownessAugment : public Augment {
         void projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) override;
 };
 
+// DamageAugment Class
 class DamageAugment : public Augment {
     public:
         DamageAugment();
@@ -93,6 +157,7 @@ class DamageAugment : public Augment {
         void onUnequip(Tower& tower) override;
 };
 
+// AoeAugment Class
 class AoeAugment : public Augment {
     private:
         float size_incr_;
@@ -101,6 +166,8 @@ class AoeAugment : public Augment {
         AoeAugment(float size);
         void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;
 };
+
+// RotationSpeedAugment Class
 class RotationSpeedAugment : public Augment {
     float amount_;
 public:
@@ -108,6 +175,7 @@ public:
     void onEquip(Tower& tower) override;
 };
 
+// AttackSpeedAugment Class
 class AttackSpeedAugment : public Augment {
     float multiplier_;
 public:
@@ -115,6 +183,7 @@ public:
     void onEquip(Tower& tower) override;
 };
 
+// ProjectileSpeedAugment Class
 class ProjectileSpeedAugment : public Augment {
     float multiplier_;
 public:
@@ -122,6 +191,7 @@ public:
     void onEquip(Tower& tower) override;
 };
 
+// SplashRadiusAugment Class
 class SplashRadiusAugment : public Augment {
     float amount_;
 public:

@@ -16,29 +16,51 @@ struct UpgradeNode {
 
 class TowerTree {
 private:
-    std::string towerType_;
-    float baseRange_;
-    float baseDamage_;
-    float baseAs_;
-    float baseRs_;
-    float cone_angle_;
-    std::unique_ptr<UpgradeNode> rootUpgrade_;
-    std::vector<float> shapes_;
+    std::string towerType_; // Tower type
+    float baseRange_; // Base attack range
+    float baseDamage_; // Base damage
+    float baseAs_; // Base attack speed
+    float baseRs_; // Base rotation speed
+    float cone_angle_; // Base firing cone angle
+    std::unique_ptr<UpgradeNode> rootUpgrade_; // Root of the upgrade tree
+    std::vector<float> shapes_; // Shape descriptor for custom sprite
 
 
 public:
     TowerTree();
     ~TowerTree();
 
-    // Factory for instantiating Augment classes by their string names
+    /**
+     * @brief Factory for instantiating Augment classes by their string names
+     * 
+     * @param augmentName 
+     * @return std::unique_ptr<Augment> 
+     */
     static std::unique_ptr<Augment> createAugment(const std::string& augmentName);
 
-    // Loads the tower blueprint from a JSON configuration file
+    /**
+     * @brief Loads the tower blueprint from a JSON configuration file
+     * 
+     * @param filepath 
+     * @return std::unique_ptr<TowerTree> 
+     */
     static std::unique_ptr<TowerTree> loadFromFile(const std::string& filepath);
 
-    // Creates a Tower based on this blueprint, ready for the map
+    /**
+     * @brief Create Tower using blueprint
+     * 
+     * @param position 
+     * @param proj 
+     * @return std::unique_ptr<Tower> 
+     */
     std::unique_ptr<Tower> instantiateTower(Point position, Projectile& proj) const;
     
+    /**
+     * @brief Returns to the root upgrade node of the tower's upgrade tree
+     * 
+     *
+     * @return 
+     */
     const UpgradeNode* getRootUpgrade() const { return rootUpgrade_.get(); }
     const std::string getTowerType() const {return towerType_;}
 

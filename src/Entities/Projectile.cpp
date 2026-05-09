@@ -31,8 +31,6 @@ void Projectile::do_hit(std::vector<Enemy*> enemies){
     }
 }
 
-
-
 void Projectile::hit(std::vector<Enemy*> enemies){
     for(auto* a : augments_) {
         a->projectile_hit_prefix(enemies, *this);
@@ -45,7 +43,7 @@ void Projectile::hit(std::vector<Enemy*> enemies){
 }
 
 void Projectile::live(float deltaTime) {
-    if (!target_) return; // Sécurité si la cible n'est pas encore définie
+    if (!target_) return; 
     
     Point targetPos = target_->getPosition();
     Point direction = position_ ^ targetPos;

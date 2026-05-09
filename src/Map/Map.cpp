@@ -8,7 +8,7 @@
 
 Map::Map::Map(std::string name_map){
 
-    { // Bloc de portée scope
+    { // Scope block to limit the lifetime of local variables
         std::ifstream file(name_map);
         std::string line;
         float x = 0 ;
@@ -22,11 +22,12 @@ Map::Map::Map(std::string name_map){
             {'C', Case::Path}
         }; 
 
-        Point pD{0,0};
-        Point pA{0,0};
+        Point pD{0,0}; // Start point
+        Point pA{0,0}; // End Point
+
         while (std::getline(file, line)) {
             float y = 0;
-            // On ajoute une nouvelle ligne vide
+            // Add a new empty row to the map grid
             map_.push_back(std::vector<Case>{});           
             for (char c : line) {
                 if(c == 'T'){
@@ -49,6 +50,8 @@ Map::Map::Map(std::string name_map){
             x++;
         }
         printTower();
+
+        // Create path 
         path_.push_back(pD);
 
         bool found = true;
@@ -59,29 +62,29 @@ Map::Map::Map(std::string name_map){
             float ax = path_.back().getX();
             float ay = path_.back().getY();
 
-            // Lambda qui parcours toute la liste inter_path.
+            // Lambda that scans the entire inter_path list
             inter_path.remove_if([&](const Point& p){
 
                 float bx = p.getX();
                 float by = p.getY();
 
-                
                 if ((abs(ax - bx) == 1 && ay == by) || (abs(ay - by) == 1 && ax == bx)) {
-                    path_.push_back(p);  // ajoute au chemin
-                    found = true;        // on a trouvé un voisin
-                    return true;         // remove_if SUPPRIME ce point
+                    path_.push_back(p);  // Add to the path
+                    found = true;        // Neighbor found
+                    return true;         // remove_if deletes this point
                 }
 
-                return false;            // sinon on le garde
+                return false;            // Keep the point otherwise
             });
         }
 
         path_.push_back(pA);
 
-    } // Les variables locales seront détruit a la fin
+    } // Local variables destroyed here
 
 }
 
+// Debug
 void Map::Map::print() const {
     for(std::vector<Case> v : map_){
         for(Case c : v){
@@ -110,11 +113,11 @@ void Map::Map::print() const {
 
 }
 
-Case Map::Map::getCase(float x, float y) {
+// Case Map::Map::getCase(float x, float y) {
    
-}
+// }
 
-
+// Debug
 void Map::Map::printTower() {
     for (auto& [key, point] : tower_lst_) {
         std::cout << "Tour " << key 
@@ -122,6 +125,7 @@ void Map::Map::printTower() {
     }
 }
 
+// Debug
 void Map::Map::printCase(Case c){
     switch (c){
         case Case::Tower :

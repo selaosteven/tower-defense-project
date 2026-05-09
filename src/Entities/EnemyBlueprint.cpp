@@ -2,14 +2,14 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <cstdlib> // For rand()
-#include <ctime>   // For time()
+#include <cstdlib> 
+#include <ctime>   
 #include <cmath>
 
 using json = nlohmann::json;
 
 EnemyBlueprint::EnemyBlueprint() : baseLp_(0), baseSpeed_(0), baseResistance_(0), isFlying_(false) {
-    // Seed random number generator once
+    // Seed random number generator 
     static bool seeded = false;
     if (!seeded) {
         srand(time(nullptr));
@@ -33,6 +33,7 @@ std::unique_ptr<EnemyBlueprint> EnemyBlueprint::loadFromFile(const std::string& 
         return nullptr;
     }
 
+    // Store enemy attributes 
     auto blueprint = std::make_unique<EnemyBlueprint>();
     blueprint->enemyType_ = j.value("type", "DefaultEnemy");
     blueprint->baseLp_ = j.value("lp", 10.0f);
@@ -41,6 +42,7 @@ std::unique_ptr<EnemyBlueprint> EnemyBlueprint::loadFromFile(const std::string& 
     blueprint->isFlying_ = j.value("isFlying", false);
     blueprint->possibleChars_ = j.value("chars", "X");
     
+    // Load color if provided, else default color based on flying and ground type
     if (j.contains("color") && j["color"].is_array() && j["color"].size() >= 3) {
         blueprint->color_.r = j["color"][0].get<uint8_t>();
         blueprint->color_.g = j["color"][1].get<uint8_t>();
