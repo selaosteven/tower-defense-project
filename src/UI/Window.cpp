@@ -71,6 +71,11 @@ UI::Window::~Window(){
         event_ = nullptr;
     }
     TTF_Quit();
+    
+    if (number_of_instances == 0 && sdl_initiated) {
+        SDL_Quit();
+        sdl_initiated = false;
+    }
 }
 
 int UI::Window::Create(void * args){
