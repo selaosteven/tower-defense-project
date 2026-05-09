@@ -145,3 +145,14 @@ SplashRadiusAugment::SplashRadiusAugment(float amount) : Augment("Splash Radius"
 void SplashRadiusAugment::onEquip(Tower& tower) {
     tower.getBaseProjectile().setSize(amount_);
 }
+
+// ArmorPiercingAugment
+
+ArmorPiercingAugment::ArmorPiercingAugment(float amount) : Augment("Armor Piercing"), amount_(amount) {}
+void ArmorPiercingAugment::onEquip(Tower& tower) {
+    tower.setArmorPiercing(tower.getArmorPiercing() + amount_);
+}
+
+void ArmorPiercingAugment::onUnequip(Tower& tower) {
+    tower.setArmorPiercing(tower.getArmorPiercing() - amount_);
+}

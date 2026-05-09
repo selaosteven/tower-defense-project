@@ -2,15 +2,15 @@
     "enemies": [
         {
             "type": "Regular",
-            "baseQuantity": 50,
-            "linearScaler": 2.0,
+            "baseQuantity": 500,
+            "linearScaler": 300.0,
             "exponentialScaler": 1.05
         },
         {
             "type": "Fast",
             "baseQuantity": 0,
             "linearScaler": 1.5,
-            "exponentialScaler": 1.1
+            "exponentialScaler": 3.0
         },
         {
             "type": "Strong",

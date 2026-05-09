@@ -28,6 +28,7 @@ private:
     float damage_; // Damage
     float as_; // Attack Speed 
     float rs_; // Rotation Speed
+    float armor_piercing_; // Armor Piercing
     float cone_angle_; // Cone of fire angle 
     Projectile proj_; // Projectile
     std::string type_; // Type 
@@ -61,7 +62,7 @@ public:
     Tower(const Tower&) = delete;
     Tower& operator=(const Tower&) = delete;
 
-    Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp, int level); // Constructeur
+    Tower(float range, float damage, float as, float rs, float armor_piercing, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp, int level); // Constructeur
 
 private:
     void do_rotate(Enemy& target);
@@ -158,6 +159,8 @@ public:
     inline void setDamage(float damage) { damage_ = damage; }
     inline void setAs(float as) { as_ = as; }
     inline void setRs(float rs) { rs_ = rs; }
+    inline float getArmorPiercing() const {return armor_piercing_;}
+    inline void setArmorPiercing(float ap) { armor_piercing_ = ap; }
     inline void setConeAngle(float angle) { cone_angle_ = angle; cone_changed_ = true; }
     inline float getConeAngle() const { return cone_angle_; }
     inline float getCurrentAngle() const { return current_angle_; }

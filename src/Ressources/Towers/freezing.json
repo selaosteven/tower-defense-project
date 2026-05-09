@@ -4,6 +4,7 @@
   "baseDamage": 1.0,
   "baseAs": 0.5,
   "baseRs": 5.0,
+  "baseArmorPiercing":0.5,
   "cone_angle": 140,
   "formes": [
     { "type": "hexagone", "size": 0.45, "color": [120,200,255,255] },

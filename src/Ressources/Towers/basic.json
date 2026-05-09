@@ -4,6 +4,7 @@
   "baseDamage": 1,
   "baseAs": 1.0,
   "baseRs": 120.0,
+  "baseArmorPiercing":0.3,
   "cone_angle": 60,
   "formes": [
     { "type": "carre", "side": 0.9, "color": [180,180,180,255] },

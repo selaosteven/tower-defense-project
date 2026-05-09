@@ -8,12 +8,13 @@
 
 int Tower::compteur_ = 0; // for the ID
 
-Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp,int level) : 
+Tower::Tower(float range,float damage, float as,  float rs, float armor_piercing, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp,int level) : 
     Entity{{0,0}},
     range_{range}, 
     damage_{damage}, 
     as_{as}, 
     rs_{rs},
+    armor_piercing_{armor_piercing},
     cone_angle_{30.0f},
     proj_{proj},
     type_{type},
@@ -145,13 +146,15 @@ void Tower::do_shoot(Enemy& target) {
     proj->setPosition(position_);
     proj->setTarget(&target);
     proj->setDamage(damage_);
+    proj->setArmorPiercing(armor_piercing_);
     
     std::vector<Augment*> proj_augs;
     for(auto& a : augments_) {
         proj_augs.push_back(a.get());
     }
     proj->setAugments(std::move(proj_augs));
-    
+    proj->setHitFlying(target_flying_);
+    proj->setHitGround(target_ground_);
     spawned_projectiles_.push_back(std::move(proj));
 }
 

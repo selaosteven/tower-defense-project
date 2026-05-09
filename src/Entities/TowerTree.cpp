@@ -5,7 +5,7 @@
 
 using json = nlohmann::json;
 
-TowerTree::TowerTree() : baseRange_(0), baseDamage_(0), baseAs_(0), baseRs_(0) {}
+TowerTree::TowerTree() : baseRange_(0), baseDamage_(0), baseAs_(0), baseRs_(0), baseArmorPiercing_(0) {}
 TowerTree::~TowerTree() {}
 
 std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName) {
@@ -35,6 +35,8 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
         return std::make_unique<SplashRadiusAugment>(0.5f);
     } else if(augmentName == "SlowStrongerAugment") { // Better Slow Augment
         return std::make_unique<SlownessAugment>(0.4f);
+    } else if(augmentName == "ArmorPiercingAugment") { // Armor Piercing
+        return std::make_unique<ArmorPiercingAugment>(0.3f); // 30% AP
     }
 
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;
@@ -82,6 +84,7 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
     tree->baseDamage_ = j.value("baseDamage", 10.0f);
     tree->baseAs_ = j.value("baseAs", 1.0f);
     tree->baseRs_ = j.value("baseRs", 1.0f);
+    tree->baseArmorPiercing_ = j.value("baseArmorPiercing", 0.0f);
     tree->cone_angle_ = j.value("cone_angle", 60.0f);
 
     if (j.contains("upgrades")) {
@@ -151,7 +154,7 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
 
 std::unique_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& proj) const {
     auto tower = std::make_unique<Tower>(
-        baseRange_, baseDamage_, baseAs_, baseRs_, proj, towerType_,shapes_,0,0
+        baseRange_, baseDamage_, baseAs_, baseRs_, baseArmorPiercing_, proj, towerType_,shapes_,0,0
     );
     tower->setPosition(position);
     

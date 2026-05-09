@@ -886,7 +886,8 @@ void UI::Session::mainSession() {
             spawnTimer_ += dt;
             
             // Spawn enemies if we still have some left to spawn for this wave
-            if (enemiesToSpawn_ > 0 && spawnTimer_ >= (0.1f + 0.4*static_cast<float>(rand()) / static_cast<float>(RAND_MAX))) { // spawn every 1 second
+            float rtime = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if (enemiesToSpawn_ > 0 && spawnTimer_ >= (0.01f + 0.2*rtime*rtime) / (round_+1)) {
                 spawnEnemy(cellSize, spawningDirection, baseX, baseY, path, el);
             }
 

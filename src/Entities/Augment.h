@@ -199,4 +199,13 @@ public:
     void onEquip(Tower& tower) override;
 };
 
+// ArmorPiercingAugment Class
+class ArmorPiercingAugment : public Augment {
+    float amount_;
+public:
+    ArmorPiercingAugment(float amount);
+    void onEquip(Tower& tower) override;
+    void onUnequip(Tower& tower) override;
+};
+
 #endif

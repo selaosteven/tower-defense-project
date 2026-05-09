@@ -21,6 +21,7 @@ private:
     float baseDamage_; // Base damage
     float baseAs_; // Base attack speed
     float baseRs_; // Base rotation speed
+    float baseArmorPiercing_; // Base armor piercing percentage
     float cone_angle_; // Base firing cone angle
     std::unique_ptr<UpgradeNode> rootUpgrade_; // Root of the upgrade tree
     std::vector<float> shapes_; // Shape descriptor for custom sprite

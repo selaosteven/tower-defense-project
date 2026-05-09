@@ -16,14 +16,17 @@ protected:
     float size_; // Aoe Damage | if 0 then single impact
     float ps_; // Projectile Speed
     float damage_; // Damage of the projectile
+    float armor_piercing_; // Armor piercing percentage (0.0 to 1.0)
     float collision_radius_; // Distance of the projectile and the target
-    bool has_hit_; 
+    bool has_hit_;
+    bool hit_flying_;
+    bool hit_ground_;
     std::vector<Augment*> augments_; // Augments list 
     std::unique_ptr<Target> target_; // Target the projectile is moving toard
 
 public:
-    Projectile(float size, float ps, float damage = 0.0f); 
-    Projectile(Point position, float size, float ps, float damage = 0.0f); 
+    Projectile(float size, float ps, float damage = 0.0f, float armor_piercing = 0.0f); 
+    Projectile(Point position, float size, float ps, float damage = 0.0f, float armor_piercing = 0.0f); 
     Projectile(const Projectile& other);
     
     /**
@@ -67,6 +70,10 @@ public:
     inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
     inline void setSize(float size_incr) {size_+=size_incr;}
     inline void setPs(float ps) { ps_ = ps; }
+    inline void setHitFlying(bool val) { hit_flying_ = val; }
+    inline void setHitGround(bool val) { hit_ground_ = val; }
+    inline void setArmorPiercing(float ap) { armor_piercing_ = ap; }
+    inline float getArmorPiercing() const { return armor_piercing_; }
 
     std::unique_ptr<Projectile> clone() const;
 };

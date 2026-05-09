@@ -53,6 +53,8 @@ public:
     float getSpeed() const { return speed_; }
     void setSpeed(float speed) { speed_ = speed; }
     float getLp() const { return lp_; }
+    float getResistance() const { return resistance_; }
+    void setResistance(float res) { resistance_ = res; }
     void takeDamage(float amount) { lp_ -= amount; }
 
     void setPosition(Point p) { position_ = p; }
