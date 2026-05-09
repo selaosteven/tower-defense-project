@@ -103,11 +103,14 @@ void UI::Session::clickLeft(Point click) {
     }
 
     Tower* clicked_tower = nullptr;
-    for (auto const& tower : placed_towers_) {
-        Point tower_pos = tower->getPosition();
-        if (static_cast<int>(std::floor(tower_pos.getX())) == cellX && static_cast<int>(std::floor(tower_pos.getY())) == cellY) {
-            clicked_tower = tower.get();
-            break;
+    {
+        std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+        for (auto const& tower : placed_towers_) {
+            Point tower_pos = tower->getPosition();
+            if (static_cast<int>(std::floor(tower_pos.getX())) == cellX && static_cast<int>(std::floor(tower_pos.getY())) == cellY) {
+                clicked_tower = tower.get();
+                break;
+            }
         }
     }
 
@@ -305,7 +308,10 @@ void UI::Session::openBuildUI(Point cell) {
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
                 
                 addEntity(new_tower.get());
-                placed_towers_.push_back(std::move(new_tower));
+                {
+                    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+                    placed_towers_.push_back(std::move(new_tower));
+                }
 
                 std::cout << "Built a " << blueprint->getTowerType() << " at " << logicX << ", " << logicY << std::endl;
                 checkAddAugmentedCellBonus();
@@ -439,6 +445,7 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     buttonSell->addSubSprite(text);
     
     buttonSell->setOnLeftClick([this,id,cost](){
+        std::lock_guard<std::recursive_mutex> lock(render_mutex_);
         // We unselect the tower from the user
         Tower* to_delete = selected_tower_;
         selected_tower_ = nullptr;
@@ -483,7 +490,6 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         );
         // We use the mutex to correctly remove it when no other thread use it.
         if (it != placed_towers_.end()) {
-            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             sold_towers_.push_back(std::move(*it));
             placed_towers_.erase(it);
         }
@@ -765,6 +771,7 @@ void UI::Session::GameOverScreen(){
 }
 
 void UI::Session::checkAddAugmentedCellBonus(){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     // We check every augmented cells in case the build affected
     for (auto& augCell : tower_augment_cells) {
 
@@ -948,14 +955,21 @@ void UI::Session::mainSession() {
                 }
             }
             // Update towers with enemy list and the quadtree
-            for (auto& tower : placed_towers_) {
-                std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
-                tower->live(dt, nearby_enemies);
-                auto new_projs = tower->fetchSpawnedProjectiles();
-                for(auto& p : new_projs) {
-                    addEntity(p.get());
-                    active_projectiles_.push_back(std::move(p));
+            std::vector<std::unique_ptr<Projectile>> all_new_projs;
+            {
+                std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+                for (auto& tower : placed_towers_) {
+                    std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
+                    tower->live(dt, nearby_enemies);
+                    auto new_projs = tower->fetchSpawnedProjectiles();
+                    for(auto& p : new_projs) {
+                        all_new_projs.push_back(std::move(p));
+                    }
                 }
+            }
+            for(auto& p : all_new_projs) {
+                addEntity(p.get());
+                active_projectiles_.push_back(std::move(p));
             }
 
 
@@ -985,10 +999,10 @@ void UI::Session::mainSession() {
                 {
                     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                     sold_towers_.clear();
-                }
                 
-                for (auto& tower : placed_towers_) {
-                    tower->clearDetachedAugments();
+                    for (auto& tower : placed_towers_) {
+                        tower->clearDetachedAugments();
+                    }
                 }
                 
                 waveActive_ = false;
@@ -1014,8 +1028,11 @@ void UI::Session::mainSession() {
     for (auto& enemy : el) {
         removeEntity(enemy.get());
     }
-    for (auto& tower : placed_towers_) {
-        removeEntity(tower.get());
+    {
+        std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+        for (auto& tower : placed_towers_) {
+            removeEntity(tower.get());
+        }
     }
     for (auto& proj : active_projectiles_) {
         removeEntity(proj.get());
@@ -1023,5 +1040,6 @@ void UI::Session::mainSession() {
     {
         std::lock_guard<std::recursive_mutex> lock(render_mutex_);
         sold_towers_.clear();
+        placed_towers_.clear();
     }
 }

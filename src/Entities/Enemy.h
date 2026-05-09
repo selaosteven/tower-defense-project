@@ -14,6 +14,7 @@ public:
 protected:
     // Stat of enemy
     float lp_; // Life Point
+    float max_lp_; // Max Life Point
     float speed_; // Speed
     float resistance_; // Resistance
     bool fly_; // Fly
@@ -42,6 +43,16 @@ public:
      */
     void live(float deltaTime) override; 
     
+    /**
+     * @brief Draw the enemy and its HP bar
+     * @param win 
+     * @param deltaTime 
+     * @param offset 
+     * @param scale 
+     * @param rot 
+     */
+    void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
+
     bool hasReachedEnd() const { return reached_end_; }
     bool isAlive() const { return alive_; }
     void kill() { alive_ = false; }
@@ -53,6 +64,7 @@ public:
     float getSpeed() const { return speed_; }
     void setSpeed(float speed) { speed_ = speed; }
     float getLp() const { return lp_; }
+    float getMaxLp() const { return max_lp_; }
     float getResistance() const { return resistance_; }
     void setResistance(float res) { resistance_ = res; }
     void takeDamage(float amount) { lp_ -= amount; }

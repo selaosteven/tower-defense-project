@@ -20,7 +20,7 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
     } else if(augmentName == "SlowAugment") { // Slowness
         return std::make_unique<SlownessAugment>(0.8f);
     } else if(augmentName == "SplashAugment") { // AoE 
-        return std::make_unique<AoeAugment>(0.5f);
+        return std::make_unique<AoeAugment>(0.2f);
     } else if(augmentName == "DamageAugment") { // Damage
         return std::make_unique<DamageAugment>();
     } else if(augmentName == "ProjectileSpeedAugment") { // Projectile Speed

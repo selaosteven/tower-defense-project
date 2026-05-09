@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "Entities/Enemy.h"
 #include "Sprites/PrimitiveForm.h"
 #include "Sprites/Text.h"
@@ -13,7 +14,7 @@ Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string disp
     Enemy(lp, speed, resistance, fly, display_char, color, 0.7f) {}
 
 Enemy::Enemy(float lp, float speed, float resistance, bool fly, std::string display_char, SDL_Color color, float size) :
-    Entity{{0,0}, 0.0f, Enemy::createSprites(fly, display_char, color, size)}, lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, display_char_{display_char}, path_{}, offset_{0.0f} {}
+    Entity{{0,0}, 0.0f, Enemy::createSprites(fly, display_char, color, size)}, lp_{lp}, max_lp_{lp}, speed_{speed}, resistance_{resistance}, fly_{fly}, display_char_{display_char}, path_{}, offset_{0.0f} {}
 
 Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::iterator start, std::list<Point>::iterator end) 
     : Enemy{ref.lp_, ref.speed_, ref.resistance_, ref.fly_, ref.display_char_} {
@@ -50,6 +51,40 @@ void Enemy::live(float deltaTime) {
     if(dot >= len * (len + offset_)) {
         path_++;
         if (path_ == path_end_) reached_end_ = true;
+    }
+}
+
+void Enemy::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
+    // Draw the base entity (the enemy sprite/text)
+    Entity::draw(win, deltaTime, offset, scale, rot);
+
+    // If it's alive
+    if (lp_ <= 0 || max_lp_ <= 0) return;
+
+    float hp_ratio = std::max(0.0f, std::min(1.0f, lp_ / max_lp_));
+
+    float barW = 0.5f; // 50% of the cell width
+    float barH = 0.08f; // 8% of the cell height
+    float barY = -0.3f; // Floating slightly above the enemy
+    
+    // The background will always be the same
+    static auto bg = Sprites::rectangle({0.0f, barY, 10.0f}, barW, barH, {80, 80, 80, 200});
+    // Just need to be offset correctly
+    Point my_offset = offset + position_ * scale;
+    bg->draw(win, deltaTime, my_offset, scale, 0.0f);
+
+    if (hp_ratio > 0.0f) {
+        float fillW = barW * hp_ratio;
+        float fillX = -barW / 2.0f + fillW / 2.0f; // Aligned to the left
+        
+        static auto fill = Sprites::rectangle({fillX, barY, 11.0f}, fillW, barH, {50, 255, 50, 255});
+        static float last_hp = -1.0f;
+        if(last_hp != lp_){
+            fill = Sprites::rectangle({fillX, barY, 11.0f}, fillW, barH, {50, 255, 50, 255});
+            last_hp = lp_;
+        }
+
+        fill->draw(win, deltaTime, my_offset, scale, 0.0f);
     }
 }
 
