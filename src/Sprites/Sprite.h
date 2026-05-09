@@ -38,11 +38,14 @@ public:
     // Returns true if the sprite "consumes" the click event
     virtual bool onClick(Point click, int button, Point offset, float scale) { return false; }
     
+
+// ----------------------------
+// Inline functions
     inline void setScale(const float scale) {
         scale_ = scale;
     }
 
-    inline Point getPosition() {return position_;}
+    inline Point getPosition() const {return position_;}
 
     friend class UI::Window;
 };

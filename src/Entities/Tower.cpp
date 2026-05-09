@@ -19,6 +19,8 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     proj_{proj},
     type_{type},
     id_{compteur_++},
+    xp_{xp},
+    level_{level},
     current_angle_{0.0f},
     time_since_shot_{0.0f},
     show_range_{false},
@@ -26,9 +28,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     show_cone_{true},
     cone_changed_{false},
     target_ground_{true},
-    target_flying_{false}, // By default, towers only target ground enemies!
-    xp_{xp},
-    level_{level}
+    target_flying_{false} // By default, towers only target ground enemies!
     {
         sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
