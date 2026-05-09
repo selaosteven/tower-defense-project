@@ -77,14 +77,13 @@ void Enemy::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
         float fillW = barW * hp_ratio;
         float fillX = -barW / 2.0f + fillW / 2.0f; // Aligned to the left
         
-        static auto fill = Sprites::rectangle({fillX, barY, 11.0f}, fillW, barH, {50, 255, 50, 255});
-        static float last_hp = -1.0f;
-        if(last_hp != lp_){
-            fill = Sprites::rectangle({fillX, barY, 11.0f}, fillW, barH, {50, 255, 50, 255});
-            last_hp = lp_;
+        if(last_drawn_hp_ != lp_ || !hp_fill_sprite_){
+            hp_fill_sprite_ = Sprites::rectangle({fillX, barY, 11.0f}, fillW, barH, {50, 255, 50, 255});
+            last_drawn_hp_ = lp_;
         }
 
-        fill->draw(win, deltaTime, my_offset, scale, 0.0f);
+        if (hp_fill_sprite_)
+            hp_fill_sprite_->draw(win, deltaTime, my_offset, scale, 0.0f);
     }
 }
 

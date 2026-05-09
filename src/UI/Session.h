@@ -39,7 +39,7 @@ private:
     int ticks_per_seconds_;
     std::vector<Point> tower_build_cells_;
     std::vector<Point> tower_augment_cells;
-    std::map<Point, std::vector<Tower*>> tac_towers;
+    std::map<Point, std::vector<std::weak_ptr<Tower>>> tac_towers;
     int tower_cursor_index_ = 0;
 
     // ----------------------------
@@ -50,13 +50,13 @@ private:
     // ----------------------------
     // Tower UI Members
     std::optional<Point> selected_cell_;
-    Tower* selected_tower_;
+    std::weak_ptr<Tower> selected_tower_;
     std::vector<std::unique_ptr<TowerTree>> tower_catalog_;
     std::vector<std::shared_ptr<EnemyBlueprint>> enemy_catalog_;
     std::vector<WaveEnemyConfig> wave_configs_;
     std::vector<std::weak_ptr<EnemyBlueprint>> wave_spawns_;
-    std::list<std::unique_ptr<Tower>> placed_towers_;
-    std::list<std::unique_ptr<Tower>> sold_towers_;
+    std::list<std::shared_ptr<Tower>> placed_towers_;
+    std::list<std::shared_ptr<Tower>> sold_towers_;
     std::list<std::unique_ptr<Projectile>> active_projectiles_;
     std::vector<std::shared_ptr<Sprites::Sprite>> active_ui_elements_;
     // ----------------------------
@@ -138,7 +138,7 @@ protected:
     void drawSelection(SDL_Renderer* r) override;
 private:
     void openBuildUI(Point cell);
-    void openUpgradeUI(Tower* tower);
+    void openUpgradeUI(std::shared_ptr<Tower> tower);
     void closeTowerUI();
     void updateMenuButtonHighlight();
     static void drawHighlightBox(SDL_Renderer* r, float dt, Point offset, float scale, float x, float y, float w, float h, float thickness, SDL_Color col);

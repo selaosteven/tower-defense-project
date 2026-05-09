@@ -25,7 +25,7 @@ void UI::print_sdl_error(const char * msg) {
 // ------------------------------------------------
 //         STATIC VARIABLE INITIALIZATION
 // ------------------------------------------------
-bool Window::sdl_initiated = false;
+std::atomic<bool> Window::sdl_initiated{false};
 unsigned int Window::number_of_instances = 0;
 Uint32 Window::sdl_flags = 0;
 std::mutex Window::event_mutex;
@@ -83,9 +83,10 @@ UI::Window::~Window(){
 
 int UI::Window::Create(void * args){
     
-    std::mutex &lock(event_mutex);
-    if(!Window::sdl_initiated) init_sdl();
-    lock.unlock();
+    {
+        std::lock_guard<std::mutex> lock(event_mutex);
+        if(!Window::sdl_initiated) init_sdl();
+    }
     bool failed = false;
     window_ = SDL_CreateWindow("Projet CPP SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, win_width_, win_height_, win_flags_);
     if(window_){

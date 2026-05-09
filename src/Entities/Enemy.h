@@ -20,6 +20,8 @@ protected:
     bool fly_; // Fly
     std::string display_char_; // Character used to represent the enemy
     std::vector<std::unique_ptr<Effect>> effects_; // List of Effect
+    float last_drawn_hp_ = -1.0f; // Track HP for UI updates
+    std::shared_ptr<Sprites::Sprite> hp_fill_sprite_ = nullptr; // Cache HP bar sprite
 public:
     std::list<Point>::iterator path_;
     std::list<Point>::iterator path_end_;

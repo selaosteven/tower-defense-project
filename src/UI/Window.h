@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <memory>
+#include <atomic>
 
 #include "QuadTree/Point.h"
 
@@ -38,7 +39,7 @@ class Window
 // ----------------------------
 // Static - classwide
 protected:
-    static bool sdl_initiated;
+    static std::atomic<bool> sdl_initiated;
     static unsigned int number_of_instances;
     static Uint32 sdl_flags;
     static int instanceWindowThread(void * window);

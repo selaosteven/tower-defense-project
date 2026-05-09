@@ -12,6 +12,7 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-g -Wall -O0)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address")
     message(STATUS "Mode Debug activé : flags -g -Wall appliqués")
 else()
     add_compile_options(-O3 -Wall)
@@ -37,7 +38,6 @@ include_directories(${CMAKE_SOURCE_DIR})
 # Note : main.cpp est attendu selon le README
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(TowerDefense ${SRC_FILES})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address")
 
 target_include_directories(TowerDefense PRIVATE
     ${SDL2_INCLUDE_DIRS}

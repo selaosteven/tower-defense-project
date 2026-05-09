@@ -52,9 +52,9 @@ public:
      * 
      * @param position 
      * @param proj 
-     * @return std::unique_ptr<Tower> 
+     * @return std::shared_ptr<Tower> 
      */
-    std::unique_ptr<Tower> instantiateTower(Point position, Projectile& proj) const;
+    std::shared_ptr<Tower> instantiateTower(Point position, Projectile& proj) const;
     
     /**
      * @brief Returns to the root upgrade node of the tower's upgrade tree

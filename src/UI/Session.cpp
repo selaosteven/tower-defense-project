@@ -35,7 +35,7 @@ UI::Session::Session(std::string name_map):
     spawnTimer_{0.0f},
     ticks_per_seconds_{120},
     selected_cell_{},
-    selected_tower_{nullptr}
+    selected_tower_{}
     {   
         const std::string tower_folder = "../src/Ressources/Towers";
         if (std::filesystem::exists(tower_folder)) {
@@ -102,13 +102,13 @@ void UI::Session::clickLeft(Point click) {
         return;
     }
 
-    Tower* clicked_tower = nullptr;
+    std::shared_ptr<Tower> clicked_tower = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(render_mutex_);
         for (auto const& tower : placed_towers_) {
             Point tower_pos = tower->getPosition();
             if (static_cast<int>(std::floor(tower_pos.getX())) == cellX && static_cast<int>(std::floor(tower_pos.getY())) == cellY) {
-                clicked_tower = tower.get();
+                clicked_tower = tower;
                 break;
             }
         }
@@ -253,12 +253,12 @@ void UI::Session::closeTowerUI() {
     active_ui_elements_.clear();
     menu_buttons_.clear();
     menu_button_index_ = 0;
-    if (selected_tower_) {
-        selected_tower_->setShowRange(false);
-        selected_tower_->setShowCone(false);
+    if (auto st = selected_tower_.lock()) {
+        st->setShowRange(false);
+        st->setShowCone(false);
     }
     showUI_ = false;
-    selected_tower_ = nullptr;
+    selected_tower_.reset();
     selected_cell_.reset();
 }
 
@@ -352,14 +352,14 @@ void UI::Session::openBuildUI(Point cell) {
 
 }
 
-void UI::Session::openUpgradeUI(Tower* tower) {
+void UI::Session::openUpgradeUI(std::shared_ptr<Tower> tower) {
     if (showUI_) closeTowerUI();
 
     // Show tower range and cone when clicked
     showUI_ = true;
     selected_tower_ = tower;
-    selected_tower_->setShowRange(true);
-    selected_tower_->setShowCone(true);
+    tower->setShowRange(true);
+    tower->setShowCone(true);
 
     //We clear buttons and prepare to select the first.
     menu_button_index_ = 0;
@@ -417,8 +417,10 @@ void UI::Session::openUpgradeUI(Tower* tower) {
             button->setOnLeftClick([this, upgrade]() {
                 if (money_ >= upgrade->cost) {
                     money_ -= upgrade->cost;
-                    selected_tower_->applyUpgrade(upgrade); 
-                    std::cout << "Upgraded tower with " << upgrade->name << std::endl;
+                    if (auto t = selected_tower_.lock()) {
+                        t->applyUpgrade(upgrade); 
+                        std::cout << "Upgraded tower with " << upgrade->name << std::endl;
+                    }
                     closeTowerUI();
                 } else {
                     std::cout << "Not enough money!" << std::endl;
@@ -447,16 +449,16 @@ void UI::Session::openUpgradeUI(Tower* tower) {
     buttonSell->setOnLeftClick([this,id,cost](){
         std::lock_guard<std::recursive_mutex> lock(render_mutex_);
         // We unselect the tower from the user
-        Tower* to_delete = selected_tower_;
-        selected_tower_ = nullptr;
+        auto to_delete = selected_tower_.lock();
+        selected_tower_.reset();
         if (to_delete) {
             // Check if the tower was on an augment case
             Point tower_cell{std::floor(to_delete->getPosition().getX()), std::floor(to_delete->getPosition().getY())};
             auto it_tac = tac_towers.find(tower_cell);
             if (it_tac != tac_towers.end()) {
                 // Remove the augment from all affected towers
-                for (auto* affected_tower : it_tac->second) {
-                    if (affected_tower) {
+                for (auto& wp : it_tac->second) {
+                    if (auto affected_tower = wp.lock()) {
                         affected_tower->removeAugment("Slowness");
                     }
                 }
@@ -468,12 +470,15 @@ void UI::Session::openUpgradeUI(Tower* tower) {
             for (auto& pair : tac_towers) {
                 auto& affected_towers = pair.second;
                 affected_towers.erase(
-                    std::remove(affected_towers.begin(), affected_towers.end(), to_delete),
+                    std::remove_if(affected_towers.begin(), affected_towers.end(), [&to_delete](const std::weak_ptr<Tower>& wp) {
+                        auto pt = wp.lock();
+                        return !pt || pt == to_delete;
+                    }),
                     affected_towers.end()
                 );
             }
 
-            removeEntity(to_delete);
+            removeEntity(to_delete.get());
         }
         
         
@@ -484,13 +489,13 @@ void UI::Session::openUpgradeUI(Tower* tower) {
         auto it = std::find_if(
             placed_towers_.begin(),
             placed_towers_.end(),
-            [id](const std::unique_ptr<Tower>& t) {
+            [id](const std::shared_ptr<Tower>& t) {
                 return t->getId() == id;
             }
         );
         // We use the mutex to correctly remove it when no other thread use it.
         if (it != placed_towers_.end()) {
-            sold_towers_.push_back(std::move(*it));
+            sold_towers_.push_back(*it);
             placed_towers_.erase(it);
         }
         closeTowerUI();
@@ -527,9 +532,10 @@ void UI::Session::drawUI(SDL_Renderer* r) {
     }
 
     if (!showUI_) return;
-    if (showUI_ && selected_tower_) {
+    auto st = selected_tower_.lock();
+    if (showUI_ && st) {
 
-        int lvl = selected_tower_->getLevel();
+        int lvl = st->getLevel();
 
         // The tower badge is colored by level
         SDL_Color badgeColor;
@@ -564,12 +570,12 @@ void UI::Session::drawUI(SDL_Renderer* r) {
     }
 
     // XP BAR
-    if (showUI_ && selected_tower_) {
+    if (showUI_ && st) {
 
-        int xp = selected_tower_->getXp();
-        int xpMax = selected_tower_->getXpMax();
-        int level = selected_tower_->getLevel();
-        int levelMax = selected_tower_->getLevelMax();
+        int xp = st->getXp();
+        int xpMax = st->getXpMax();
+        int level = st->getLevel();
+        int levelMax = st->getLevelMax();
         float xpRatio = (level >= levelMax) ? 1.0f : std::min(1.0f, xp / (float)xpMax);
 
         float margin = 20.0f;
@@ -803,10 +809,10 @@ void UI::Session::checkAddAugmentedCellBonus(){
                 auto it = tac_towers.find(augCell);
                 if (it != tac_towers.end()) {
                     auto& affected_towers = it->second;
-                    auto found = std::find(affected_towers.begin(), affected_towers.end(), tower.get());
+                    auto found = std::find_if(affected_towers.begin(), affected_towers.end(), [&tower](const std::weak_ptr<Tower>& wp){ return wp.lock() == tower; });
                     if (found == affected_towers.end()) {
                         tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
-                        affected_towers.push_back(tower.get());
+                        affected_towers.push_back(tower);
                     }
                 }
             }
@@ -816,7 +822,9 @@ void UI::Session::checkAddAugmentedCellBonus(){
 }
 
 void UI::Session::mainSession() {
-    while(!Window::sdl_initiated); // wait for sdl to be ready
+    while(!Window::sdl_initiated) {
+        std::this_thread::yield(); // wait for sdl to be ready
+    }
 
     // we scale the game map based on the window and the map size.
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
@@ -955,10 +963,17 @@ void UI::Session::mainSession() {
                 }
             }
             // Update towers with enemy list and the quadtree
-            std::vector<std::unique_ptr<Projectile>> all_new_projs;
+            std::vector<std::weak_ptr<Tower>> current_towers;
             {
                 std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                 for (auto& tower : placed_towers_) {
+                    current_towers.push_back(tower);
+                }
+            }
+            
+            std::vector<std::unique_ptr<Projectile>> all_new_projs;
+            for (auto& weak_tower : current_towers) {
+                if (auto tower = weak_tower.lock()) {
                     std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
                     tower->live(dt, nearby_enemies);
                     auto new_projs = tower->fetchSpawnedProjectiles();
@@ -967,6 +982,7 @@ void UI::Session::mainSession() {
                     }
                 }
             }
+
             for(auto& p : all_new_projs) {
                 addEntity(p.get());
                 active_projectiles_.push_back(std::move(p));
@@ -1021,7 +1037,11 @@ void UI::Session::mainSession() {
             running = false;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(4));
+        auto loop_end = clock::now();
+        float loop_time = std::chrono::duration<float>(loop_end - now).count();
+        int sleep_time = 16 - static_cast<int>(loop_time * 1000.0f);
+        if (sleep_time < 4) sleep_time = 4; // Always yield at least 4ms to the UI thread
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
     }
 
     // We clean the memory.

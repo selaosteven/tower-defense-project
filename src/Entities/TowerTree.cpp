@@ -152,8 +152,8 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
     return tree;
 }
 
-std::unique_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& proj) const {
-    auto tower = std::make_unique<Tower>(
+std::shared_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& proj) const {
+    auto tower = std::make_shared<Tower>(
         baseRange_, baseDamage_, baseAs_, baseRs_, baseArmorPiercing_, proj, towerType_,shapes_,0,0
     );
     tower->setPosition(position);
