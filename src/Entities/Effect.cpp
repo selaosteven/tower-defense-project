@@ -12,7 +12,7 @@ Effect::~Effect() {}
 void Effect::apply(Enemy& target, float deltaTime) {
     if (isExpired()) return;
 
-    // Call initialization on the very first apply
+    // initialization 
     if (!applied_once_) {
         onStart(target);
         applied_once_ = true;

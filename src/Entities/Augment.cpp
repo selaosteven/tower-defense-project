@@ -24,7 +24,7 @@ void Augment::tower_rotate_postfix(Tower& tower, Enemy& target) {}
 void Augment::effect_apply_prefix(Effect& effect, Enemy& target) {}
 void Augment::effect_apply_postfix(Effect& effect, Enemy& target) {}
 
-// --- CritAugment Implementation ---
+// CritAugment
 
 CritAugment::CritAugment(float critChance, float critMultiplier) 
     : Augment("Critical Hit"), critChance_(critChance), critMultiplier_(critMultiplier), originalDamage_(0.0f), didCrit_(false) {}
@@ -47,7 +47,7 @@ void CritAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p
     }
 }
 
-// --- RangeAugment Implementation ---
+// RangeAugment
 
 RangeAugment::RangeAugment(float bonusRange) : Augment("Range Boost"), bonusRange_(bonusRange) {}
 
@@ -59,7 +59,7 @@ void RangeAugment::onUnequip(Tower& tower) {
     tower.setRange(tower.getRange() - bonusRange_);
 }
 
-// --- TargetingAugment Implementation ---
+// TargetingAugment
 
 TargetingAugment::TargetingAugment(bool targetGround, bool targetFlying) 
     : Augment("Targeting Modification"), targetGround_(targetGround), targetFlying_(targetFlying) {}
@@ -80,28 +80,18 @@ SlownessAugment::SlownessAugment(float amount)
     : Augment("Slowness"), slowAmount_(amount) {}
 
 void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) {
-    // for (auto* e : enemies) {
-    //     if (!e || !e->isAlive()) continue;
-
-        
-    //     // Appliquer un slow directement à l’ennemi
-    //     e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
-    //     // Tu peux ajouter un vrai SlowEffect plus tard
-    // }
-
     static std::unordered_set<Enemy*> slowed;
 
     for (auto* e : enemies) {
         if (!e || !e->isAlive()) continue;
 
-        // Si déjà ralenti → on ne le ralentit plus
+        // if already slowed => don't apply again
         if (slowed.find(e) != slowed.end())
             continue;
 
-        // Appliquer le slow UNE SEULE FOIS
         e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
 
-        // Marquer comme ralenti
+        // apply the slow on enemy e
         slowed.insert(e);
     }
 }
@@ -120,7 +110,7 @@ void DamageAugment::onUnequip(Tower &tower){
     tower.setDamage(tower.getDamage()/2);
 }
 
-// AoeAugment
+// AoeAugment 
 
 AoeAugment::AoeAugment(float size) : Augment("Zone Buff"), size_incr_(size) {}
 
@@ -128,27 +118,30 @@ void AoeAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p)
     p.setSize(p.getSize() + size_incr_);
 }
 
+// RotationSpeedAugment
 
 RotationSpeedAugment::RotationSpeedAugment(float amount) : Augment("Rotation Speed"), amount_(amount) {}
 void RotationSpeedAugment::onEquip(Tower& tower) {
     tower.setRs(tower.getRs() + amount_);
 }
 
+// AttackSpeedAugment
+
 AttackSpeedAugment::AttackSpeedAugment(float multiplier) : Augment("Attack Speed"), multiplier_(multiplier) {}
 void AttackSpeedAugment::onEquip(Tower& tower) {
-    // Multiplies Attack Speed
     tower.setAs(tower.getAs() * multiplier_);
 }
 
+// ProjectileSpeedAugment
+
 ProjectileSpeedAugment::ProjectileSpeedAugment(float multiplier) : Augment("Projectile Speed"), multiplier_(multiplier) {}
 void ProjectileSpeedAugment::onEquip(Tower& tower) {
-    // Updates the core template projectile that the tower clones
     tower.getBaseProjectile().setPs(tower.getBaseProjectile().getVelocity() * multiplier_);
 }
 
+// SplashRadiusAugment
+
 SplashRadiusAugment::SplashRadiusAugment(float amount) : Augment("Splash Radius"), amount_(amount) {}
 void SplashRadiusAugment::onEquip(Tower& tower) {
-    // Increases the projectile's area of effect size! 
-    // (This works seamlessly since Session.cpp checks `if (proj->getSize() > 0.0f)` for splash collisions!)
     tower.getBaseProjectile().setSize(amount_);
 }

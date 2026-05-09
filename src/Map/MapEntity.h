@@ -15,7 +15,6 @@
 
 namespace Map {
     
-
 class MapEntity {
 private:
     float width_;
@@ -23,8 +22,22 @@ private:
     QuadTree qdtree_;
 public:
     MapEntity(float width, float height);
-    std::vector<Enemy*> allWithinRange(const Tower& t);
+    std::vector<Enemy*> allWithinRange(const Tower& t);/**
+     * @brief return all enemies in range of tower t
+     * 
+     * @param center 
+     * @param range 
+     * @return std::vector<Enemy*> 
+     */
     std::vector<Enemy*> query(Point center, float range);
+    /**
+     * @brief return all enemies in a circular area with a range
+     * 
+     *
+     * @param center
+     * @param range
+     * @return std::vector<Enemy*>
+     */
     void addEnemy(Enemy* e);
     void removeEnemy(Enemy* e);
     void clear();

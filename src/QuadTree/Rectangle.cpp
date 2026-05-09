@@ -17,15 +17,15 @@ bool Rectangle::checkOverlap(Point center, float range){
     float halfW = w_ / 2.0f;
     float halfH = h_ / 2.0f;
 
-    // Trouve le point du rectangle le plus proche du centre du cercle
+    // Find the nearest point of the rectangle to the center of circle
     float closestX = std::max(x_ - halfW, std::min((float)center.getX(), x_ + halfW));
     float closestY = std::max(y_ - halfH, std::min((float)center.getY(), y_ + halfH));
 
-    // Distance entre ce point et le centre du cercle
+    // Distance between the point and the center of circle
     float dx = center.getX() - closestX;
     float dy = center.getY() - closestY;
 
-    // Si la distance <= rayon → intersection
+    // If distance <= radius => intersection
     return dx * dx + dy * dy <= range * range;
 
 }

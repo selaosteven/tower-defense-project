@@ -6,8 +6,7 @@
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
 
-
-int Tower::compteur_ = 0;
+int Tower::compteur_ = 0; // for the ID
 
 Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp,int level) : 
     Entity{{0,0}},
@@ -25,8 +24,8 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     range_changed_{true},
     show_cone_{true},
     cone_changed_{false},
-    target_ground_{true},
-    target_flying_{false}, // By default, towers only target ground enemies!
+    target_ground_{true}, // By default, towers only target ground enemies
+    target_flying_{false}, 
     xp_{xp},
     level_{level}
     {
@@ -97,6 +96,7 @@ void Tower::shoot(Enemy& target){
 
     do_shoot(target);
 
+    // Each bullet shoot => increase XP
     xp_+=10;
 
     for(auto& a : augments_){
@@ -132,7 +132,6 @@ void Tower::applyUpgrade(const UpgradeNode* node) {
     }
 }
 
-
 void Tower::do_shoot(Enemy& target) {
     auto proj = proj_.clone();
     proj->setPosition(position_);
@@ -147,10 +146,9 @@ void Tower::do_shoot(Enemy& target) {
     
     spawned_projectiles_.push_back(std::move(proj));
 }
+
 void Tower::do_rotate(Enemy& target) {
 }
-
-// Cone targeting helpers
 
 float Tower::normalizeAngle(float angle) const {
     while (angle > 180.0f) angle -= 360.0f;
@@ -213,11 +211,11 @@ Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
 void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
     time_since_shot_ += deltaTime;
     
-    // Find best target (target needing least rotation within range)
+    // Find best target 
     Enemy* target = findBestTarget(enemies);
     
     if (!target) {
-        return; // No valid target
+        return; 
     }
     
     // Rotate towards target
@@ -240,21 +238,20 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
         time_since_shot_ = 0.0f;
     }
 
-    // --- GESTION DU LEVEL-UP SANS MÉTHODE ---
-    if (level_ < levelMax_) {  // tant qu'on n'est pas au niveau max
+    // Level Up Setup
+    if (level_ < levelMax_) {  
 
         if (xp_ >= xpMax_) {
             xp_ -= xpMax_;
             level_++;
 
-            // Bonus optionnels
             damage_ += 0.5f;
             range_  += 0.1f;
             as_     += 0.02f;
 
-            // Appliquer les gros bonus UNE SEULE FOIS au moment du level up
+            // At each level threshold, we increase a stat
             if(level_ == 4){
-                // setAs(as_);
+                setAs(as_);
             }
             if(level_ == 7){
                 setAs(as_*2);
@@ -265,13 +262,10 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
 
             std::cout << "Tower " << id_ << " leveled up to " << level_ << "!\n";
         }
-    } else {
-        // Niveau max atteint → XP bloquée
-        xp_ = xpMax_; // pour que la barre soit pleine
+    } else { // Max Level Reach
+        xp_ = xpMax_; 
     }
 }
-
-// Static methods 
 
 std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::vector<float>& shapes) {
     std::vector<std::shared_ptr<Sprites::Sprite>> out;
@@ -281,36 +275,46 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
 
         int type = static_cast<int>(shapes[i++]);
 
-        // Position 2D + zindex = 0
         std::array<float,3> pos = {
             0.0f,
             0.0f,
             0.0f
         };
 
-        if (type == 0) { // rectangle
+        if (type == 0) { // Rectangle
             float w = shapes[i++];
             float h = shapes[i++];
-            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
-                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
-
+            SDL_Color col = { 
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++],
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++] 
+            };
             out.push_back(Sprites::rectangle(pos, w, h, col));
         }
 
-        else if (type == 1) { // circle coloré
+        else if (type == 1) { // Circle
             float r = shapes[i++];
-            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
-                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+            SDL_Color col = { 
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++],
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++] 
+            };
 
             auto c = Sprites::createColoredCircle(r, col, 0.0f);
             out.push_back(c);
         }
 
-        else if (type == 2) { // triangle
+        else if (type == 2) { // Triangle
             float size = shapes[i++];
             float orientation = shapes[i++];
-            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
-                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+            SDL_Color col = { 
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++],
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++] 
+            };
 
             Sprites::Orientation ori = static_cast<Sprites::Orientation>(orientation);
             out.push_back(
@@ -318,18 +322,26 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
             );
         }
 
-        else if (type == 3) { // octogone
+        else if (type == 3) { // Octagon
             float size = shapes[i++];
-            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
-                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+            SDL_Color col = { 
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++],
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++] 
+            };
 
             out.push_back(Sprites::octone(pos, size, col));
         }
 
-        else if (type == 4) { // carré
+        else if (type == 4) { // Square
             float side = shapes[i++];
-            SDL_Color col = { (Uint8)shapes[i++], (Uint8)shapes[i++],
-                              (Uint8)shapes[i++], (Uint8)shapes[i++] };
+            SDL_Color col = { 
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++],
+                (Uint8)shapes[i++], 
+                (Uint8)shapes[i++] 
+            };
 
             out.push_back(Sprites::rectangle(pos, side, side, col));
         }

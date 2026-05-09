@@ -6,7 +6,7 @@ Map::MapEntity::MapEntity(float width, float height) :
     width_{width}, height_{height}, qdtree_{Rectangle{width_/2,height_/2,width_,height_}} {}
 
 std::vector<Enemy*> Map::MapEntity::allWithinRange(const Tower& t){
-    // Recupere tous les points dans la range de la tour
+    // Store every point in range of the Tower
     return qdtree_.query(t.getPosition(), t.getRange());
 }
 

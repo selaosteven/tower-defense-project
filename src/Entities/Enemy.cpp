@@ -26,7 +26,7 @@ Enemy::Enemy(Point position, float offset, const Enemy& ref, std::list<Point>::i
 void Enemy::live(float deltaTime) {
     if (!alive_ || reached_end_ || lp_ <= 0) return;
 
-    // Process the stack of effects
+    // Process effects 
     for (auto it = effects_.begin(); it != effects_.end(); ) {
         (*it)->apply(*this, deltaTime);
         if ((*it)->isExpired()) {
@@ -36,12 +36,12 @@ void Enemy::live(float deltaTime) {
         }
     }
 
+    // Enemy follow the path
     auto prev = path_;
     Point origin = *(--prev);
     Point target = *path_;
     Point direction = origin ^ target;
     Point velocity = direction | (speed_ * deltaTime);
-    // std::cout << direction << " v: " << velocity << " position : " << position_ << std::endl; 
     position_ += velocity;
 
     Point traveled = origin ^ position_;
@@ -57,8 +57,6 @@ void Enemy::addEffect(std::unique_ptr<Effect> effect) {
     effects_.push_back(std::move(effect));
 }
 
-// static method
-
 std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(bool is_flying, const std::string& display_char, SDL_Color color, float size) {
 
     auto core = std::make_shared<Sprites::Text>(std::array<float, 3>{0.0f, 0.0f, 1.0f}, display_char,
@@ -68,7 +66,7 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Enemy::createSprites(bool is_flyin
         true
     );
     
-    core->setScale(size / 24.0f); // Calibrates a 24px font to logically fit inside our custom size block
+    core->setScale(size / 24.0f);
     
     return {core};
 }

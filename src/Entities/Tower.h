@@ -17,54 +17,50 @@ class Enemy;
 struct UpgradeNode;
 
 class Tower : public Entity {
-// static
 protected:
-    static int compteur_;
+    static int compteur_; // for the ID
 
     std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(const std::vector<float>& shapes);
 
 private:
-    // Stats de chaque tours
+    // Stats of each tower
     float range_; // Range
     float damage_; // Damage
     float as_; // Attack Speed 
     float rs_; // Rotation Speed
-    float cone_angle_; // Cone of fire angle in degrees (e.g., 60)
-    Projectile proj_; // Classe Projectile 
-    std::string type_; // Type de la tour
-    int id_;
-    int xp_;
-    int level_;
-    int xpMax_ = 100;
-    int levelMax_ = 20;
+    float cone_angle_; // Cone of fire angle 
+    Projectile proj_; // Projectile
+    std::string type_; // Type 
+    int id_; // Id
+    int xp_; // currentXp
+    int level_; // currentLevel
+    int xpMax_ = 100; // xpMax 
+    int levelMax_ = 20; // LevelMax
     
     // Targeting and orientation
-    float current_angle_; // Current tower orientation (-180 to 180)
+    float current_angle_; // Current tower orientation 
     float time_since_shot_; // Time since last shot 
-    bool show_range_;
-    bool range_changed_;
-    std::shared_ptr<Sprites::Sprite> range_sprite_;
-    bool show_cone_;
-    bool cone_changed_;
-    std::shared_ptr<Sprites::Sprite> cone_sprite_;
-    std::shared_ptr<Sprites::Sprite> cannon_sprite_;
+    bool show_range_; // Draw the range sprite of tower
+    bool range_changed_; // Rescaling the range sprite 
+    std::shared_ptr<Sprites::Sprite> range_sprite_; 
+    bool show_cone_; // Draw the firing cone 
+    bool cone_changed_; // Updating the cone sprite
+    std::shared_ptr<Sprites::Sprite> cone_sprite_; 
+    std::shared_ptr<Sprites::Sprite> cannon_sprite_; 
     std::shared_ptr<Sprites::Sprite> max_level_sprite_;
     bool target_ground_;
     bool target_flying_;
-    std::vector<std::unique_ptr<Projectile>> spawned_projectiles_;
+    std::vector<std::unique_ptr<Projectile>> spawned_projectiles_; // Projectile fired this frame
 
 protected:
-    std::vector<std::unique_ptr<Augment>> augments_;
-    const UpgradeNode* currentUpgradeNode_ = nullptr;
+    std::vector<std::unique_ptr<Augment>> augments_; // Augments modifying tower
+    const UpgradeNode* currentUpgradeNode_ = nullptr; // Current upgrade node applied
 
 public:
-    // Prevent the compiler from implicitly copying the tower and its unique_ptrs
     Tower(const Tower&) = delete;
     Tower& operator=(const Tower&) = delete;
 
     Tower(float range, float damage, float as, float rs, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp, int level); // Constructeur
-
-// Core methods
 
 private:
     void do_rotate(Enemy& target);
@@ -77,22 +73,71 @@ private:
     float getSmallestRotation(float from, float to) const;
     bool isInCone(const Enemy& target) const;
 public:
+    /**
+     * @brief Rotates the tower toward a target
+     * 
+     *
+     * @param target 
+     */
     void rotate(Enemy& target);
+
+    /**
+     * @brief Fires at a target
+     * 
+     *
+     * @param target 
+     */
     void shoot(Enemy& target);
+
+    /**
+     * @brief Update loop for the tower
+     * 
+     *
+     * @param deltaTime 
+     * @param enemies 
+     */
     void live(float deltaTime, const std::vector<Enemy*>& enemies);
+
+    /**
+     * @brief Draw the tower , range , cone , cannon and level bar  
+     * 
+     *
+     * @param win 
+     * @param deltaTime 
+     * @param offset 
+     * @param scale 
+     * @param rot 
+     */
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
 
+    /**
+     * @brief Add an augment
+     * 
+     *
+     * @param augment 
+     */
     void addAugment(std::unique_ptr<Augment> augment);
+    
+    /**
+     * @brief Remove an augment 
+     * 
+     *
+     * @param name 
+     */
     void removeAugment(const std::string& name);
     
 
     inline void setPosition(Point p) { position_ = p; }
 
-    // Tree architecture
+    /**
+     * @brief Applies an upgrade node => add all augments 
+     * 
+     *
+     * @param node 
+     */
     void applyUpgrade(const UpgradeNode* node);
     const UpgradeNode* getCurrentUpgradeNode() const { return currentUpgradeNode_; }
 
-// Inline getter
 public:
     inline float getRange() const {return range_;} // Getter Range
     inline float getDamage() const {return damage_;} // Getter Damage
@@ -129,6 +174,12 @@ public:
     inline int getLevel() const {return level_;}
     inline int getLevelMax() const {return levelMax_;}
 
+    /**
+     * @brief All projectiles fired this frame and clear the list
+     * 
+     *
+     * @return 
+     */
     std::vector<std::unique_ptr<Projectile>> fetchSpawnedProjectiles() {
         return std::move(spawned_projectiles_);
     }

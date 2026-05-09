@@ -9,31 +9,46 @@
 class Augment;
 
 class Projectile : public Entity {
-// Static
 public:
     static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
 
-
 protected:
-    float size_; // Dégat de Zone ou fixe
+    float size_; // Aoe Damage | if 0 then single impact
     float ps_; // Projectile Speed
-    float damage_;
-    float collision_radius_;
-    bool has_hit_;
-    std::vector<Augment*> augments_;
-    std::unique_ptr<Target> target_;
+    float damage_; // Damage of the projectile
+    float collision_radius_; // Distance of the projectile and the target
+    bool has_hit_; 
+    std::vector<Augment*> augments_; // Augments list 
+    std::unique_ptr<Target> target_; // Target the projectile is moving toard
 
 public:
-    Projectile(float size, float ps, float damage = 0.0f); // Constructeur
-    Projectile(Point position, float size, float ps, float damage = 0.0f); // Constructeur
+    Projectile(float size, float ps, float damage = 0.0f); 
+    Projectile(Point position, float size, float ps, float damage = 0.0f); 
     Projectile(const Projectile& other);
     
+    /**
+     * @brief Update the projectile each frame
+     * 
+     * @param deltaTime
+     */
     void live(float deltaTime) override;
-// Methods
 private:
+    /**
+     * @brief Applies the projectile's damage to all enemies in range
+     * 
+     * @param enemies
+     */
     void do_hit(std::vector<Enemy*> enemies);
+    
 public: 
+    /**
+     * @brief Executes the full hit sequence
+     * 
+     *
+     * @param enemies 
+     */
     void hit(std::vector<Enemy*> enemies);
+    
 
     inline float getVelocity() const{
         return ps_;

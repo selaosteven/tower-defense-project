@@ -9,35 +9,34 @@ TowerTree::TowerTree() : baseRange_(0), baseDamage_(0), baseAs_(0), baseRs_(0) {
 TowerTree::~TowerTree() {}
 
 std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName) {
-    // Mapping string names to their actual C++ class definitions
-    if (augmentName == "CritAugment") { // crit damage
+    if (augmentName == "CritAugment") { // Crit Damage
         return std::make_unique<CritAugment>(0.2f, 2.0f); 
-    } else if (augmentName == "RangeAugment") { // la range
+    } else if (augmentName == "RangeAugment") { // Range
         return std::make_unique<RangeAugment>(25.0f);
     } else if (augmentName == "AntiAirAugment") { // able to hit flying enemy
-        return std::make_unique<TargetingAugment>(false, true); // Targets ONLY air
-    } else if (augmentName == "AllTargetAugment") { // targeting everyone
-        return std::make_unique<TargetingAugment>(true, true); // Targets both ground and air
-    } else if(augmentName == "SlowAugment") { // freezing / slow
+        return std::make_unique<TargetingAugment>(false, true); 
+    } else if (augmentName == "AllTargetAugment") { // Targets both ground and air
+        return std::make_unique<TargetingAugment>(true, true); 
+    } else if(augmentName == "SlowAugment") { // Slowness
         return std::make_unique<SlownessAugment>(0.8f);
-    } else if(augmentName == "SplashAugment") { // AOE => degat de zone
+    } else if(augmentName == "SplashAugment") { // AoE 
         return std::make_unique<AoeAugment>(0.5f);
-    } else if(augmentName == "DamageAugment") {
+    } else if(augmentName == "DamageAugment") { // Damage
         return std::make_unique<DamageAugment>();
-    } else if(augmentName == "ProjectileSpeedAugment") {
-        return std::make_unique<ProjectileSpeedAugment>(1.5f); // 50% faster projectiles
-    } else if(augmentName == "FasterThanLightProjectileAugment") {
-        return std::make_unique<ProjectileSpeedAugment>(99.0f); // 50% faster projectiles
-    } else if(augmentName == "RotationSpeedAugment") {
-        return std::make_unique<RotationSpeedAugment>(90.0f); // Adds 90 degrees/sec rotation
-    } else if(augmentName == "AttackSpeedAugment") {
-        return std::make_unique<AttackSpeedAugment>(1.2f); // 20% faster Attack Speed
-    } else if(augmentName == "SplashRadiusAugment") {
-        return std::make_unique<SplashRadiusAugment>(0.5f); // Increase splash radius by 0.5 tiles
-    } else if(augmentName == "SlowStrongerAugment") {
-        return std::make_unique<SlownessAugment>(0.4f); // Harsher slow multiplier than the standard one
+    } else if(augmentName == "ProjectileSpeedAugment") { // Projectile Speed
+        return std::make_unique<ProjectileSpeedAugment>(1.5f); 
+    } else if(augmentName == "FasterThanLightProjectileAugment") { // Sniper
+        return std::make_unique<ProjectileSpeedAugment>(99.0f); 
+    } else if(augmentName == "RotationSpeedAugment") { // Rotation Speed
+        return std::make_unique<RotationSpeedAugment>(90.0f);
+    } else if(augmentName == "AttackSpeedAugment") {  // Attack Speed
+        return std::make_unique<AttackSpeedAugment>(1.2f);
+    } else if(augmentName == "SplashRadiusAugment") { // AoE Radius
+        return std::make_unique<SplashRadiusAugment>(0.5f);
+    } else if(augmentName == "SlowStrongerAugment") { // Better Slow Augment
+        return std::make_unique<SlownessAugment>(0.4f);
     }
-    // If the augment name doesn't exist, we skip it
+
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;
     return nullptr;
 }
@@ -76,6 +75,7 @@ std::unique_ptr<TowerTree> TowerTree::loadFromFile(const std::string& filepath) 
         return nullptr;
     }
 
+    // Base stats
     auto tree = std::make_unique<TowerTree>();
     tree->towerType_ = j.value("type", "DefaultTower");
     tree->baseRange_ = j.value("baseRange", 100.0f);
@@ -155,7 +155,6 @@ std::unique_ptr<Tower> TowerTree::instantiateTower(Point position, Projectile& p
     );
     tower->setPosition(position);
     
-    // Apply root node augments (Base mechanics for this tower type)
     if (rootUpgrade_) {
         tower->applyUpgrade(rootUpgrade_.get());
     }

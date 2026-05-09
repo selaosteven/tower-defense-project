@@ -8,27 +8,55 @@
 
 class Entity{
 protected:
-    Point position_; // Vecteur de position
-    float orientation_; // Angle degré
-    std::vector<std::shared_ptr<Sprites::Sprite>> sprites_; // Objet d'affichage (Pointeurs pour polymorphisme)
-    // Animation anim; // Animation d'une entité
-public:
+    Point position_; // Position of entity
+    float orientation_; // Orientation angle 
+    std::vector<std::shared_ptr<Sprites::Sprite>> sprites_; // Renderable objects
+
+    public:
     Entity(Point position);
     Entity(Point position, float orientation);
     Entity(Point position, std::shared_ptr<Sprites::Sprite> sprite);
     Entity(Point position, float orientation, std::shared_ptr<Sprites::Sprite> sprite);
     Entity(Point position, float orientation, std::vector<std::shared_ptr<Sprites::Sprite>> sprites);
-    ~Entity(); // Destructeur nécessaire pour supprimer les sprites
+    ~Entity(); 
 
     inline Point getPosition() const {return position_;}
     inline float getOrientation() const {return orientation_;}
     inline std::vector<std::shared_ptr<Sprites::Sprite>>& getSprites() {return sprites_;}
 
+    /**
+     * @brief add sprite to sprites_
+     * 
+     *
+     * @param sprite 
+     */
     void addSprite(std::shared_ptr<Sprites::Sprite> sprite);
-    void removeSprite(std::shared_ptr<Sprites::Sprite> sprite);
 
-    virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
-    virtual void live(float deltaTime);
+    /**
+     * @brief remove sprite to sprites_ 
+     * 
+     * @param sprite
+     */
+    void removeSprite(std::shared_ptr<Sprites::Sprite> sprite);
+    
+    /**
+     * @brief Draw every sprites of the entity on the screen
+     * 
+     * @param win
+     * @param deltaTime
+     * @param offset
+     * @param scale
+     * @param rot
+     */
+     virtual void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot);
+    
+    /**
+     * @brief Update the entity each frame
+     * 
+     * @param deltaTime
+     */
+     virtual void live(float deltaTime);
+    
     
 };
 
