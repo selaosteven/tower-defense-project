@@ -2,8 +2,8 @@
   "type": "Sniper",
   "baseRange": 4.0,
   "baseDamage": 50.0,
-  "baseAs": 0.3,
-  "baseRs": 40.0,
+  "baseAs": 0.5,
+  "baseRs": 70.0,
   "baseArmorPiercing":1.0,
   "cone_angle": 10,
   "formes": [
@@ -25,13 +25,27 @@
             "name": "Anti-Materiel Rifle",
             "cost": 300,
             "augments": ["ArmorPiercingAugment"],
-            "children": []
+            "children": [
+                    {
+                "name": "Hair Trigger",
+                "cost": 270,
+                "augments": ["AttackSpeedAugment"],
+                "children": []
+            }
+            ]
           },
           {
             "name": "Headhunter",
             "cost": 320,
             "augments": ["CritAugment"],
-            "children": []
+            "children": [
+                    {
+                "name": "Hair Trigger",
+                "cost": 270,
+                "augments": ["AttackSpeedAugment"],
+                "children": []
+            }
+            ]
           }
         ]
       },
@@ -44,13 +58,27 @@
             "name": "Eagle Eye",
             "cost": 280,
             "augments": ["SniperScopeAugment"],
-            "children": []
+            "children": [
+                    {
+                "name": "Hair Trigger",
+                "cost": 270,
+                "augments": ["AttackSpeedAugment"],
+                "children": []
+            }
+            ]
           },
           {
             "name": "Sky Watcher",
             "cost": 260,
             "augments": ["AntiAirAugment"],
-            "children": []
+            "children": [
+                    {
+                "name": "Hair Trigger",
+                "cost": 270,
+                "augments": ["AttackSpeedAugment"],
+                "children": []
+            }
+            ]
           }
         ]
       }

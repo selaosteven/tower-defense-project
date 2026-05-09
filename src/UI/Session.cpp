@@ -204,7 +204,24 @@ void UI::Session::onMouseScroll(float scrollX, float scrollY) {
 // ------------------------------------------------
 
 void UI::Session::generateMapSprites(){
-    
+
+
+    auto getOrientation = [](const Point& p1, const Point& p2) {
+        // From p1 to p2
+        Point dir = p1 ^ p2;
+        std::cout << dir << std::endl;
+        if (dir.getY() > 0) return Sprites::Orientation::Right;
+        if (dir.getY() < 0) return Sprites::Orientation::Left;
+        if (dir.getX() > 0) return Sprites::Orientation::Down;
+        if (dir.getX() < 0) return Sprites::Orientation::Up;
+        
+        return Sprites::Orientation::Right; // Fallback just in case
+    };
+    std::list<Point> gridPath = map_.getPath();
+    auto start_it = gridPath.begin();
+    auto end_it = gridPath.end();
+    Sprites::Orientation startOri = getOrientation(*start_it, *std::next(start_it));
+    Sprites::Orientation endOri = getOrientation(*std::prev(end_it, 2), *std::prev(end_it, 1));
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
             Case bloc = map_.map_.at(y).at(x);
@@ -234,10 +251,13 @@ void UI::Session::generateMapSprites(){
                 case Case::Wall:
                     break;
                 case Case::Start:
-                    s = Sprites::triangle({px, py, 99}, cellSize/4, {255, 125, 30, 255}, Sprites::Orientation::Left);
+                    addSprite(Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255}));
+                    s = Sprites::triangle({px, py, 99}, cellSize/4, {255, 125, 30, 255}, startOri);
                     break;
                 case Case::End:
+                    addSprite(Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255}));
                     s = Sprites::triangle({px, py, 99}, cellSize/4, {30, 160, 255, 255}, Sprites::Orientation::Right);
+                    s = Sprites::triangle({px, py, 99}, cellSize/4, {30, 160, 255, 255}, endOri);
                     break;
                 
                 default:

@@ -25,7 +25,7 @@ public:
         return Point{x_-p.x_, y_-p.y_};
     }
 
-    const Point operator^(const Point& p){
+    const Point operator^(const Point& p) const{
         return Point{p.x_-x_, p.y_-y_};
     }
 
