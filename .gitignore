@@ -1,2 +1,6 @@
 build/
 .vscode/c_cpp_properties.json
+build-windows/
+CMakeLists.txt
+toolchain-mingw.cmake
+CMakeLists.txt

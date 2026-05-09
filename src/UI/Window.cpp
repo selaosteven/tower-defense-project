@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <thread>
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 
 #include "Window.h"
 #include "Sprites/Sprite.h"

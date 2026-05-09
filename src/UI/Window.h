@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <atomic>
+#include <mutex>
 
 #include "QuadTree/Point.h"
 

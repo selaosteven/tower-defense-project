@@ -2,7 +2,7 @@
 #define TEXT_H
 
 #include "Sprites/Sprite.h"
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 #include <string>
 
 namespace Sprites {
