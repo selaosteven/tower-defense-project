@@ -56,7 +56,7 @@ UI::Session::Session(std::string name_map):
 void UI::Session::startNextWave() {
     if (!waveActive_) {
         round_++;
-        enemiesToSpawn_ = 5 + round_ * 2; // Increase difficulty: 7, 9, 11 enemies...
+        enemiesToSpawn_ = 5 + round_ * 6; // Increase difficulty: 7, 9, 11 enemies...
         spawnTimer_ = 0.0f;
         waveActive_ = true;
         std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
@@ -303,7 +303,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     
     // Visually scale the enemy to occupy 70% of a tile
     float enemySize = cellSize * 0.205f;
-    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize));
+    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
     addEntity(el.back().get());
     enemiesToSpawn_--;
     spawnTimer_ = 0.0f;
@@ -700,7 +700,7 @@ void UI::Session::mainSession() {
             spawnTimer_ += dt;
             
             // Spawn enemies if we still have some left to spawn for this wave
-            if (enemiesToSpawn_ > 0 && spawnTimer_ >= 1.0f) { // spawn every 1 second
+            if (enemiesToSpawn_ > 0 && spawnTimer_ >= (0.1f + 0.4*static_cast<float>(rand()) / static_cast<float>(RAND_MAX))) { // spawn every 1 second
                 spawnEnemy(cellSize, spawningDirection, baseX, baseY, path, el);
             }
 
