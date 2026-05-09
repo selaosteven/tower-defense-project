@@ -67,7 +67,7 @@ std::unique_ptr<Enemy> EnemyBlueprint::instantiateEnemy(Point position, float of
         displayChar = possibleChars_[randomIndex];
     }
 
-    float offsetSpeed = (rand() / (float)RAND_MAX - 0.5f) * 0.2 - 0.1;
+    float offsetSpeed = (rand() / (float)RAND_MAX - 0.5f) * 0.4 - 0.2;
     offsetSpeed+=1.0f;
     auto enemy = std::make_unique<Enemy>(
         baseLp_ + powf(round,1.5), baseSpeed_*offsetSpeed, baseResistance_, isFlying_, std::string(1, displayChar), color_, size
