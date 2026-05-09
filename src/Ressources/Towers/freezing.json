@@ -1,7 +1,7 @@
 {
   "type": "Freezing",
   "baseRange": 3.5,
-  "baseDamage": 10.0,
+  "baseDamage": 2,
   "baseAs": 1.0,
   "baseRs": 40.0,
   "formes": [

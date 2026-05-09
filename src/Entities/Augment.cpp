@@ -2,6 +2,7 @@
 #include "Entities/Tower.h"
 #include <cstdlib>
 #include <iostream>
+#include <unordered_set>
 
 Augment::Augment(const std::string& name) : name_{name} {}
 
@@ -79,14 +80,33 @@ SlownessAugment::SlownessAugment(float amount)
     : Augment("Slowness"), slowAmount_(amount) {}
 
 void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) {
+    // for (auto* e : enemies) {
+    //     if (!e || !e->isAlive()) continue;
+
+        
+    //     // Appliquer un slow directement à l’ennemi
+    //     e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
+    //     // Tu peux ajouter un vrai SlowEffect plus tard
+    // }
+
+    static std::unordered_set<Enemy*> slowed;
+
     for (auto* e : enemies) {
         if (!e || !e->isAlive()) continue;
 
-        // Appliquer un slow directement à l’ennemi
+        // Si déjà ralenti → on ne le ralentit plus
+        if (slowed.find(e) != slowed.end())
+            continue;
+
+        // Appliquer le slow UNE SEULE FOIS
         e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
-        // Tu peux ajouter un vrai SlowEffect plus tard
+
+        // Marquer comme ralenti
+        slowed.insert(e);
     }
 }
+
+
 
 // DamageAugment
 

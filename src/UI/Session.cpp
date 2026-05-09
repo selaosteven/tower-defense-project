@@ -600,19 +600,28 @@ void UI::Session::mainSession() {
         for(int x = 0; x < map_.getWidth(); x++) {
             
             Case bloc = map_.map_.at(y).at(x);
-            if(bloc == Case::Tower){
-                tower_build_cells_.push_back(Point{(float)x, (float)y});
-            }
+            // if(bloc == Case::Tower){
+            //     tower_build_cells_.push_back(Point{(float)x, (float)y});
+            // }
             std::shared_ptr<Sprites::Sprite> s = nullptr; // On prépare un pointeur vide
 
             float px = x * cellSize + cellSize / 2.0f;
             float py = y * cellSize + cellSize / 2.0f;
 
             switch (bloc) {
-                case Case::Tower:
+                case Case::Tower: {
                     // s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
-                    s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
+                    int r = rand() % 10;
+                    if(r < 3){
+                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 0, 255},  99.0f,{px, py, 99.0f});
+                        tower_augment_cells.push_back(Point{(float)x, (float)y});
+                    } else {
+                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
+                    }
+                    tower_build_cells_.push_back(Point{(float)x, (float)y});
+
                     break;
+                }
                 case Case::Path:
                     s = Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255});
                     break;
@@ -747,6 +756,32 @@ void UI::Session::mainSession() {
                     active_projectiles_.push_back(std::move(p));
                 }
             }
+
+            // --- Aura des tours augment ---
+            float auraRadius = 3.0f; // en coordonnées map (cellules), ajuste comme tu veux
+
+            // 2) Pour chaque tour augment
+            for (auto& augCell : tower_augment_cells) {
+
+                float augX = augCell.getX();
+                float augY = augCell.getY();
+
+                // 3) Vérifier toutes les tours
+                for (auto& tower : placed_towers_) {
+
+                    float tx = tower->getPosition().getX();
+                    float ty = tower->getPosition().getY();
+
+                    float dx = tx - augX;
+                    float dy = ty - augY;
+                    float dist = std::sqrt(dx*dx + dy*dy);
+
+                    if (dist < auraRadius) {
+                        tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
+                    }
+                }
+            }
+
             
             // Check if wave is over (no more to spawn and all enemies are dead)
             bool allEnemiesDead = true;

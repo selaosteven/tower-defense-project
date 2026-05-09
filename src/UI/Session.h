@@ -35,6 +35,7 @@ private:
     float spawnTimer_;
     int ticks_per_seconds_;
     std::vector<Point> tower_build_cells_;
+    std::vector<Point> tower_augment_cells;
     int tower_cursor_index_ = 0;
 
     // --- Menu Navigation ---
