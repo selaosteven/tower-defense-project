@@ -473,7 +473,7 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         float titleX = ui_panel_x_ + 10.0f;
         float titleY = ui_panel_y_ + 10.0f;
         float badgeSize = 26.0f;
-        float badgeX = titleX + 200.0f;  // ajuste 200 si ton texte est plus long
+        float badgeX = titleX + 200.0f;
         float badgeY = titleY + 4.0f;
         float badgeOffsetX = (badgeX < 0) ? getWinWidth() : 0.0f;
         float badgeOffsetY = (badgeY < 0) ? getWinHeight() : 0.0f;
@@ -488,12 +488,12 @@ void UI::Session::drawUI(SDL_Renderer* r) {
             Sprites::Text::POKETEXT,
             20,
             SDL_Color{0,0,0,255},
-            true // Centered Nativement
+            true
         );
         lvlText.draw(r, delta_time_, badge_offset, ui_scale_, 0.0f);
     }
 
-    // --- BARRE D'XP DYNAMIQUE ---
+    // XP BAR
     if (showUI_ && selected_tower_) {
 
         int xp = selected_tower_->getXp();
@@ -527,13 +527,12 @@ void UI::Session::drawUI(SDL_Renderer* r) {
                 "MAX",
                 Sprites::Text::POKETEXT,
                 20,
-                SDL_Color{255, 215, 0, 255}, // doré
-                true // Centered Nativement
+                SDL_Color{255, 215, 0, 255},
+                true
             );
             xpValue.draw(r, delta_time_, bar_offset, ui_scale_, 0.0f);
         }
         else {
-            // --- TEXTE NORMAL XP: x / y ---
             Sprites::Text xpValue(
                 {barX, barY - 28.0f, 12.0f},
                 "XP: " + std::to_string(xp) + " / " + std::to_string(xpMax),
@@ -582,7 +581,7 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
 void UI::Session::startNextWave() {
     if (!waveActive_) {
         round_++;
-        enemiesToSpawn_ = 5 + round_ * 6; // Increase difficulty: 7, 9, 11 enemies...
+        enemiesToSpawn_ = 5 + round_ * 6; 
         spawnTimer_ = 0.0f;
         waveActive_ = true;
         std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
@@ -590,7 +589,7 @@ void UI::Session::startNextWave() {
 }
 
 void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
-    // Spread the enemies across 80% of the cell width so they are visibly spaced out
+    // Spread the enemies across 90% of the cell width so they are visibly spaced out
     float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.9f;
     Point spawnOffset = Point{-spawningDirection.getY(), spawningDirection.getX()} * offsetSpawn;
     Point spawnPosition{baseX, baseY};
@@ -611,7 +610,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     int randomIndex = rand() % matching_blueprints.size();
     const EnemyBlueprint* blueprint = matching_blueprints[randomIndex];
     
-    // Visually scale the enemy to occupy 70% of a tile
+    // Visually scale the enemy to fit within a tile
     float enemySize = cellSize * 0.205f;
     el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
     addEntity(el.back().get());
@@ -620,6 +619,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
 }
 
 void UI::Session::GameOverScreen(){
+    // We clear everything first
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     sprites_.clear();
     entities_.clear();
@@ -628,6 +628,7 @@ void UI::Session::GameOverScreen(){
     menu_buttons_.clear();
     showUI_ = false;
 
+    // We prepare the title gameover in the center
     float cx = getWinWidth() / 2.0f;
     float cy = getWinHeight() / 2.0f;
 
@@ -638,6 +639,7 @@ void UI::Session::GameOverScreen(){
     auto btn_text = std::make_shared<Sprites::Text>(std::array<float, 3>{100.0f, 30.0f, 1.0f}, "QUIT", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255}, true);
     go_btn->addSubSprite(btn_text);
 
+    // The button generate a quit event
     go_btn->setOnLeftClick([this]() {
         wants_to_die_ = true;
         SDL_Event quit_event;
@@ -655,26 +657,33 @@ void UI::Session::GameOverScreen(){
 
 void UI::Session::mainSession() {
     hp_player_ = 1;
-    while(!Window::sdl_initiated);
+    while(!Window::sdl_initiated); // wait for sdl to be ready
+
+    // we scale the game map based on the window and the map size.
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
     float cellSize = 1.0f;
+    float auraRadius = 3.0f; // Cell augment radius effect
 
-    // Center the map on the screen for the rendering engine
+    // Center the map on the screen
     float offsetX = ((getWinWidth()-300)  - scale_ * map_.getWidth())  / 2.0f;
     float offsetY = (getWinHeight() - scale_ * map_.getHeight()) / 2.0f;
     camera_position_ = Point{offsetX, offsetY};
 
 
-    // Status UI Elements
+    // Player stat on the UI
     auto moneyText = std::make_shared<Sprites::Text>(std::array<float, 3>{20.0f, 20.0f, 10.0f}, "Money: " + std::to_string(money_) + "$", Sprites::Text::POKETEXT, 24, SDL_Color{255, 215, 0, 255});
     addUISprite(moneyText);
     
     auto hpText = std::make_shared<Sprites::Text>(std::array<float, 3>{getWinWidth() / 2.0f, -40.0f, 10.0f}, "HP: " + std::to_string(hp_player_), Sprites::Text::POKETEXT, 24, SDL_Color{255, 50, 50, 255}, true);
     addUISprite(hpText);
 
-    // START WAVE BUTTON
+    // Prepare to read stats changes that need to trigger update to the text
+    int last_money = money_;
+    int last_hp = hp_player_;
+
+    // Start wave button
     auto bouton_next_wave = std::make_shared<Sprites::Button>(std::array<float, 3>{60.0f, -60, 10.0f}, 260.0f, 50.0f);
     auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "START WAVE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
     bouton_next_wave->addSubSprite(text);
@@ -683,16 +692,11 @@ void UI::Session::mainSession() {
         startNextWave();
     });
     addUISprite(bouton_next_wave);
-    int last_money = money_;
-    int last_hp = hp_player_;
 
+    // We generate the sprites for the map    
     for(int y = 0; y < map_.getHeight(); y++) {
         for(int x = 0; x < map_.getWidth(); x++) {
-            
             Case bloc = map_.map_.at(y).at(x);
-            // if(bloc == Case::Tower){
-            //     tower_build_cells_.push_back(Point{(float)x, (float)y});
-            // }
             std::shared_ptr<Sprites::Sprite> s = nullptr; // On prépare un pointeur vide
 
             float px = x * cellSize + cellSize / 2.0f;
@@ -700,7 +704,6 @@ void UI::Session::mainSession() {
 
             switch (bloc) {
                 case Case::Tower: {
-                    // s = Sprites::circle({px, py, 99}, cellSize/4); // circle already returns std::shared_ptr
                     int r = rand() % 10;
                     if(r < 3){
                         s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 0, 255},  99.0f,{px, py, 99.0f});
@@ -728,17 +731,14 @@ void UI::Session::mainSession() {
                 
                 default:
                     s = Sprites::rectangle({px, py, 99}, cellSize/8,cellSize/8,(SDL_Color){125,80,125,200});
-                    break; // On passe au suivant si c'est du vide
+                    break;
             }
 
-            if (s) {                                
-                // 5. ENVOI AU MOTEUR : Ton addSprite reçoit un pointeur VALIDE
-                addSprite(s); 
-            }
+            if (s) addSprite(s); 
         }
     }
 
-     // Spawn des enemies
+     // Setup the path for enemies
     std::list<Point> path = map_.getPath();
 
     for(auto& p : path) {
@@ -750,17 +750,16 @@ void UI::Session::mainSession() {
     float baseX = path.front().getX();
     float baseY = path.front().getY();
 
-    using clock = std::chrono::steady_clock;
-    bool running = true;
 
     std::vector<std::unique_ptr<Enemy>> el = {};
+    // operator overload to setup path direction we use \^ to say we point from A to B (for fun)
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
-    // Start the first wave automatically for testing, or rely on UI to trigger it
-    // startNextWave(); 
+    using clock = std::chrono::steady_clock;
     auto lastTime = clock::now();
-
-    while(running && !wants_to_die_) {
+    
+    bool running = true;
+    while(running && !wants_to_die_) { // Game loop
         auto now = clock::now();
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
@@ -799,7 +798,7 @@ void UI::Session::mainSession() {
                 }
             }
             
-            map_ope_.clear(); // Simply clear the existing persistent tree
+            map_ope_.clear(); // Clear our quadtree and create a new set
             for (auto& enemy : el) {
                 if (enemy->isAlive()) map_ope_.addEnemy(enemy.get());
             }
@@ -808,7 +807,7 @@ void UI::Session::mainSession() {
                 auto& proj = *it;
                 proj->live(dt);
                 
-                if (proj->hasHit()) {
+                if (proj->hasHit()) { // If projectile hit it's target we actualize the list of affected entity with quadtree
                     std::vector<Enemy*> hit_enemies;
                     if (proj->getSize() > 0.0f) { // Splash damage
                         std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), proj->getSize());
@@ -838,7 +837,7 @@ void UI::Session::mainSession() {
                     ++it;
                 }
             }
-            // Update towers with enemy list
+            // Update towers with enemy list and the quadtree
             for (auto& tower : placed_towers_) {
                 std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
                 tower->live(dt, nearby_enemies);
@@ -849,10 +848,7 @@ void UI::Session::mainSession() {
                 }
             }
 
-            // --- Aura des tours augment ---
-            float auraRadius = 3.0f; // en coordonnées map (cellules), ajuste comme tu veux
-
-            // 2) Pour chaque tour augment
+            // We check every augmented cells
             for (auto& augCell : tower_augment_cells) {
 
                 float augX = augCell.getX();
@@ -869,8 +865,7 @@ void UI::Session::mainSession() {
                 }
                 
                 if (!has_tower) continue;
-
-                // 3) Vérifier toutes les tours
+                // If there is a tower we check every tower around to apply the effect
                 for (auto& tower : placed_towers_) {
 
                     float tx = tower->getPosition().getX();
@@ -911,7 +906,7 @@ void UI::Session::mainSession() {
                 }
                 el.clear();
                 
-                // Clean up remaining projectiles from the wave so they don't hold dangling pointers
+                // Clean up remaining projectiles from the wave
                 for (auto& proj : active_projectiles_) {
                     removeEntity(proj.get());
                 }
@@ -927,6 +922,7 @@ void UI::Session::mainSession() {
             }
         }
         
+        // If the player's dead we set the gameover screen
         if (hp_player_ <= 0) {
             std::cout << "GAME OVER!\n";
             GameOverScreen();
@@ -937,12 +933,10 @@ void UI::Session::mainSession() {
             running = false;
         }
 
-        // Small sleep to prevent 100% CPU usage loop
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
 
-    // Cleanup all entities before exiting the session thread
-    // to prevent the rendering thread from accessing freed memory.
+    // We clean the memory.
     for (auto& enemy : el) {
         removeEntity(enemy.get());
     }
