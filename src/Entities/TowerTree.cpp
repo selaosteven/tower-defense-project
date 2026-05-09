@@ -49,11 +49,12 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
     return nullptr;
 }
 
-std::unique_ptr<UpgradeNode> parseUpgradeNode(const json& j) {
+std::unique_ptr<UpgradeNode> parseUpgradeNode(const json& j, UpgradeNode* parent = nullptr) {
     auto node = std::make_unique<UpgradeNode>();
     node->name = j.value("name", "Unknown Upgrade");
     node->cost = j.value("cost", 0.0f);
-    
+    node->parent = parent;  // Définir le parent
+
     if (j.contains("augments") && j["augments"].is_array()) {
         for (const auto& aug : j["augments"]) {
             node->augments.push_back(aug.get<std::string>());
@@ -62,7 +63,7 @@ std::unique_ptr<UpgradeNode> parseUpgradeNode(const json& j) {
 
     if (j.contains("children") && j["children"].is_array()) {
         for (const auto& childJson : j["children"]) {
-            node->children.push_back(parseUpgradeNode(childJson));
+            node->children.push_back(parseUpgradeNode(childJson, node.get()));
         }
     }
     return node;

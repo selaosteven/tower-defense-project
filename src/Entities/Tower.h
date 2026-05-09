@@ -145,6 +145,7 @@ public:
      */
     void applyUpgrade(const UpgradeNode* node);
     const UpgradeNode* getCurrentUpgradeNode() const { return currentUpgradeNode_; }
+    void resetToRootUpgrade();
 
 public:
     inline float getRange() const {return range_;} // Getter Range

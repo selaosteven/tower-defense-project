@@ -141,6 +141,17 @@ void Tower::applyUpgrade(const UpgradeNode* node) {
     }
 }
 
+void Tower::resetToRootUpgrade() {
+    if (currentUpgradeNode_ && currentUpgradeNode_->parent) {
+        // Traverse up to find the root node
+        const UpgradeNode* root = currentUpgradeNode_;
+        while (root->parent) {
+            root = root->parent;
+        }
+        currentUpgradeNode_ = root;
+    }
+}
+
 void Tower::do_shoot(Enemy& target) {
     auto proj = proj_.clone();
     proj->setPosition(position_);

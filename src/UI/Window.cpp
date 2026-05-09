@@ -192,6 +192,14 @@ werrors UI::Window::inputs(){
                             std::cout << "SPACE" << std::endl;
                             onSpace();
                             break;
+                        case SDLK_f:
+                            game_speed_multiplier_ = game_speed_multiplier_ > 5 ? 1 : game_speed_multiplier_ == 0 ? 1 : (game_speed_multiplier_ + 2);
+                            std::cout << "Game speed set to " << game_speed_multiplier_ << "x" << std::endl;
+                            break;
+                        case SDLK_g:
+                            game_speed_multiplier_ = 0;
+                            std::cout << "Game speed set to " << game_speed_multiplier_ << "x" << std::endl;
+                            break;
                         default:
                             break;
                     }
@@ -308,6 +316,7 @@ void UI::Window::loop(){
         SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
         delta_time_ = (SDL_GetTicks64() - ticks_) / 1000.0f;
         ticks_ = SDL_GetTicks64();
+        delta_time_ *= game_speed_multiplier_;
         werrors errInputs = inputs();
         if(errInputs == STOP) break;
         

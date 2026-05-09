@@ -416,7 +416,10 @@ void UI::Session::openUpgradeUI(std::shared_ptr<Tower> tower) {
     // We gather the current upgrade node of the tower 
     // and for each children we add a button with a lambda function to upgrade with the augment.
     const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
-
+    if ((!current_node || current_node->children.empty()) && tower->getLevel() == tower->getLevelMax()){
+        tower->resetToRootUpgrade();
+        current_node = tower->getCurrentUpgradeNode();
+    }
     // If there's not upgrade available
     if (!current_node || current_node->children.empty()) {
         auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + margin, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 14, SDL_Color{255, 255, 255, 255});
@@ -908,6 +911,7 @@ void UI::Session::mainSession() {
         auto now = clock::now();
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
+        dt *= game_speed_multiplier_;
         if (money_ != last_money) {
             std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             moneyText->setText("Money: " + std::to_string(money_) + "$");

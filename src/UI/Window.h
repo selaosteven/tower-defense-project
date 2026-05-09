@@ -73,6 +73,7 @@ protected:
     float ui_scale_;
     Point camera_position_;
     bool wants_to_die_;
+    float game_speed_multiplier_ = 1.0f;
     bool is_dragging_[4] = {false, false, false, false}; // Indices 1, 2, 3 correspond to SDL_BUTTON_LEFT, MIDDLE, RIGHT
     Point drag_start_pos_[4] = {Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}};
 // ----------------------------

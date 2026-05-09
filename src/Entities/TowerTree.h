@@ -12,6 +12,7 @@ struct UpgradeNode {
     float cost;
     std::vector<std::string> augments;
     std::vector<std::unique_ptr<UpgradeNode>> children;
+    UpgradeNode* parent = nullptr;
 };
 
 class TowerTree {
