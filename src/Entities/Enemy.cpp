@@ -63,9 +63,9 @@ void Enemy::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
 
     float hp_ratio = std::max(0.0f, std::min(1.0f, lp_ / max_lp_));
 
-    float barW = 0.5f; // 50% of the cell width
+    float barW = 0.15f; // 50% of the cell width
     float barH = 0.08f; // 8% of the cell height
-    float barY = -0.3f; // Floating slightly above the enemy
+    float barY = -0.1f; // Floating slightly above the enemy
     
     // The background will always be the same
     static auto bg = Sprites::rectangle({0.0f, barY, 10.0f}, barW, barH, {80, 80, 80, 200});

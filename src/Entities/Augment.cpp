@@ -74,25 +74,47 @@ void TargetingAugment::onUnequip(Tower& tower) {
     tower.setTargetFlying(false);
 }
 
+// SlownessEffect to properly track and reset enemy speed
+class SlownessEffect : public Effect {
+    float slowAmount_;
+public:
+    SlownessEffect(float duration, float amount) 
+        : Effect("Slowness", duration), slowAmount_(amount) {}
+
+    void onStart(Enemy& target) override {
+        target.setSpeed(target.getSpeed() * (1.0f - slowAmount_));
+    }
+
+    void onEnd(Enemy& target) override {
+        target.setSpeed(target.getSpeed() / (1.0f - slowAmount_));
+    }
+
+    void resetTimer() {
+        timer_ = 0.0f;
+    }
+};
+
 // SlownessAugment
 
 SlownessAugment::SlownessAugment(float amount)
     : Augment("Slowness"), slowAmount_(amount) {}
 
 void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) {
-    static std::unordered_set<Enemy*> slowed;
-
     for (auto* e : enemies) {
         if (!e || !e->isAlive()) continue;
 
-        // if already slowed => don't apply again
-        if (slowed.find(e) != slowed.end())
-            continue;
+        bool already_slowed = false;
+        for (const auto& effect : e->getEffects()) {
+            if (effect->getName() == "Slowness") {
+                already_slowed = true;
+                static_cast<SlownessEffect*>(effect.get())->resetTimer();
+                break;
+            }
+        }
 
-        e->setSpeed(e->getSpeed() * (1.0f - slowAmount_));
-
-        // apply the slow on enemy e
-        slowed.insert(e);
+        if (!already_slowed) {
+            e->addEffect(std::make_unique<SlownessEffect>(2.0f, slowAmount_));
+        }
     }
 }
 
@@ -114,8 +136,12 @@ void DamageAugment::onUnequip(Tower &tower){
 
 AoeAugment::AoeAugment(float size) : Augment("Zone Buff"), size_incr_(size) {}
 
-void AoeAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {
-    p.setSize(p.getSize() + size_incr_);
+void AoeAugment::onEquip(Tower& tower) {
+    tower.getBaseProjectile().setSize(size_incr_);
+}
+
+void AoeAugment::onUnequip(Tower& tower) {
+    tower.getBaseProjectile().setSize(-size_incr_);
 }
 
 // RotationSpeedAugment
@@ -143,7 +169,9 @@ void ProjectileSpeedAugment::onEquip(Tower& tower) {
 
 SplashRadiusAugment::SplashRadiusAugment(float amount) : Augment("Splash Radius"), amount_(amount) {}
 void SplashRadiusAugment::onEquip(Tower& tower) {
-    tower.getBaseProjectile().setSize(amount_);
+    float baseSize = tower.getBaseProjectile().getSize();
+    if(baseSize <= 0) baseSize = 0.01f;
+    tower.getBaseProjectile().setSize(amount_*baseSize);
 }
 
 // ArmorPiercingAugment

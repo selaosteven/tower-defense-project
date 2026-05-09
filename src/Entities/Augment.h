@@ -164,7 +164,8 @@ class AoeAugment : public Augment {
 
     public:
         AoeAugment(float size);
-        void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;
+        void onEquip(Tower& tower) override;
+        void onUnequip(Tower& tower) override;
 };
 
 // RotationSpeedAugment Class

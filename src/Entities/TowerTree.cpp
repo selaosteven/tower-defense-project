@@ -20,7 +20,7 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
     } else if(augmentName == "SlowAugment") { // Slowness
         return std::make_unique<SlownessAugment>(0.8f);
     } else if(augmentName == "SplashAugment") { // AoE 
-        return std::make_unique<AoeAugment>(0.2f);
+        return std::make_unique<AoeAugment>(1.1f);
     } else if(augmentName == "DamageAugment") { // Damage
         return std::make_unique<DamageAugment>();
     } else if(augmentName == "ProjectileSpeedAugment") { // Projectile Speed
@@ -32,7 +32,7 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
     } else if(augmentName == "AttackSpeedAugment") {  // Attack Speed
         return std::make_unique<AttackSpeedAugment>(1.2f);
     } else if(augmentName == "SplashRadiusAugment") { // AoE Radius
-        return std::make_unique<SplashRadiusAugment>(0.5f);
+        return std::make_unique<SplashRadiusAugment>(1.4f);
     } else if(augmentName == "SlowStrongerAugment") { // Better Slow Augment
         return std::make_unique<SlownessAugment>(0.4f);
     } else if(augmentName == "ArmorPiercingAugment") { // Armor Piercing

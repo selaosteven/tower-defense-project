@@ -732,7 +732,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     if (!blueprint) return;
     
     // Visually scale the enemy to fit within a tile
-    float enemySize = cellSize * 0.205f;
+    float enemySize = cellSize * 0.095f;
     el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
     addEntity(el.back().get());
     enemiesToSpawn_--;
@@ -740,6 +740,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
 }
 
 void UI::Session::GameOverScreen(){
+    if(showUI_) closeTowerUI();
     // We clear everything first
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     sprites_.clear();
@@ -827,10 +828,9 @@ void UI::Session::mainSession() {
     }
 
     // we scale the game map based on the window and the map size.
-    float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
-    float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
+    float cellWidth  = 120.0f;//(getWinWidth()-300) / static_cast<float>(map_.getWidth());
+    float cellHeight = 120.0f;//getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
-    cellSize = 1.0f;
     auraRadius = 3.0f; // Cell augment radius effect
 
     // Center the map on the screen

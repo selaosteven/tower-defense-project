@@ -61,6 +61,6 @@ void Projectile::live(float deltaTime) {
 }
 
 std::vector<std::shared_ptr<Sprites::Sprite>> Projectile::createSprites(SDL_Color color) {
-    auto Core = Sprites::circle({0.0f,0.0f,1.0f}, 0.15f);
+    auto Core = Sprites::circle({0.0f,0.0f,1.0f}, 0.05f);
     return {Core};
 }
