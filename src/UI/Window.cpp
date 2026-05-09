@@ -77,6 +77,9 @@ UI::Window::~Window(){
         sdl_initiated = false;
     }
 }
+// ------------------------------------------------
+//              FABRICATORS DESTRUCTOR 
+// ------------------------------------------------
 
 int UI::Window::Create(void * args){
     
@@ -104,6 +107,20 @@ int UI::Window::Create(void * args){
     else loop();
     return 1;
 }
+
+
+void UI::Window::waitForClose(){
+    if (thread_ != nullptr) {
+        int thread_return_value;
+        SDL_WaitThread(thread_, &thread_return_value);
+        thread_ = nullptr;
+    }
+}
+
+// ------------------------------------------------
+//             INPUT FUNCTIONS 
+// ------------------------------------------------
+
 
 werrors UI::Window::inputs(){
     int max_events = 10;
@@ -277,13 +294,10 @@ werrors UI::Window::inputs(){
     return NONE;
 }
 
-void UI::Window::waitForClose(){
-    if (thread_ != nullptr) {
-        int thread_return_value;
-        SDL_WaitThread(thread_, &thread_return_value);
-        thread_ = nullptr;
-    }
-}
+// ------------------------------------------------
+//             DRAW FUNCTIONS 
+// ------------------------------------------------
+
 
 void UI::Window::loop(){
     while(1)
@@ -312,7 +326,7 @@ void UI::Window::loop(){
                     s->draw(renderer_, delta_time_, Point{offsetX, offsetY}, ui_scale_, 0);
                     ++it;
                 } else {
-                    it = ui_sprites_.erase(it); // Auto-prune destroyed UI sprites!
+                    it = ui_sprites_.erase(it);
                 }
             }
             
@@ -392,7 +406,6 @@ int UI::Window::instanceWindowThread(void * window){
     Window* win = static_cast<Window*>(window);
     int res = win->Create(nullptr);
     number_of_instances--;
-    // Don't delete win here - let the main thread's destructor handle cleanup
     return res;
 }
 

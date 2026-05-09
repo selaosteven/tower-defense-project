@@ -15,6 +15,10 @@
 #include "QuadTree/QuadTree.h"
 
 
+// ------------------------------------------------
+//                  CONSTRUCTORS 
+// ------------------------------------------------
+
 UI::Session::Session(std::string name_map): 
     UI::Window{},
     map_{name_map},
@@ -53,283 +57,10 @@ UI::Session::Session(std::string name_map):
         }
     }
 
-void UI::Session::startNextWave() {
-    if (!waveActive_) {
-        round_++;
-        enemiesToSpawn_ = 5 + round_ * 6; // Increase difficulty: 7, 9, 11 enemies...
-        spawnTimer_ = 0.0f;
-        waveActive_ = true;
-        std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
-    }
-}
 
-void UI::Session::moneySetter(int new_money) {
-    money_ = new_money;
-}
-
-void UI::Session::hpSetter(int new_hp) {
-    hp_player_ = new_hp;
-}
-
-void UI::Session::closeTowerUI() {
-    // With std::shared_ptr here and std::weak_ptr in Window, clearing this vector
-    // automatically triggers cleanup from Window's ui_sprites_ list!
-    active_ui_elements_.clear();
-    menu_buttons_.clear();
-    menu_button_index_ = 0;
-    if (selected_tower_) {
-        selected_tower_->setShowRange(false);
-    }
-    showUI_ = false;
-    selected_tower_ = nullptr;
-    selected_cell_.reset();
-}
-
-void UI::Session::openBuildUI(Point cell) {
-    if (showUI_) closeTowerUI(); // Close any existing UI first
-
-    showUI_ = true;
-    selected_cell_ = cell;
-    menu_button_index_ = 0;
-    menu_buttons_.clear();
-    
-    float startY = ui_panel_y_ + 10.0f;
-    float stepY = 60.0f;
-    float margin = 20.0f;
-    float buttonWidth = ui_panel_w_ - 2 * margin;
-
-    // Title
-    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
-    active_ui_elements_.push_back(title);
-    addUISprite(title);
-    startY += 40;
-
-    for (const auto& blueprint : tower_catalog_) {
-        int cost = blueprint->getRootUpgrade() ? blueprint->getRootUpgrade()->cost : 0;
-        std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
-
-        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
-        button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
-        
-        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
-        button->addSubSprite(text);
-
-        button->setOnLeftClick([this, blueprint = blueprint.get(), cost, cell = *selected_cell_]() {
-            if (money_ >= cost) {
-                money_ -= cost;
-                
-                float logicX = cell.getX() + 0.5f;
-                float logicY = cell.getY() + 0.5f;
-
-                Projectile dummyProj(-0.1f, 5.0f); 
-                auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
-                
-                addEntity(new_tower.get());
-                placed_towers_.push_back(std::move(new_tower));
-
-                std::cout << "Built a " << blueprint->getTowerType() << " at " << logicX << ", " << logicY << std::endl;
-                closeTowerUI();
-            } else {
-                std::cout << "Not enough money!" << std::endl;
-            }
-        });
-
-        active_ui_elements_.push_back(button);
-        menu_buttons_.push_back(button);
-        addUISprite(button);
-        startY += stepY;
-    }
-
-    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
-    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
-    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
-    buttonClose->addSubSprite(textClose);
-
-    buttonClose->setOnLeftClick([this]() {
-        closeTowerUI();
-    });
-
-    active_ui_elements_.push_back(buttonClose);
-    menu_buttons_.push_back(buttonClose);
-    addUISprite(buttonClose);
-
-    startY += 50.0f + 10.0f;
-    ui_panel_h_ = (startY - ui_panel_y_);
-
-    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
-    active_ui_elements_.push_back(bg);
-    addUISprite(bg);
-
-}
-
-void UI::Session::openUpgradeUI(Tower* tower) {
-    if (showUI_) closeTowerUI();
-
-    // Show tower range
-    showUI_ = true;
-    selected_tower_ = tower;
-    selected_tower_->setShowRange(true);
-    menu_button_index_ = 0;
-    menu_buttons_.clear();
-
-    float startY = ui_panel_y_ + 10.0f;
-    float stepY = 20.0f;
-    float margin = 20.0f;
-    float buttonWidth = ui_panel_w_ - 2 * margin;
-    int max_width_text = buttonWidth - 30; // padding of 15px per side
-
-    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, tower->getType(), Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
-    active_ui_elements_.push_back(title);
-    addUISprite(title);
-    startY += 40;
-
-    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
-    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
-    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
-    buttonClose->addSubSprite(textClose);
-    buttonClose->setOnLeftClick([this]() {
-        closeTowerUI();
-    });
-    active_ui_elements_.push_back(buttonClose);
-    menu_buttons_.push_back(buttonClose);
-    addUISprite(buttonClose);
-    startY += 50.0f + stepY;
-    const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
-    if (!current_node || current_node->children.empty()) {
-        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + margin, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 14, SDL_Color{255, 255, 255, 255});
-        active_ui_elements_.push_back(text);
-        addUISprite(text);
-        startY += 40.0f;
-    } 
-    else {
-        for (const auto& upgrade_node_ptr : current_node->children) {
-            const UpgradeNode* upgrade = upgrade_node_ptr.get();
-            std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
-            auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255}, max_width_text);
-            float buttonHeight = std::max(50.0f, static_cast<float>(text->getHeight() + 30.0f));
-            auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, buttonHeight);
-            button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, buttonHeight / 2.0f, 0.0f}, buttonWidth, buttonHeight, {80, 80, 150, 255}));
-            button->addSubSprite(text);
-            button->setOnLeftClick([this, upgrade]() { // Pour faire un upgrade
-                if (money_ >= upgrade->cost) {
-                    money_ -= upgrade->cost;
-                    selected_tower_->applyUpgrade(upgrade); 
-                    std::cout << "Upgraded tower with " << upgrade->name << std::endl;
-                    closeTowerUI();
-                } else {
-                    std::cout << "Not enough money!" << std::endl;
-                }
-            });
-            active_ui_elements_.push_back(button);
-            menu_buttons_.push_back(button);
-            addUISprite(button);
-            startY += buttonHeight + stepY;
-        }
-    }
-
-    // Création du boutton de vente
-
-    // Récupération des infos de la tour sélectionnée
-    int id = tower->getId();
-    int cost = tower->getCurrentUpgradeNode()->cost;
-
-    auto buttonSell = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
-    buttonSell->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {150, 80, 80, 255})); // Distinct reddish color
-
-
-    auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "SELL", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
-    buttonSell->addSubSprite(text);
-    
-    buttonSell->setOnLeftClick([this,id,cost](){
-        
-        // 1) Sauvegarder la tour sélectionnée
-        Tower* to_delete = selected_tower_;
-
-        // 2) Couper le pointeur AVANT destruction
-        selected_tower_ = nullptr;
-
-        // 3) Retirer la tour du moteur
-        if (to_delete) {
-            // Check if the tower was on an augment case
-            Point tower_cell{std::floor(to_delete->getPosition().getX()), std::floor(to_delete->getPosition().getY())};
-            auto it_tac = tac_towers.find(tower_cell);
-            if (it_tac != tac_towers.end()) {
-                // Remove the augment from all affected towers
-                for (auto* affected_tower : it_tac->second) {
-                    if (affected_tower) {
-                        affected_tower->removeAugment("Slowness");
-                    }
-                }
-                // Reset the augmented list
-                it_tac->second.clear();
-            }
-
-            removeEntity(to_delete);
-        }
-        
-        
-        money_+=(cost/2);
-
-        // 3) La retirer de la liste des tours en différant la destruction
-        auto it = std::find_if(
-            placed_towers_.begin(),
-            placed_towers_.end(),
-            [id](const std::unique_ptr<Tower>& t) {
-                return t->getId() == id;
-            }
-        );
-        if (it != placed_towers_.end()) {
-            std::thread([t = std::move(*it)]() mutable {
-                std::this_thread::sleep_for(std::chrono::seconds(5));
-                // La tour est détruite en toute sécurité ici quand `t` sort de la portée
-            }).detach();
-            placed_towers_.erase(it);
-        }
-        closeTowerUI();
-    });
-    
-    active_ui_elements_.push_back(buttonSell);
-    menu_buttons_.push_back(buttonSell);
-    addUISprite(buttonSell);
-    
-    startY += 50.0f + 10.0f;
-
-    ui_panel_h_ = (startY - ui_panel_y_) + 120.0f;
-
-    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
-    active_ui_elements_.push_back(bg);
-    addUISprite(bg);
-}
-
-void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
-    // Spread the enemies across 80% of the cell width so they are visibly spaced out
-    float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.9f;
-    Point spawnOffset = Point{-spawningDirection.getY(), spawningDirection.getX()} * offsetSpawn;
-    Point spawnPosition{baseX, baseY};
-    spawnPosition += spawnOffset;
-    
-    // Make every 3rd enemy a flying enemy!
-    bool is_flying = (enemiesToSpawn_ % 3 == 0);
-
-    std::vector<const EnemyBlueprint*> matching_blueprints;
-    for(const auto& bp : enemy_catalog_) {
-        if (bp->isFlying() == is_flying) {
-            matching_blueprints.push_back(bp.get());
-        }
-    }
-
-    if (matching_blueprints.empty()) return; // Should not happen if blueprints are loaded
-
-    int randomIndex = rand() % matching_blueprints.size();
-    const EnemyBlueprint* blueprint = matching_blueprints[randomIndex];
-    
-    // Visually scale the enemy to occupy 70% of a tile
-    float enemySize = cellSize * 0.205f;
-    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
-    addEntity(el.back().get());
-    enemiesToSpawn_--;
-    spawnTimer_ = 0.0f;
-}
+// ------------------------------------------------
+//                  EVENTS FUNCTIONS 
+// ------------------------------------------------
 
 void UI::Session::clickLeft(Point click) {
     // If the UI is open, clicks on UI buttons are handled by the buttons themselves.
@@ -354,7 +85,7 @@ void UI::Session::clickLeft(Point click) {
         return;
     }
     
-    // --- UI is not open, handle world clicks ---
+    // UI is not open, handle world clicks
 
     float clickLX = (click.getX() - camera_position_.getX()) / scale_;
     float clickLY = (click.getY() - camera_position_.getY()) / scale_;
@@ -401,6 +132,7 @@ void UI::Session::onValidateSelection() {
         return;
     }
     
+    // skip if the player's dead.
     if (!selected_cell_ || hp_player_ <= 0) return;
 
     float screenX = selected_cell_->getX() * scale_ + camera_position_.getX() + scale_ * 0.5f;
@@ -430,26 +162,24 @@ void UI::Session::onSpace(){
 }
 
 void UI::Session::onMouseDrag(Point current_pos, Point start_pos, Uint8 button) {
-    // Use right click (3) or middle click (2) to pan the camera
     if (button == SDL_BUTTON_RIGHT || button == SDL_BUTTON_MIDDLE) {
         camera_position_ += (current_pos - start_pos);
     }
 }
 
 void UI::Session::onMouseScroll(float scrollX, float scrollY) {
-    std::cout << "scroll "<< scrollX <<" -  " <<  scrollY << std::endl;
     if (scrollY == 0) return;
 
     float old_scale = scale_;
-    float zoom_factor = 1.1f; // 10% zoom per scroll tick
+    float zoom_factor = 1.1f;
 
     if (scrollY > 0) scale_ *= zoom_factor;
     else scale_ /= zoom_factor;
 
-    // Clamp the scale to prevent zooming too far in or out
+    // Limit the zoom;
     scale_ = std::max(5.0f, std::min(scale_, 300.0f));
 
-    // Zoom towards the center of the screen so it feels natural
+    // Center the zoom effect on the center of the camera.
     float cx = getWinWidth() / 2.0f;
     float cy = getWinHeight() / 2.0f;
 
@@ -459,6 +189,256 @@ void UI::Session::onMouseScroll(float scrollX, float scrollY) {
     camera_position_ = Point{cx - worldX * scale_, cy - worldY * scale_};
 }
 
+
+// ------------------------------------------------
+//                  DRAW FUNCTIONS 
+// ------------------------------------------------
+
+void UI::Session::closeTowerUI() {
+    active_ui_elements_.clear();
+    menu_buttons_.clear();
+    menu_button_index_ = 0;
+    if (selected_tower_) {
+        selected_tower_->setShowRange(false);
+        selected_tower_->setShowCone(false);
+    }
+    showUI_ = false;
+    selected_tower_ = nullptr;
+    selected_cell_.reset();
+}
+
+void UI::Session::openBuildUI(Point cell) {
+    if (showUI_) closeTowerUI(); // Close any existing UI first
+
+    showUI_ = true;
+    selected_cell_ = cell;
+    menu_button_index_ = 0;
+    menu_buttons_.clear();
+    
+    // We setup the ui settings for the draw;
+    float startY = ui_panel_y_ + 10.0f;
+    float stepY = 60.0f;
+    float margin = 20.0f;
+    // We use this width to fix all button with text;
+    // we then use their height to adjust the step for the next one
+    float buttonWidth = ui_panel_w_ - 2 * margin; 
+
+
+    // Title
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, "Build Tower", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
+    active_ui_elements_.push_back(title);
+    addUISprite(title);
+    startY += 40;
+    
+    // For each tower of the catalog we add a row.
+    for (const auto& blueprint : tower_catalog_) {
+        int cost = blueprint->getRootUpgrade() ? blueprint->getRootUpgrade()->cost : 0;
+        std::string label = blueprint->getTowerType() + " (" + std::to_string(cost) + "$)";
+
+        auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+        button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
+        
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+        button->addSubSprite(text);
+
+        // We add a lambda function on the button that will trigger the creation of the tower
+        button->setOnLeftClick([this, blueprint = blueprint.get(), cost, cell = *selected_cell_]() {
+            if (money_ >= cost) {
+                money_ -= cost;
+                
+                float logicX = cell.getX() + 0.5f;
+                float logicY = cell.getY() + 0.5f;
+
+                Projectile dummyProj(-0.1f, 5.0f); // Default projectile have negative size to prevent AOE effect.
+                auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
+                
+                addEntity(new_tower.get());
+                placed_towers_.push_back(std::move(new_tower));
+
+                std::cout << "Built a " << blueprint->getTowerType() << " at " << logicX << ", " << logicY << std::endl;
+                closeTowerUI();
+            } else {
+                std::cout << "Not enough money!" << std::endl;
+            }
+        });
+
+        active_ui_elements_.push_back(button);
+        menu_buttons_.push_back(button);
+        addUISprite(button);
+        startY += stepY;
+    }
+    
+    // We had a close button on the bottom of the list.
+
+    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
+    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonClose->addSubSprite(textClose);
+
+    buttonClose->setOnLeftClick([this]() {
+        closeTowerUI();
+    });
+
+    active_ui_elements_.push_back(buttonClose);
+    menu_buttons_.push_back(buttonClose);
+    addUISprite(buttonClose);
+
+    startY += 50.0f + 10.0f;
+    ui_panel_h_ = (startY - ui_panel_y_);
+
+    // We add the background last but he has negative zindex so he will be drawn first with everything on top
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    active_ui_elements_.push_back(bg);
+    addUISprite(bg);
+
+}
+
+void UI::Session::openUpgradeUI(Tower* tower) {
+    if (showUI_) closeTowerUI();
+
+    // Show tower range and cone when clicked
+    showUI_ = true;
+    selected_tower_ = tower;
+    selected_tower_->setShowRange(true);
+    selected_tower_->setShowCone(true);
+
+    //We clear buttons and prepare to select the first.
+    menu_button_index_ = 0;
+    menu_buttons_.clear();
+
+    // UI settings
+    float startY = ui_panel_y_ + 10.0f;
+    float stepY = 20.0f;
+    float margin = 20.0f;
+    // We use this width to fix all button with text;
+    // we then use their height to adjust the step for the next one
+    float buttonWidth = ui_panel_w_ - 2 * margin;
+    int max_width_text = buttonWidth - 30; // padding of 15px per side
+
+    auto title = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + 10.0f, startY, 11.0f}, tower->getType(), Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255});
+    active_ui_elements_.push_back(title);
+    addUISprite(title);
+    startY += 40;
+
+    // We add the close button first in contradiction to the buy UI to prevent missclick with the sell button
+    auto buttonClose = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonClose->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {80, 80, 150, 255}));
+    auto textClose = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "CLOSE", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonClose->addSubSprite(textClose);
+    buttonClose->setOnLeftClick([this]() {
+        closeTowerUI();
+    });
+    active_ui_elements_.push_back(buttonClose);
+    menu_buttons_.push_back(buttonClose);
+    addUISprite(buttonClose);
+    startY += 50.0f + stepY;
+    
+    // We gather the current upgrade node of the tower 
+    // and for each children we add a button with a lambda function to upgrade with the augment.
+    const UpgradeNode* current_node = tower->getCurrentUpgradeNode();
+
+    // If there's not upgrade available
+    if (!current_node || current_node->children.empty()) {
+        auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{ui_panel_x_ + margin, startY, 1.0f}, "No upgrades available.", Sprites::Text::POKETEXT, 14, SDL_Color{255, 255, 255, 255});
+        active_ui_elements_.push_back(text);
+        addUISprite(text);
+        startY += 40.0f;
+    } 
+    else {        
+        // else loop
+        for (const auto& upgrade_node_ptr : current_node->children) {
+            const UpgradeNode* upgrade = upgrade_node_ptr.get();
+            std::string label = upgrade->name + " (" + std::to_string(static_cast<int>(upgrade->cost)) + "$)";
+            auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, label, Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255}, max_width_text);
+            float buttonHeight = std::max(50.0f, static_cast<float>(text->getHeight() + 30.0f));
+            auto button = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, buttonHeight);
+
+            button->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, buttonHeight / 2.0f, 0.0f}, buttonWidth, buttonHeight, {80, 80, 150, 255}));
+            button->addSubSprite(text);
+            button->setOnLeftClick([this, upgrade]() {
+                if (money_ >= upgrade->cost) {
+                    money_ -= upgrade->cost;
+                    selected_tower_->applyUpgrade(upgrade); 
+                    std::cout << "Upgraded tower with " << upgrade->name << std::endl;
+                    closeTowerUI();
+                } else {
+                    std::cout << "Not enough money!" << std::endl;
+                }
+            });
+
+
+            active_ui_elements_.push_back(button);
+            menu_buttons_.push_back(button);
+            addUISprite(button);
+            startY += buttonHeight + stepY;
+        }
+    }
+
+    // We then add a sell button
+    int id = tower->getId();
+    int cost = tower->getCurrentUpgradeNode()->cost;
+
+    auto buttonSell = std::make_shared<Sprites::Button>(std::array<float, 3>{ui_panel_x_ + margin, startY, 10.0f}, buttonWidth, 50.0f);
+    buttonSell->addSubSprite(Sprites::rectangle({buttonWidth / 2.0f, 25.0f, 0.0f}, buttonWidth, 50.0f, {150, 80, 80, 255})); // Distinct reddish color
+
+
+    auto text = std::make_shared<Sprites::Text>(std::array<float, 3>{15.0f, 15.0f, 1.0f}, "SELL", Sprites::Text::POKETEXT, 18, SDL_Color{255, 255, 255, 255});
+    buttonSell->addSubSprite(text);
+    
+    buttonSell->setOnLeftClick([this,id,cost](){
+        // We unselect the tower from the user
+        Tower* to_delete = selected_tower_;
+        selected_tower_ = nullptr;
+        if (to_delete) {
+            // Check if the tower was on an augment case
+            Point tower_cell{std::floor(to_delete->getPosition().getX()), std::floor(to_delete->getPosition().getY())};
+            auto it_tac = tac_towers.find(tower_cell);
+            if (it_tac != tac_towers.end()) {
+                // Remove the augment from all affected towers
+                for (auto* affected_tower : it_tac->second) {
+                    if (affected_tower) {
+                        affected_tower->removeAugment("Slowness");
+                    }
+                }
+                // Reset the augmented list
+                it_tac->second.clear();
+            }
+
+            removeEntity(to_delete);
+        }
+        
+        
+        money_+=(cost/2);
+
+        // We remove it from the tower list if it still exists
+        auto it = std::find_if(
+            placed_towers_.begin(),
+            placed_towers_.end(),
+            [id](const std::unique_ptr<Tower>& t) {
+                return t->getId() == id;
+            }
+        );
+        if (it != placed_towers_.end()) {
+            std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+            sold_towers_.push_back(std::move(*it));
+            placed_towers_.erase(it);
+        }
+        closeTowerUI();
+    });
+    
+    active_ui_elements_.push_back(buttonSell);
+    menu_buttons_.push_back(buttonSell);
+    addUISprite(buttonSell);
+    
+    startY += 50.0f + 10.0f;
+
+    ui_panel_h_ = (startY - ui_panel_y_) + 120.0f;
+
+    auto bg = Sprites::rectangle({ui_panel_x_ + ui_panel_w_ / 2.0f, ui_panel_y_ + ui_panel_h_ / 2.0f, -10.0f}, ui_panel_w_, ui_panel_h_, {20, 20, 40, 200});
+    active_ui_elements_.push_back(bg);
+    addUISprite(bg);
+}
+
 void UI::Session::drawUI(SDL_Renderer* r) {
     // Draw selection highlight on the currently selected menu button
     if (!menu_buttons_.empty() && static_cast<size_t>(menu_button_index_) < menu_buttons_.size()) {
@@ -466,7 +446,7 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         
         // Draw a bright border around the selected button
         auto pos = selected_button->getPosition();
-        SDL_Color col = {255, 200, 0, 255}; // Gold color
+        SDL_Color col = {255, 200, 0, 255};
         float btn_w = selected_button->getWidth();
         float btn_h = selected_button->getHeight();
         
@@ -476,12 +456,12 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         Session::drawHighlightBox(r, delta_time_, Point{btnOffsetX, btnOffsetY}, ui_scale_, pos.getX() - 4.0f, pos.getY() - 4.0f, btn_w + 8.0f, btn_h + 8.0f, 2.0f, col);
     }
 
-    if (!showUI_) return;    
+    if (!showUI_) return;
     if (showUI_ && selected_tower_) {
 
         int lvl = selected_tower_->getLevel();
 
-        // Couleur selon le niveau
+        // The tower badge is colored by level
         SDL_Color badgeColor;
         if (lvl == 1)      badgeColor = SDL_Color{180, 180, 180, 255};
         else if (lvl == 2) badgeColor = SDL_Color{100, 220, 100, 255};
@@ -489,17 +469,12 @@ void UI::Session::drawUI(SDL_Renderer* r) {
         else if (lvl == 4) badgeColor = SDL_Color{180, 100, 255, 255};
         else               badgeColor = SDL_Color{255, 215, 0, 255};
 
-        // Position du titre (même que dans openUpgradeUI)
+        // UI settings
         float titleX = ui_panel_x_ + 10.0f;
         float titleY = ui_panel_y_ + 10.0f;
-
-        // Taille du badge
         float badgeSize = 26.0f;
-
-        // Position du badge (à droite du nom)
         float badgeX = titleX + 200.0f;  // ajuste 200 si ton texte est plus long
         float badgeY = titleY + 4.0f;
-        
         float badgeOffsetX = (badgeX < 0) ? getWinWidth() : 0.0f;
         float badgeOffsetY = (badgeY < 0) ? getWinHeight() : 0.0f;
         Point badge_offset{badgeOffsetX, badgeOffsetY};
@@ -598,6 +573,50 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
     bottom->draw(r, dt, offset, scale, 0.0f);
     left->draw(r, dt, offset, scale, 0.0f);
     right->draw(r, dt, offset, scale, 0.0f);
+}
+
+// ------------------------------------------------
+//                  GAMEPLAY LOOP 
+// ------------------------------------------------
+
+void UI::Session::startNextWave() {
+    if (!waveActive_) {
+        round_++;
+        enemiesToSpawn_ = 5 + round_ * 6; // Increase difficulty: 7, 9, 11 enemies...
+        spawnTimer_ = 0.0f;
+        waveActive_ = true;
+        std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
+    }
+}
+
+void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
+    // Spread the enemies across 80% of the cell width so they are visibly spaced out
+    float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.9f;
+    Point spawnOffset = Point{-spawningDirection.getY(), spawningDirection.getX()} * offsetSpawn;
+    Point spawnPosition{baseX, baseY};
+    spawnPosition += spawnOffset;
+    
+    // Make every 3rd enemy a flying enemy!
+    bool is_flying = (enemiesToSpawn_ % 3 == 0);
+
+    std::vector<const EnemyBlueprint*> matching_blueprints;
+    for(const auto& bp : enemy_catalog_) {
+        if (bp->isFlying() == is_flying) {
+            matching_blueprints.push_back(bp.get());
+        }
+    }
+
+    if (matching_blueprints.empty()) return; // Should not happen if blueprints are loaded
+
+    int randomIndex = rand() % matching_blueprints.size();
+    const EnemyBlueprint* blueprint = matching_blueprints[randomIndex];
+    
+    // Visually scale the enemy to occupy 70% of a tile
+    float enemySize = cellSize * 0.205f;
+    el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
+    addEntity(el.back().get());
+    enemiesToSpawn_--;
+    spawnTimer_ = 0.0f;
 }
 
 void UI::Session::GameOverScreen(){
@@ -898,6 +917,11 @@ void UI::Session::mainSession() {
                 }
                 active_projectiles_.clear();
                 
+                {
+                    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+                    sold_towers_.clear();
+                }
+                
                 waveActive_ = false;
                 std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
             }
@@ -927,5 +951,9 @@ void UI::Session::mainSession() {
     }
     for (auto& proj : active_projectiles_) {
         removeEntity(proj.get());
+    }
+    {
+        std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+        sold_towers_.clear();
     }
 }

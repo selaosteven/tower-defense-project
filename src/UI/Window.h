@@ -16,6 +16,8 @@ class Entity;
 namespace UI
 {
 
+// ----------------------------
+// Static - namespace wise
 void print_sdl_error(const char * msg);
 
 const Uint32 auto_flags_sdl_init = SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS;
@@ -71,17 +73,36 @@ protected:
     bool wants_to_die_;
     bool is_dragging_[4] = {false, false, false, false}; // Indices 1, 2, 3 correspond to SDL_BUTTON_LEFT, MIDDLE, RIGHT
     Point drag_start_pos_[4] = {Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}, Point{0.0f, 0.0f}};
-
+// ----------------------------
+// constructors
 public:
     Window();
     Window(int width, int height);
     Window(int width, int heightn, Uint32 flags);
     ~Window();
-
+// ----------------------------
+// Fabricator - destructor
     int Create(void * args);
-    werrors inputs();
-    void loop();
     void waitForClose();
+
+// ----------------------------
+// inline function - (get/set)
+    
+    inline int getWinWidth() const { return win_width_;}
+    inline int getWinHeight() const { return win_height_;}
+
+    inline void setUIScale(float scale) { ui_scale_ = scale; }
+    inline float getUIScale() const { return ui_scale_; }
+protected:
+    const std::list<std::shared_ptr<Sprites::Sprite>>& getSprites() const { return sprites_; }
+
+
+// ----------------------------
+// Draw functions
+public:
+    void loop();
+    virtual void drawUI(SDL_Renderer*) {}
+    virtual void drawSelection(SDL_Renderer* r) {}
 
     void addSprite(std::shared_ptr<Sprites::Sprite> sprite);
     void removeSprite(std::shared_ptr<Sprites::Sprite> sprite);
@@ -89,15 +110,9 @@ public:
     void addEntity(Entity *entity);
     void removeEntity(Entity *entity);
 
-
-    inline int getWinWidth() { return win_width_;}
-    inline int getWinHeight() { return win_height_;}
-
-    inline void setUIScale(float scale) { ui_scale_ = scale; }
-    inline float getUIScale() const { return ui_scale_; }
-
-    virtual void drawUI(SDL_Renderer*) {}
-    virtual void drawSelection(SDL_Renderer* r) {}
+// ----------------------------
+// Object events functions
+    werrors inputs();
 
 protected:
     virtual void clickLeft(Point click) {}
@@ -114,9 +129,6 @@ protected:
     virtual void onEscape() {}
     virtual void onSpace() {}
     
-    const std::list<std::shared_ptr<Sprites::Sprite>>& getSprites() const { return sprites_; }
-
-
 };
 
 }
