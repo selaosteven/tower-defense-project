@@ -3,10 +3,18 @@
 
 namespace Sprites {
 
+// ------------------------------------------------
+//                  CONSTRUCTORS 
+// ------------------------------------------------
+
 Button::Button(const std::array<float, 3>& pos, float width, float height)
     : Sprite{pos}, width_{width}, height_{height} {}
 
 Button::~Button() {}
+
+// ------------------------------------------------
+//                  CORE FUNCTION 
+// ------------------------------------------------
 
 void Button::addSubSprite(std::shared_ptr<Sprite> sprite) {
     if (sprite) {

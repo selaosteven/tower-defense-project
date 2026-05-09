@@ -7,13 +7,14 @@
 
 namespace Sprites {
 
+// ------------------------------------------------
+//                  CONSTRUCTORS 
+// ------------------------------------------------
 
 PrimitiveForm::PrimitiveForm() : Sprite{} {}
-
 PrimitiveForm::PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color) :
 Sprite{pos}, vertices_{}
 {
-
     for(auto fp : points){
         vertices_.push_back({fp, color,{0,0}});
     }
@@ -29,6 +30,11 @@ Sprite{pos}, vertices_{std::move(points)}
 }
 
 PrimitiveForm::~PrimitiveForm(){}
+
+// ------------------------------------------------
+//                  CORE FUNCTION 
+// ------------------------------------------------
+
 void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) {
 
     // Animation
@@ -36,6 +42,8 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     rotation_ += rotVelocity*deltaTime;
     std::vector<SDL_Vertex> transformed_vertices = vertices_;
 
+
+    // Apply affine transformation
     float cosRot = std::cos(rot);
     float sinRot = std::sin(rot);
     float px = position_.getX() * scale;
@@ -56,71 +64,9 @@ void PrimitiveForm::draw(SDL_Renderer *win, float deltaTime, Point offset, float
     SDL_RenderGeometry(win, nullptr, transformed_vertices.data(), transformed_vertices.size(), nullptr, 0);
 }
 
-
-
-// std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex) {
-//     std::vector<SDL_Vertex> vertices;
-//     const float pi = std::acos(-1.0f);
-//     const int points = 60; // Higher point count for smooth big circles
-//     const float bangle = 2.0f * pi / points;
-//     SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
-//     for (int i = 0; i < points; i++) {
-//         vertices.push_back(center);
-//         vertices.push_back({{static_cast<float>(std::cos(i * -bangle)) * radius, static_cast<float>(std::sin(i * -bangle)) * radius}, color, {0.0f, 0.0f}});
-//         vertices.push_back({{static_cast<float>(std::cos((i + 1) * -bangle)) * radius, static_cast<float>(std::sin((i + 1) * -bangle)) * radius}, color, {0.0f, 0.0f}});
-//     }
-//     return std::shared_ptr<PrimitiveForm>(new PrimitiveForm({0.0f, 0.0f, zindex}, std::move(vertices)));
-// }
-
-std::shared_ptr<PrimitiveForm> createColoredCircle(
-    float radius,
-    SDL_Color color,
-    float zindex
-) {
-    // zindex ignoré, pos = {0,0,0}
-    return createColoredCircle(radius, color, zindex, {0.0f, 0.0f, 0.0f});
-}
-
-std::shared_ptr<PrimitiveForm> createColoredCircle(
-    float radius,
-    SDL_Color color,
-    float zindex,                      // gardé mais ignoré
-    const std::array<float, 3> &pos
-) {
-    std::vector<SDL_Vertex> vertices;
-    const float pi = std::acos(-1.0f);
-    const int points = 60;
-    const float bangle = 2.0f * pi / points;
-
-    // VERTICES EN LOCAL (0,0)
-    SDL_Vertex center{{0.0f, 0.0f}, color, {0.0f, 0.0f}};
-
-    for (int i = 0; i < points; i++) {
-        vertices.push_back(center);
-
-        vertices.push_back({
-            {std::cos(i * -bangle) * radius,
-             std::sin(i * -bangle) * radius},
-            color,
-            {0.0f, 0.0f}
-        });
-
-        vertices.push_back({
-            {std::cos((i + 1) * -bangle) * radius,
-             std::sin((i + 1) * -bangle) * radius},
-            color,
-            {0.0f, 0.0f}
-        });
-    }
-
-    // pos = position du cercle dans le monde
-    return std::make_shared<PrimitiveForm>(
-        pos,
-        std::move(vertices)
-    );
-}
-
-
+// ------------------------------------------------
+//                  FABRICATOR FUNCTION 
+// ------------------------------------------------
 
 
 std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex) {
@@ -134,7 +80,6 @@ std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL
         vertices.push_back(center);
         float a1 = -half_angle + i * step;
         float a2 = -half_angle + (i + 1) * step;
-        // Add pi (180 degrees) to flip the cone's direction
         vertices.push_back({{static_cast<float>(std::cos(pi - a1)) * radius, static_cast<float>(std::sin(pi - a1)) * radius}, color, {0.0f, 0.0f}});
         vertices.push_back({{static_cast<float>(std::cos(pi - a2)) * radius, static_cast<float>(std::sin(pi - a2)) * radius}, color, {0.0f, 0.0f}});
     }
@@ -173,34 +118,6 @@ std::shared_ptr<PrimitiveForm> triangle(const std::array<float, 3> &pos, float s
     return t;
 }
 
-std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size,const int points){
-    static const float pi = std::acos(-1.0f);
-    const float unit = Sprite::unit_size_pixels;
-    if (size <= 0) size = unit;
-
-    SDL_Color color = {255,255,255,255};
-    std::vector<SDL_Vertex> vertices; 
-    const float r = size;
-    const float bangle = 2*pi/ points;
-    auto get_vertex = [&](const int it,const float angle) -> SDL_Vertex {
-        return {
-            {std::cos(it*-angle) * r, std::sin(it*-angle) * r },
-            color,
-            {0, 0}
-        };
-    };
-    SDL_Vertex center{
-            { 0, 0},
-            color,
-            {0, 0}
-    };
-    for(int i = 0; i < points; i++){
-        vertices.push_back(center);
-        vertices.push_back(get_vertex(i, bangle));
-        vertices.push_back(get_vertex(i + 1, bangle));
-    }
-    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm{pos,vertices});
-}
 
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color) {
     const float unit = Sprite::unit_size_pixels;
@@ -218,17 +135,15 @@ std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float 
     return rectangle(pos, width, height, {125,255,30,255});
 }
 
-// carré
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side) {
     return rectangle(pos, side, side);
 }
 
-std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float size, SDL_Color color) {
+std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size,const int points, SDL_Color color){
     static const float pi = std::acos(-1.0f);
-    const int sides = 8; // Octogone
+    const int sides = points;
     const float r = size;
     const float angleStep = 2.0f * pi / sides;
-
     std::vector<SDL_Vertex> vertices;
     SDL_Vertex center{{0.0f, 0.0f}, color, {0, 0}};
 
@@ -246,29 +161,42 @@ std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float siz
 
     return std::shared_ptr<PrimitiveForm>(new PrimitiveForm(pos, std::move(vertices)));
 }
+std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size,const int points){
+    return circle(pos, size, points, {255,255,255,255});
+}
+
+std::shared_ptr<PrimitiveForm> createColoredCircle(
+    float radius,
+    SDL_Color color,
+    float zindex
+) {
+    return createColoredCircle(radius, color, zindex, {0.0f, 0.0f, 0.0f});
+}
+std::shared_ptr<PrimitiveForm> createColoredCircle(
+    float radius,
+    SDL_Color color,
+    float zindex,
+    const std::array<float, 3> &pos
+) {
+    return createColoredCircle(radius, color, zindex, pos, 60);
+}
+
+std::shared_ptr<PrimitiveForm> createColoredCircle(
+    float radius,
+    SDL_Color color,
+    float zindex,
+    const std::array<float, 3> &pos,
+    int sides
+) {
+    return circle(pos, radius, sides, color);
+}
+
+std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float size, SDL_Color color) {
+    return createColoredCircle(size, color, 0, pos, 8);
+}
 
 std::shared_ptr<PrimitiveForm> hexagone(const std::array<float, 3> &pos, float size, SDL_Color color) {
-    static const float pi = std::acos(-1.0f);
-    const int sides = 6; // Hexagone
-    const float r = size;
-    const float angleStep = 2.0f * pi / sides;
-
-    std::vector<SDL_Vertex> vertices;
-    SDL_Vertex center{{0.0f, 0.0f}, color, {0, 0}};
-
-    for (int i = 0; i < sides; i++) {
-        float a1 = i * angleStep;
-        float a2 = (i + 1) * angleStep;
-
-        SDL_Vertex v1{{std::cos(a1) * r, std::sin(a1) * r}, color, {0, 0}};
-        SDL_Vertex v2{{std::cos(a2) * r, std::sin(a2) * r}, color, {0, 0}};
-
-        vertices.push_back(center);
-        vertices.push_back(v1);
-        vertices.push_back(v2);
-    }
-
-    return std::shared_ptr<PrimitiveForm>(new PrimitiveForm(pos, std::move(vertices)));
+    return createColoredCircle(size, color, 0, pos, 6);
 }
 
 }

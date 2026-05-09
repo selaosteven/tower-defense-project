@@ -19,21 +19,27 @@ enum class Orientation {
 
 class PrimitiveForm : public Sprite
 {
-    private:
-        std::vector<SDL_Vertex> vertices_;
-
-    public:
+// ----------------------------
+// Object elements
+private:
+    std::vector<SDL_Vertex> vertices_;
+// ----------------------------
+// Constructors
+public:
     PrimitiveForm();
     PrimitiveForm(const std::array<float, 3> &pos);
     PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_Vertex> points);
     PrimitiveForm(const std::array<float, 3> &pos, std::vector<SDL_Vertex> points);
     PrimitiveForm(const std::array<float, 3> &pos, std::initializer_list<SDL_FPoint> points, SDL_Color color);
+    
     ~PrimitiveForm();
-
+// ----------------------------
+// Inline functions (get/set)
     inline void changeColor(SDL_Color color) {
         for(auto v : vertices_) v.color = color;
     }
-
+// ----------------------------
+// Objects Functions
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
     friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color);
     friend std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height);
@@ -43,14 +49,18 @@ class PrimitiveForm : public Sprite
 
 };
 
+// ----------------------------
+// Fabricators function
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height, SDL_Color color);
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float width, float height);
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side, SDL_Color color);
 std::shared_ptr<PrimitiveForm> rectangle(const std::array<float, 3> &pos, float side);
 std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size, int points = 20);
+std::shared_ptr<PrimitiveForm> circle(const std::array<float, 3> &pos, float size,const int points, SDL_Color color);
 std::shared_ptr<PrimitiveForm> triangle(const std::array<float, 3> &pos, float size = -1, SDL_Color color = {255, 125, 30, 255}, Orientation orientation = Orientation::Up);
 std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex);
 std::shared_ptr<PrimitiveForm> createColoredCircle(float radius,SDL_Color color,float zindex,const std::array<float, 3> &pos);
+std::shared_ptr<PrimitiveForm> createColoredCircle(float radius, SDL_Color color, float zindex, const std::array<float, 3> &pos, int sides); 
 std::shared_ptr<PrimitiveForm> createCone(float radius, float angle_degrees, SDL_Color color, float zindex);
 std::shared_ptr<PrimitiveForm> octone(const std::array<float, 3> &pos, float size, SDL_Color color);
 std::shared_ptr<PrimitiveForm> hexagone(const std::array<float, 3> &pos, float size, SDL_Color color);

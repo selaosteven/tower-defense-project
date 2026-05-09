@@ -8,6 +8,10 @@ namespace {
     std::map<std::pair<std::string, int>, TTF_Font*> font_cache;
 }
 
+// ------------------------------------------------
+//                  CONSTRUCTORS 
+// ------------------------------------------------
+
 Text::Text(const std::array<float, 3>& pos, const std::string& text, const std::string& fontPath, int fontSize, SDL_Color color, bool centered)
     : Text(pos, text, fontPath, fontSize, color, 0, centered) {}
 
@@ -43,6 +47,11 @@ Text::~Text() {
     if (texture_) SDL_DestroyTexture(texture_);
     // Do not close font since it's cached globally
 }
+
+
+// ------------------------------------------------
+//                  CORE FUNCTION 
+// ------------------------------------------------
 
 void Text::updateTexture(SDL_Renderer* renderer) {
     if (!font_ || text_.empty() || !renderer) return;
