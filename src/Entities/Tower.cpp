@@ -116,8 +116,16 @@ void Tower::removeAugment(const std::string& name) {
         });
     if (it != augments_.end()) {
         (*it)->onUnequip(*this);
+        
+        // Move the augment to detached_augments_ instead of deleting it immediately.
+        // This ensures in-flight projectiles won't dereference a dangling pointer.
+        detached_augments_.push_back(std::move(*it));
         augments_.erase(it);
     }
+}
+
+void Tower::clearDetachedAugments() {
+    detached_augments_.clear();
 }
 
 void Tower::applyUpgrade(const UpgradeNode* node) {

@@ -63,6 +63,10 @@ private:
     float ui_panel_y_ = 100.0f;
     float ui_panel_w_ = 300.0f;
     float ui_panel_h_ = 400.0f;
+    // ----------------------------
+    // Map Layout Settings
+    float cellSize = 1.0f;
+    float auraRadius = 3.0f;
 
 // ----------------------------
 // constructors
@@ -80,6 +84,7 @@ public:
 private:
     void spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el);
     void GameOverScreen();
+    void checkAddAugmentedCellBonus();
 
 // ----------------------------
 // event functions
@@ -126,6 +131,7 @@ protected:
 
 // ----------------------------
 // draw functions
+    void generateMapSprites();
     void drawUI(SDL_Renderer* r) override;
     void drawSelection(SDL_Renderer* r) override;
 private:

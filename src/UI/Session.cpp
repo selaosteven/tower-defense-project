@@ -194,6 +194,53 @@ void UI::Session::onMouseScroll(float scrollX, float scrollY) {
 //                  DRAW FUNCTIONS 
 // ------------------------------------------------
 
+void UI::Session::generateMapSprites(){
+    
+    for(int y = 0; y < map_.getHeight(); y++) {
+        for(int x = 0; x < map_.getWidth(); x++) {
+            Case bloc = map_.map_.at(y).at(x);
+            std::shared_ptr<Sprites::Sprite> s = nullptr;
+
+            float px = x * cellSize + cellSize / 2.0f;
+            float py = y * cellSize + cellSize / 2.0f;
+
+            switch (bloc) {
+                case Case::Tower: {
+                    int r = rand() % 10;
+                    if(r < 3){
+                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 0, 255},  99.0f,{px, py, 99.0f});
+                        tower_augment_cells.push_back(Point{(float)x, (float)y});
+                        tac_towers.insert({Point{(float)x, (float)y}, {}});
+                        
+                    } else {
+                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
+                    }
+                    tower_build_cells_.push_back(Point{(float)x, (float)y});
+
+                    break;
+                }
+                case Case::Path:
+                    s = Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255});
+                    break;
+                case Case::Wall:
+                    break;
+                case Case::Start:
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
+                    break;
+                case Case::End:
+                    s = Sprites::triangle({px, py, 99}, cellSize/4);
+                    break;
+                
+                default:
+                    s = Sprites::rectangle({px, py, 99}, cellSize/8,cellSize/8,(SDL_Color){125,80,125,200});
+                    break;
+            }
+
+            if (s) addSprite(s); 
+        }
+    }
+}
+
 void UI::Session::closeTowerUI() {
     active_ui_elements_.clear();
     menu_buttons_.clear();
@@ -256,6 +303,7 @@ void UI::Session::openBuildUI(Point cell) {
                 placed_towers_.push_back(std::move(new_tower));
 
                 std::cout << "Built a " << blueprint->getTowerType() << " at " << logicX << ", " << logicY << std::endl;
+                checkAddAugmentedCellBonus();
                 closeTowerUI();
             } else {
                 std::cout << "Not enough money!" << std::endl;
@@ -402,6 +450,15 @@ void UI::Session::openUpgradeUI(Tower* tower) {
                 }
                 // Reset the augmented list
                 it_tac->second.clear();
+            }
+
+            // Remove the tower from any other augment lists to avoid dangling pointers
+            for (auto& pair : tac_towers) {
+                auto& affected_towers = pair.second;
+                affected_towers.erase(
+                    std::remove(affected_towers.begin(), affected_towers.end(), to_delete),
+                    affected_towers.end()
+                );
             }
 
             removeEntity(to_delete);
@@ -655,6 +712,50 @@ void UI::Session::GameOverScreen(){
     menu_buttons_.push_back(go_btn);
 }
 
+void UI::Session::checkAddAugmentedCellBonus(){
+    // We check every augmented cells in case the build affected
+    for (auto& augCell : tower_augment_cells) {
+
+        float augX = augCell.getX();
+        float augY = augCell.getY();
+
+        // Check if there is actually a tower built on this augment cell
+        bool has_tower = false;
+        for (auto& t : placed_towers_) {
+            if (std::floor(t->getPosition().getX()) == augX &&
+                std::floor(t->getPosition().getY()) == augY) {
+                has_tower = true;
+                break;
+            }
+        }
+        
+        if (!has_tower) continue;
+        // If there is a tower we check every tower around to apply the effect
+        for (auto& tower : placed_towers_) {
+
+            float tx = tower->getPosition().getX();
+            float ty = tower->getPosition().getY();
+
+            float dx = tx - augX;
+            float dy = ty - augY;
+            float dist = std::sqrt(dx*dx + dy*dy);
+
+            if (dist < auraRadius) {
+                auto it = tac_towers.find(augCell);
+                if (it != tac_towers.end()) {
+                    auto& affected_towers = it->second;
+                    auto found = std::find(affected_towers.begin(), affected_towers.end(), tower.get());
+                    if (found == affected_towers.end()) {
+                        tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
+                        affected_towers.push_back(tower.get());
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 void UI::Session::mainSession() {
     while(!Window::sdl_initiated); // wait for sdl to be ready
 
@@ -662,8 +763,8 @@ void UI::Session::mainSession() {
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
     scale_ = std::min(cellWidth, cellHeight);
-    float cellSize = 1.0f;
-    float auraRadius = 3.0f; // Cell augment radius effect
+    cellSize = 1.0f;
+    auraRadius = 3.0f; // Cell augment radius effect
 
     // Center the map on the screen
     float offsetX = ((getWinWidth()-300)  - scale_ * map_.getWidth())  / 2.0f;
@@ -692,50 +793,7 @@ void UI::Session::mainSession() {
     });
     addUISprite(bouton_next_wave);
 
-    // We generate the sprites for the map    
-    for(int y = 0; y < map_.getHeight(); y++) {
-        for(int x = 0; x < map_.getWidth(); x++) {
-            Case bloc = map_.map_.at(y).at(x);
-            std::shared_ptr<Sprites::Sprite> s = nullptr; // On prépare un pointeur vide
-
-            float px = x * cellSize + cellSize / 2.0f;
-            float py = y * cellSize + cellSize / 2.0f;
-
-            switch (bloc) {
-                case Case::Tower: {
-                    int r = rand() % 10;
-                    if(r < 3){
-                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 0, 255},  99.0f,{px, py, 99.0f});
-                        tower_augment_cells.push_back(Point{(float)x, (float)y});
-                        tac_towers.insert({Point{(float)x, (float)y}, {}});
-                        
-                    } else {
-                        s = Sprites::createColoredCircle(cellSize / 4,SDL_Color{255, 255, 255, 255},  99.0f,{px, py, 99.0f});
-                    }
-                    tower_build_cells_.push_back(Point{(float)x, (float)y});
-
-                    break;
-                }
-                case Case::Path:
-                    s = Sprites::rectangle({px, py, 99}, cellSize, cellSize, {70,70,70,255});
-                    break;
-                case Case::Wall:
-                    break;
-                case Case::Start:
-                    s = Sprites::triangle({px, py, 99}, cellSize/4);
-                    break;
-                case Case::End:
-                    s = Sprites::triangle({px, py, 99}, cellSize/4);
-                    break;
-                
-                default:
-                    s = Sprites::rectangle({px, py, 99}, cellSize/8,cellSize/8,(SDL_Color){125,80,125,200});
-                    break;
-            }
-
-            if (s) addSprite(s); 
-        }
-    }
+    generateMapSprites();
 
      // Setup the path for enemies
     std::list<Point> path = map_.getPath();
@@ -847,46 +905,6 @@ void UI::Session::mainSession() {
                 }
             }
 
-            // We check every augmented cells
-            for (auto& augCell : tower_augment_cells) {
-
-                float augX = augCell.getX();
-                float augY = augCell.getY();
-
-                // Check if there is actually a tower built on this augment cell
-                bool has_tower = false;
-                for (auto& t : placed_towers_) {
-                    if (std::floor(t->getPosition().getX()) == augX &&
-                        std::floor(t->getPosition().getY()) == augY) {
-                        has_tower = true;
-                        break;
-                    }
-                }
-                
-                if (!has_tower) continue;
-                // If there is a tower we check every tower around to apply the effect
-                for (auto& tower : placed_towers_) {
-
-                    float tx = tower->getPosition().getX();
-                    float ty = tower->getPosition().getY();
-
-                    float dx = tx - augX;
-                    float dy = ty - augY;
-                    float dist = std::sqrt(dx*dx + dy*dy);
-
-                    if (dist < auraRadius) {
-                        auto it = tac_towers.find(augCell);
-                        if (it != tac_towers.end()) {
-                            auto& affected_towers = it->second;
-                            auto found = std::find(affected_towers.begin(), affected_towers.end(), tower.get());
-                            if (found == affected_towers.end()) {
-                                tower->addAugment(std::make_unique<SlownessAugment>(0.5f));
-                                affected_towers.push_back(tower.get());
-                            }
-                        }
-                    }
-                }
-            }
 
             
             // Check if wave is over (no more to spawn and all enemies are dead)
@@ -914,6 +932,10 @@ void UI::Session::mainSession() {
                 {
                     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                     sold_towers_.clear();
+                }
+                
+                for (auto& tower : placed_towers_) {
+                    tower->clearDetachedAugments();
                 }
                 
                 waveActive_ = false;

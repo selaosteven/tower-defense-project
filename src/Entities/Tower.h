@@ -54,6 +54,7 @@ private:
 
 protected:
     std::vector<std::unique_ptr<Augment>> augments_; // Augments modifying tower
+    std::vector<std::unique_ptr<Augment>> detached_augments_; // Augments removed but kept alive for projectiles
     const UpgradeNode* currentUpgradeNode_ = nullptr; // Current upgrade node applied
 
 public:
@@ -125,6 +126,12 @@ public:
      * @param name 
      */
     void removeAugment(const std::string& name);
+    
+    /**
+     * @brief Clears augments that were detached (safe to call when no projectiles are in flight)
+     * 
+     */
+    void clearDetachedAugments();
     
 
     inline void setPosition(Point p) { position_ = p; }
