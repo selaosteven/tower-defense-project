@@ -180,3 +180,47 @@ void ArmorPiercingAugment::onEquip(Tower& tower) {
 void ArmorPiercingAugment::onUnequip(Tower& tower) {
     tower.setArmorPiercing(tower.getArmorPiercing() - amount_);
 }
+
+// CloseCombatAugment
+
+CloseCombatAugment::CloseCombatAugment() : Augment("Close Combat") {}
+void CloseCombatAugment::onEquip(Tower& tower) {
+    tower.setRs(tower.getRs() * 1.5f);
+    tower.setDamage(tower.getDamage() * 1.5f);
+    tower.setRange(tower.getRange() * 0.7f);
+}
+void CloseCombatAugment::onUnequip(Tower& tower) {
+    tower.setRs(tower.getRs() / 1.5f);
+    tower.setDamage(tower.getDamage() / 1.5f);
+    tower.setRange(tower.getRange() / 0.7f);
+}
+
+// SniperScopeAugment
+
+SniperScopeAugment::SniperScopeAugment() : Augment("Sniper Scope") {}
+void SniperScopeAugment::onEquip(Tower& tower) {
+    tower.setRange(tower.getRange() * 1.5f);
+    tower.setArmorPiercing(tower.getArmorPiercing() + 0.2f);
+    tower.setAs(tower.getAs() * 0.7f);
+    tower.setRs(tower.getRs() * 0.7f);
+}
+void SniperScopeAugment::onUnequip(Tower& tower) {
+    tower.setRange(tower.getRange() / 1.5f);
+    tower.setArmorPiercing(tower.getArmorPiercing() - 0.2f);
+    tower.setAs(tower.getAs() / 0.7f);
+    tower.setRs(tower.getRs() / 0.7f);
+}
+
+// OverclockedGearAugment
+
+OverclockedGearAugment::OverclockedGearAugment() : Augment("Overclocked Gear") {}
+void OverclockedGearAugment::onEquip(Tower& tower) {
+    tower.setAs(tower.getAs() * 2.0f);
+    tower.setDamage(tower.getDamage() * 0.7f);
+    tower.setRange(tower.getRange() * 0.8f);
+}
+void OverclockedGearAugment::onUnequip(Tower& tower) {
+    tower.setAs(tower.getAs() / 2.0f);
+    tower.setDamage(tower.getDamage() / 0.7f);
+    tower.setRange(tower.getRange() / 0.8f);
+}

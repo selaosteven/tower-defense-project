@@ -19,13 +19,39 @@
         "name": "High Velocity Rounds",
         "cost": 150,
         "augments": ["DamageAugment", "ProjectileSpeedAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Flak Cannons",
+            "cost": 260,
+            "augments": ["SplashAugment"],
+            "children": []
+          },
+          {
+            "name": "Armor Shredder",
+            "cost": 240,
+            "augments": ["ArmorPiercingAugment"],
+            "children": []
+          }
+        ]
       },
       {
         "name": "Advanced Radar",
         "cost": 180,
         "augments": ["RangeAugment", "RotationSpeedAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Omni-Directional Tracking",
+            "cost": 320,
+            "augments": ["AllTargetAugment"],
+            "children": []
+          },
+          {
+            "name": "Overdrive Motors",
+            "cost": 220,
+            "augments": ["OverclockedGearAugment"],
+            "children": []
+          }
+        ]
       }
     ]
   }

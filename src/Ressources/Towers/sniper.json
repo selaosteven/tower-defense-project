@@ -11,7 +11,6 @@
     { "type": "rectangle", "width": 0.15, "height": 0.75, "color": [230,230,230,255] },
     { "type": "cercle", "radius": 0.15, "points": 20, "color": [255,255,255,255] }
   ],
-
   "upgrades": {
     "name": "Base Sniper",
     "cost": 100,
@@ -21,13 +20,39 @@
         "name": "Heavy Caliber Path",
         "cost": 150,
         "augments": ["DamageAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Anti-Materiel Rifle",
+            "cost": 300,
+            "augments": ["ArmorPiercingAugment"],
+            "children": []
+          },
+          {
+            "name": "Headhunter",
+            "cost": 320,
+            "augments": ["CritAugment"],
+            "children": []
+          }
+        ]
       },
       {
         "name": "Thermal Scope Path",
         "cost": 200,
         "augments": ["RangeAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Eagle Eye",
+            "cost": 280,
+            "augments": ["SniperScopeAugment"],
+            "children": []
+          },
+          {
+            "name": "Sky Watcher",
+            "cost": 260,
+            "augments": ["AntiAirAugment"],
+            "children": []
+          }
+        ]
       }
     ]
   }

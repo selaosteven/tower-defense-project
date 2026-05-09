@@ -19,13 +19,39 @@
         "name": "Rapid Fire",
         "cost": 90,
         "augments": ["AttackSpeedAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Overclocked Mechanisms",
+            "cost": 150,
+            "augments": ["OverclockedGearAugment"],
+            "children": []
+          },
+          {
+            "name": "Armor Piercing Rounds",
+            "cost": 160,
+            "augments": ["ArmorPiercingAugment"],
+            "children": []
+          }
+        ]
       },
       {
         "name": "Sharpened Ammo",
         "cost": 110,
         "augments": ["DamageAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Lethal Strikes",
+            "cost": 180,
+            "augments": ["CritAugment"],
+            "children": []
+          },
+          {
+            "name": "Versatile Targeting",
+            "cost": 190,
+            "augments": ["AllTargetAugment"],
+            "children": []
+          }
+        ]
       }
     ]
   }

@@ -37,6 +37,12 @@ std::unique_ptr<Augment> TowerTree::createAugment(const std::string& augmentName
         return std::make_unique<SlownessAugment>(0.4f);
     } else if(augmentName == "ArmorPiercingAugment") { // Armor Piercing
         return std::make_unique<ArmorPiercingAugment>(0.3f); // 30% AP
+    } else if(augmentName == "CloseCombatAugment") { // Trade-off: Close Combat
+        return std::make_unique<CloseCombatAugment>();
+    } else if(augmentName == "SniperScopeAugment") { // Trade-off: Sniper Scope
+        return std::make_unique<SniperScopeAugment>();
+    } else if(augmentName == "OverclockedGearAugment") { // Trade-off: Overclocked Gear
+        return std::make_unique<OverclockedGearAugment>();
     }
 
     std::cerr << "Warning: Augment '" << augmentName << "' not found. Skipping." << std::endl;

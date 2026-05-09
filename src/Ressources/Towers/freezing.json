@@ -10,7 +10,6 @@
     { "type": "hexagone", "size": 0.45, "color": [120,200,255,255] },
     { "type": "triangle", "size": 0.35, "orientation": 0, "color": [180,240,255,255] }
   ],
-
   "upgrades": {
     "name": "Base Freezing Tower",
     "cost": 110,
@@ -20,13 +19,39 @@
         "name": "Deep Freeze",
         "cost": 160,
         "augments": ["SlowStrongerAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Absolute Zero",
+            "cost": 240,
+            "augments": ["SplashRadiusAugment"],
+            "children": []
+          },
+          {
+            "name": "Frostbite",
+            "cost": 210,
+            "augments": ["DamageAugment"],
+            "children": []
+          }
+        ]
       },
       {
         "name": "Cold Winds",
         "cost": 180,
         "augments": ["RangeAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Blizzard",
+            "cost": 280,
+            "augments": ["AllTargetAugment"],
+            "children": []
+          },
+          {
+            "name": "Rapid Cooling",
+            "cost": 200,
+            "augments": ["AttackSpeedAugment"],
+            "children": []
+          }
+        ]
       }
     ]
   }

@@ -209,4 +209,28 @@ public:
     void onUnequip(Tower& tower) override;
 };
 
+// CloseCombatAugment Class (Trade-off: +Damage, +Rotation Speed, -Range)
+class CloseCombatAugment : public Augment {
+public:
+    CloseCombatAugment();
+    void onEquip(Tower& tower) override;
+    void onUnequip(Tower& tower) override;
+};
+
+// SniperScopeAugment Class (Trade-off: +Range, +Armor Piercing, -Attack Speed, -Rotation Speed)
+class SniperScopeAugment : public Augment {
+public:
+    SniperScopeAugment();
+    void onEquip(Tower& tower) override;
+    void onUnequip(Tower& tower) override;
+};
+
+// OverclockedGearAugment Class (Trade-off: ++Attack Speed, -Damage, -Range)
+class OverclockedGearAugment : public Augment {
+public:
+    OverclockedGearAugment();
+    void onEquip(Tower& tower) override;
+    void onUnequip(Tower& tower) override;
+};
+
 #endif

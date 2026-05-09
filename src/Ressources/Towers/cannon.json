@@ -20,13 +20,39 @@
         "name": "Bigger Explosion",
         "cost": 180,
         "augments": ["SplashRadiusAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Devastating Impact",
+            "cost": 250,
+            "augments": ["DamageAugment"],
+            "children": []
+          },
+          {
+            "name": "Shrapnel Burst",
+            "cost": 230,
+            "augments": ["ArmorPiercingAugment"],
+            "children": []
+          }
+        ]
       },
       {
         "name": "Reinforced Barrel",
         "cost": 200,
         "augments": ["DamageAugment"],
-        "children": []
+        "children": [
+          {
+            "name": "Heavy Ordnance",
+            "cost": 260,
+            "augments": ["CloseCombatAugment"],
+            "children": []
+          },
+          {
+            "name": "Quick Reloader",
+            "cost": 240,
+            "augments": ["AttackSpeedAugment"],
+            "children": []
+          }
+        ]
       }
     ]
   }
