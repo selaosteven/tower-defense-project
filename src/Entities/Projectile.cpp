@@ -55,8 +55,10 @@ void Projectile::live(float deltaTime) {
         has_hit_ = true;
         return;
     }
-    // Funny overload operator, we limit the velocity on both axes with the right and operand
-    Point velocity = (direction | (getVelocity() * deltaTime));
+    
+    float step = std::min(1.0f, (getVelocity() * deltaTime) / dist);
+    
+    Point velocity = direction * step;
     position_ += velocity;
 }
 
