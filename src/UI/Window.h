@@ -55,11 +55,11 @@ private:
     SDL_Thread * thread_;
     Uint64 ticks_;
     bool destroyed_;
+
+protected:
     std::list<std::shared_ptr<Sprites::Sprite>> sprites_;
     std::list<std::weak_ptr<Sprites::Sprite>> ui_sprites_;
     std::list<Entity*> entities_;
-
-protected:
     std::recursive_mutex render_mutex_;
     int win_width_;
     int win_height_;

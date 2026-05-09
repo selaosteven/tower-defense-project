@@ -586,8 +586,40 @@ void UI::Session::drawHighlightBox(SDL_Renderer* r, float dt, Point offset, floa
     right->draw(r, dt, offset, scale, 0.0f);
 }
 
+void UI::Session::GameOverScreen(){
+    std::lock_guard<std::recursive_mutex> lock(render_mutex_);
+    sprites_.clear();
+    entities_.clear();
+    ui_sprites_.clear();
+    active_ui_elements_.clear();
+    menu_buttons_.clear();
+    showUI_ = false;
+
+    float cx = getWinWidth() / 2.0f;
+    float cy = getWinHeight() / 2.0f;
+
+    auto go_title = std::make_shared<Sprites::Text>(std::array<float, 3>{cx, cy - 100.0f, 11.0f}, "GAME OVER", Sprites::Text::POKETEXT, 48, SDL_Color{255, 50, 50, 255}, true);
+    
+    auto go_btn = std::make_shared<Sprites::Button>(std::array<float, 3>{cx - 100.0f, cy, 10.0f}, 200.0f, 60.0f);
+    go_btn->addSubSprite(Sprites::rectangle({100.0f, 30.0f, 0.0f}, 200.0f, 60.0f, {150, 50, 50, 255}));
+    auto btn_text = std::make_shared<Sprites::Text>(std::array<float, 3>{100.0f, 30.0f, 1.0f}, "QUIT", Sprites::Text::POKETEXT, 24, SDL_Color{255, 255, 255, 255}, true);
+    go_btn->addSubSprite(btn_text);
+
+    go_btn->setOnLeftClick([this]() {
+        wants_to_die_ = true;
+        SDL_Event quit_event;
+        quit_event.type = SDL_QUIT;
+        SDL_PushEvent(&quit_event);
+    });
+    
+    active_ui_elements_.push_back(go_title);
+    active_ui_elements_.push_back(go_btn);
+    addUISprite(go_title);
+    addUISprite(go_btn);
+}
 
 void UI::Session::mainSession() {
+    hp_player_ = 1;
     while(!Window::sdl_initiated);
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
@@ -800,10 +832,27 @@ void UI::Session::mainSession() {
         
         if (hp_player_ <= 0) {
             std::cout << "GAME OVER!\n";
+            GameOverScreen();
+
+            while (!wants_to_die_) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
             running = false;
         }
 
         // Small sleep to prevent 100% CPU usage loop
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
+    }
+
+    // Cleanup all entities before exiting the session thread
+    // to prevent the rendering thread from accessing freed memory.
+    for (auto& enemy : el) {
+        removeEntity(enemy.get());
+    }
+    for (auto& tower : placed_towers_) {
+        removeEntity(tower.get());
+    }
+    for (auto& proj : active_projectiles_) {
+        removeEntity(proj.get());
     }
 }
