@@ -656,7 +656,6 @@ void UI::Session::GameOverScreen(){
 }
 
 void UI::Session::mainSession() {
-    hp_player_ = 1;
     while(!Window::sdl_initiated); // wait for sdl to be ready
 
     // we scale the game map based on the window and the map size.

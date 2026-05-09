@@ -24,7 +24,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
     time_since_shot_{0.0f},
     show_range_{false},
     range_changed_{true},
-    show_cone_{true},
+    show_cone_{false},
     cone_changed_{false},
     target_ground_{true},
     target_flying_{false}
@@ -32,7 +32,7 @@ Tower::Tower(float range,float damage, float as,  float rs, Projectile& proj, st
         sprites_ = Tower::createSprites(shapes);
         range_sprite_ = Sprites::createColoredCircle(1.0f, {100, 150, 255, 60}, -1.0f);
         cone_sprite_ = Sprites::createCone(1.0f, cone_angle_, {255, 150, 100, 60}, -0.9f);
-        cannon_sprite_ = Sprites::rectangle({0.0f, 0.0f, 8.0f}, 0.75f, 0.125f);
+        cannon_sprite_ = Sprites::rectangle({-0.3f, 0.0f, 8.0f}, 0.55f, 0.125f,{168, 93, 105, 200});
         max_level_sprite_ = Sprites::rectangle({0.0f, 0.0f, 9.0f}, 1.0f, 0.25f, {255, 215, 0, 200}); // Golden bar indicator
     }
 
