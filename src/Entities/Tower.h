@@ -83,6 +83,8 @@ public:
     void draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, float rot) override;
 
     void addAugment(std::unique_ptr<Augment> augment);
+    void removeAugment(const std::string& name);
+    
 
     inline void setPosition(Point p) { position_ = p; }
 

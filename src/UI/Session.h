@@ -6,11 +6,12 @@
 #include <SDL2/SDL.h>
 #include <memory>
 #include <optional>
-
+#include <map>
 #include "Map/Map.h"
 #include "Map/MapEntity.h"
 #include "QuadTree/Point.h"
 #include "Entities/TowerTree.h"
+#include "Entities/Tower.h"
 #include "Entities/EnemyBlueprint.h"
 #include "Entities/Projectile.h"
 
@@ -35,6 +36,8 @@ private:
     float spawnTimer_;
     int ticks_per_seconds_;
     std::vector<Point> tower_build_cells_;
+    std::vector<Point> tower_augment_cells;
+    std::map<Point, std::vector<Tower*>> tac_towers;
     int tower_cursor_index_ = 0;
 
     // --- Menu Navigation ---
