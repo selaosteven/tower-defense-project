@@ -33,7 +33,7 @@ using werrors = enum werrors;
 class Window
 {
 
-
+// ----------------------------
 // Static - classwide
 protected:
     static bool sdl_initiated;
