@@ -63,7 +63,7 @@ private:
 protected:
     std::list<std::shared_ptr<Sprites::Sprite>> sprites_;
     std::list<std::weak_ptr<Sprites::Sprite>> ui_sprites_;
-    std::list<Entity*> entities_;
+    std::list<std::weak_ptr<Entity>> entities_;
     std::recursive_mutex render_mutex_;
     int win_width_;
     int win_height_;
@@ -110,8 +110,8 @@ public:
     void addSprite(std::shared_ptr<Sprites::Sprite> sprite);
     void removeSprite(std::shared_ptr<Sprites::Sprite> sprite);
     void addUISprite(std::weak_ptr<Sprites::Sprite> sprite);
-    void addEntity(Entity *entity);
-    void removeEntity(Entity *entity);
+    void addEntity(std::weak_ptr<Entity>entity);
+    void removeEntity(std::weak_ptr<Entity>entity);
 
 // ----------------------------
 // Object events functions

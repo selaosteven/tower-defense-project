@@ -77,7 +77,7 @@ void Tower::draw(SDL_Renderer *win, float deltaTime, Point offset, float scale, 
 
 }
 
-void Tower::rotate(Enemy& target){
+void Tower::rotate(std::shared_ptr<Enemy> target){
     for(auto& a : augments_){
         a->tower_rotate_prefix(*this, target);
     }
@@ -90,7 +90,7 @@ void Tower::rotate(Enemy& target){
 }
 
 
-void Tower::shoot(Enemy& target){
+void Tower::shoot(std::shared_ptr<Enemy> target){
     for(auto& a : augments_){
         a->tower_shoot_prefix(*this, target);
     }
@@ -102,21 +102,20 @@ void Tower::shoot(Enemy& target){
     }
 }
 
-void Tower::addAugment(std::unique_ptr<Augment> augment) {
+void Tower::addAugment(std::shared_ptr<Augment> augment) {
     augment->onEquip(*this);
     augments_.push_back(std::move(augment));
 }
 
 void Tower::removeAugment(const std::string& name) {
     auto it = std::find_if(augments_.begin(), augments_.end(),
-        [&name](const std::unique_ptr<Augment>& aug) {
+        [&name](const std::shared_ptr<Augment>& aug) {
             return aug->getName() == name;
         });
     if (it != augments_.end()) {
         (*it)->onUnequip(*this);
         
         // Move the augment to detached_augments_ instead of deleting it immediately.
-        // This ensures in-flight projectiles won't dereference a dangling pointer.
         detached_augments_.push_back(std::move(*it));
         augments_.erase(it);
     }
@@ -149,16 +148,16 @@ void Tower::resetToRootUpgrade() {
     }
 }
 
-void Tower::do_shoot(Enemy& target) {
+void Tower::do_shoot(std::shared_ptr<Enemy> target) {
     auto proj = proj_.clone();
     proj->setPosition(position_);
-    proj->setTarget(&target);
+    proj->setTarget(target);
     proj->setDamage(damage_);
     proj->setArmorPiercing(armor_piercing_);
     
-    std::vector<Augment*> proj_augs;
+    std::vector<std::shared_ptr<Augment>> proj_augs;
     for(auto& a : augments_) {
-        proj_augs.push_back(a.get());
+        proj_augs.push_back(a);
     }
     proj->setAugments(std::move(proj_augs));
     proj->setHitFlying(target_flying_);
@@ -166,7 +165,7 @@ void Tower::do_shoot(Enemy& target) {
     spawned_projectiles_.push_back(std::move(proj));
 }
 
-void Tower::do_rotate(Enemy& target) {
+void Tower::do_rotate(std::shared_ptr<Enemy> target) {
 }
 
 float Tower::normalizeAngle(float angle) const {
@@ -180,13 +179,13 @@ float Tower::getSmallestRotation(float from, float to) const {
     return diff;
 }
 
-float Tower::calculateAngleToTarget(const Enemy& target) const {
-    Point direction = target.getPosition() ^ position_;
+float Tower::calculateAngleToTarget(const std::shared_ptr<Enemy> target) const {
+    Point direction = target->getPosition() ^ position_;
     float angle = std::atan2(direction.getY(), direction.getX()) * 180.0f / M_PI;
     return normalizeAngle(angle);
 }
 
-bool Tower::isInCone(const Enemy& target) const {
+bool Tower::isInCone(const std::shared_ptr<Enemy> target) const {
     float angle_to_target = calculateAngleToTarget(target);
     float angle_diff = std::abs(normalizeAngle(angle_to_target - current_angle_));
     
@@ -196,11 +195,11 @@ bool Tower::isInCone(const Enemy& target) const {
     return angle_diff <= (cone_angle_ / 2.0f);
 }
 
-Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
-    Enemy* best_target = nullptr;
+std::shared_ptr<Enemy> Tower::findBestTarget(const std::vector<std::shared_ptr<Enemy>>& enemies) {
+    std::shared_ptr<Enemy> best_target = nullptr;
     float smallest_rotation = 360.0f; // Maximum rotation needed
 
-    for (auto* enemy : enemies) {
+    for (auto enemy : enemies) {
         if (!enemy || !enemy->isAlive()) continue;
         
         // Filter out enemies this tower is not allowed to hit
@@ -214,7 +213,7 @@ Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
         if (distance > range_) continue;
         
         // Calculate rotation needed to face this target
-        float target_angle = calculateAngleToTarget(*enemy);
+        float target_angle = calculateAngleToTarget(enemy);
         float rotation_needed = std::abs(getSmallestRotation(current_angle_, target_angle));
         
         // Pick the target that needs the least rotation
@@ -227,18 +226,18 @@ Enemy* Tower::findBestTarget(const std::vector<Enemy*>& enemies) {
     return best_target;
 }
 
-void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
+void Tower::live(float deltaTime, const std::vector<std::shared_ptr<Enemy>>& enemies) {
     time_since_shot_ += deltaTime;
     
     // Find best target 
-    Enemy* target = findBestTarget(enemies);
+    std::shared_ptr<Enemy> target = findBestTarget(enemies);
     
     if (!target) {
         return; 
     }
     
     // Rotate towards target
-    float target_angle = calculateAngleToTarget(*target);
+    float target_angle = calculateAngleToTarget(target);
     float rotation_needed = getSmallestRotation(current_angle_, target_angle);
     float max_rotation = rs_ * deltaTime;
     
@@ -252,8 +251,8 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
     }
     
     // Check if target is in cone and can shoot
-    if (isInCone(*target) && time_since_shot_ >= (1.0f / as_)) {
-        shoot(*target);
+    if (isInCone(target) && time_since_shot_ >= (1.0f / as_)) {
+        shoot(target);
         time_since_shot_ = 0.0f;
     }
 
@@ -304,10 +303,10 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
             float w = shapes[i++];
             float h = shapes[i++];
             SDL_Color col = { 
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++],
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++] 
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]),
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]) 
             };
             out.push_back(Sprites::rectangle(pos, w, h, col));
         }
@@ -315,10 +314,10 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
         else if (type == 1) { // Circle
             float r = shapes[i++];
             SDL_Color col = { 
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++],
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++] 
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]),
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]) 
             };
 
             auto c = Sprites::createColoredCircle(r, col, 0.0f);
@@ -329,10 +328,10 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
             float size = shapes[i++];
             float orientation = shapes[i++];
             SDL_Color col = { 
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++],
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++] 
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]),
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]) 
             };
 
             Sprites::Orientation ori = static_cast<Sprites::Orientation>(orientation);
@@ -344,10 +343,10 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
         else if (type == 3) { // Octagon
             float size = shapes[i++];
             SDL_Color col = { 
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++],
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++] 
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]),
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]) 
             };
 
             out.push_back(Sprites::octone(pos, size, col));
@@ -356,10 +355,10 @@ std::vector<std::shared_ptr<Sprites::Sprite>> Tower::createSprites(const std::ve
         else if (type == 4) { // Square
             float side = shapes[i++];
             SDL_Color col = { 
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++],
-                (Uint8)shapes[i++], 
-                (Uint8)shapes[i++] 
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]),
+                static_cast<Uint8>(shapes[i++]), 
+                static_cast<Uint8>(shapes[i++]) 
             };
 
             out.push_back(Sprites::rectangle(pos, side, side, col));

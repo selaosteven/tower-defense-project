@@ -328,7 +328,7 @@ void UI::Session::openBuildUI(Point cell) {
                 Projectile dummyProj(-0.1f, 5.0f); // Default projectile have negative size to prevent AOE effect.
                 auto new_tower = blueprint->instantiateTower({logicX, logicY}, dummyProj);
                 
-                addEntity(new_tower.get());
+                addEntity(new_tower);
                 {
                     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
                     placed_towers_.push_back(std::move(new_tower));
@@ -502,7 +502,7 @@ void UI::Session::openUpgradeUI(std::shared_ptr<Tower> tower) {
                 );
             }
 
-            removeEntity(to_delete.get());
+            removeEntity(to_delete);
         }
         
         
@@ -719,7 +719,7 @@ void UI::Session::startNextWave() {
     }
 }
 
-void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el) {
+void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::shared_ptr<Enemy>>& el) {
     // Spread the enemies across 90% of the cell width so they are visibly spaced out
     float offsetSpawn = (rand() / (float)RAND_MAX - 0.5f) * cellSize * 0.9f;
     Point spawnOffset = Point{-spawningDirection.getY(), spawningDirection.getX()} * offsetSpawn;
@@ -758,7 +758,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     // Visually scale the enemy to fit within a tile
     float enemySize = cellSize * 0.295f;
     el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
-    addEntity(el.back().get());
+    addEntity(el.back());
     enemiesToSpawn_--;
     spawnTimer_ = 0.0f;
 }
@@ -899,7 +899,7 @@ void UI::Session::mainSession() {
     float baseY = path.front().getY();
 
 
-    std::vector<std::unique_ptr<Enemy>> el = {};
+    std::vector<std::shared_ptr<Enemy>> el = {};
     // operator overload to setup path direction we use \^ to say we point from A to B (for fun)
     Point spawningDirection = ((*path.begin())^(*(++path.begin())));
 
@@ -940,17 +940,17 @@ void UI::Session::mainSession() {
                     hpSetter(hp_player_ - 1);
                     std::cout << "Player took damage! HP: " << hp_player_ << "\n";
                     enemy->kill();
-                    removeEntity(enemy.get());
+                    removeEntity(enemy);
                 } else if (enemy->getLp() <= 0) {
                     moneySetter(money_ + 10);
                     enemy->kill();
-                    removeEntity(enemy.get());
+                    removeEntity(enemy);
                 }
             }
             
             map_ope_.clear(); // Clear our quadtree and create a new set
             for (auto& enemy : el) {
-                if (enemy->isAlive()) map_ope_.addEnemy(enemy.get());
+                if (enemy->isAlive()) map_ope_.addEnemy(enemy);
             }
              // Update projectiles
             for (auto it = active_projectiles_.begin(); it != active_projectiles_.end(); ) {
@@ -958,17 +958,17 @@ void UI::Session::mainSession() {
                 proj->live(dt);
                 
                 if (proj->hasHit()) { // If projectile hit it's target we actualize the list of affected entity with quadtree
-                    std::vector<Enemy*> hit_enemies;
+                    std::vector<std::shared_ptr<Enemy>> hit_enemies;
                     if (proj->getSize() > 0.0f) { // Splash damage
-                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), proj->getSize());
-                        for (auto* enemy : nearby) {
+                        std::vector<std::shared_ptr<Enemy>> nearby = map_ope_.query(proj->getPosition(), proj->getSize());
+                        for (auto enemy : nearby) {
                             hit_enemies.push_back(enemy);
                         }
                     } else { // Single target
-                        Enemy* closest = nullptr;
+                        std::shared_ptr<Enemy> closest = nullptr;
                         float min_dist = 1.0f; // Max acceptable dist for single target splash search
-                        std::vector<Enemy*> nearby = map_ope_.query(proj->getPosition(), min_dist);
-                        for (auto* enemy : nearby) {
+                        std::vector<std::shared_ptr<Enemy>> nearby = map_ope_.query(proj->getPosition(), min_dist);
+                        for (auto enemy : nearby) {
                             Point dir = proj->getPosition() ^ enemy->getPosition();
                             float dist = std::sqrt(dir.getX()*dir.getX() + dir.getY()*dir.getY());
                             if (dist <= min_dist) {
@@ -981,7 +981,7 @@ void UI::Session::mainSession() {
                     
                     proj->hit(hit_enemies);
                     
-                    removeEntity(proj.get());
+                    removeEntity(proj);
                     it = active_projectiles_.erase(it);
                 } else {
                     ++it;
@@ -996,10 +996,10 @@ void UI::Session::mainSession() {
                 }
             }
             
-            std::vector<std::unique_ptr<Projectile>> all_new_projs;
+            std::vector<std::shared_ptr<Projectile>> all_new_projs;
             for (auto& weak_tower : current_towers) {
                 if (auto tower = weak_tower.lock()) {
-                    std::vector<Enemy*> nearby_enemies = map_ope_.allWithinRange(*tower);
+                    std::vector<std::shared_ptr<Enemy>> nearby_enemies = map_ope_.allWithinRange(*tower);
                     tower->live(dt, nearby_enemies);
                     auto new_projs = tower->fetchSpawnedProjectiles();
                     for(auto& p : new_projs) {
@@ -1010,7 +1010,7 @@ void UI::Session::mainSession() {
             }
 
             for(auto& p : all_new_projs) {
-                addEntity(p.get());
+                addEntity(p);
                 active_projectiles_.push_back(std::move(p));
             }
 
@@ -1028,13 +1028,13 @@ void UI::Session::mainSession() {
             if (enemiesToSpawn_ <= 0 && allEnemiesDead) {
                 // Clean up all dead enemies at wave end
                 for (auto& enemy : el) {
-                    removeEntity(enemy.get());
+                    removeEntity(enemy);
                 }
                 el.clear();
                 
                 // Clean up remaining projectiles from the wave
                 for (auto& proj : active_projectiles_) {
-                    removeEntity(proj.get());
+                    removeEntity(proj);
                 }
                 active_projectiles_.clear();
                 
@@ -1072,16 +1072,16 @@ void UI::Session::mainSession() {
 
     // We clean the memory.
     for (auto& enemy : el) {
-        removeEntity(enemy.get());
+        removeEntity(enemy);
     }
     {
         std::lock_guard<std::recursive_mutex> lock(render_mutex_);
         for (auto& tower : placed_towers_) {
-            removeEntity(tower.get());
+            removeEntity(tower);
         }
     }
     for (auto& proj : active_projectiles_) {
-        removeEntity(proj.get());
+        removeEntity(proj);
     }
     {
         std::lock_guard<std::recursive_mutex> lock(render_mutex_);

@@ -22,7 +22,7 @@ protected:
     bool has_hit_;
     bool hit_flying_;
     bool hit_ground_;
-    std::vector<Augment*> augments_; // Augments list 
+    std::vector<std::shared_ptr<Augment>> augments_; // Augments list 
     std::unique_ptr<Target> target_; // Target the projectile is moving toard
     std::weak_ptr<Tower> source_tower_;
 
@@ -43,7 +43,7 @@ private:
      * 
      * @param enemies
      */
-    void do_hit(std::vector<Enemy*> enemies);
+    void do_hit(std::vector<std::shared_ptr<Enemy>> enemies);
     
 public: 
     /**
@@ -52,7 +52,7 @@ public:
      *
      * @param enemies 
      */
-    void hit(std::vector<Enemy*> enemies);
+    void hit(std::vector<std::shared_ptr<Enemy>> enemies);
     
 
     inline float getVelocity() const{
@@ -61,7 +61,7 @@ public:
     inline float getSize() const { return size_; }
     inline bool hasHit() const { return has_hit_; }
 
-    inline void setTarget(Enemy * enemy){
+    inline void setTarget(std::weak_ptr<Enemy> enemy){
         target_ = std::make_unique<TargetEntity>(enemy);
     }
     inline void setTarget(Point position){
@@ -69,7 +69,7 @@ public:
     }
     inline void setPosition(Point position){ position_ = position; }
     inline void setDamage(float damage) { damage_ = damage; }
-    inline void setAugments(std::vector<Augment*> augments) { augments_ = std::move(augments); }
+    inline void setAugments(std::vector<std::shared_ptr<Augment>> augments) { augments_ = std::move(augments); }
     inline void setSize(float size_incr) {size_+=size_incr;}
     inline void setPs(float ps) { ps_ = ps; }
     inline void setHitFlying(bool val) { hit_flying_ = val; }

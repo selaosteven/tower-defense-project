@@ -3,6 +3,7 @@
 #include "Entities/Enemy.h"
 #include "Sprites/PrimitiveForm.h"
 #include "Sprites/Text.h"
+#include <memory>
 
 Enemy::Enemy(float lp, float speed, float resistance, bool fly) :
     Enemy(lp, speed, resistance, fly, "A") {}

@@ -34,9 +34,9 @@ std::unique_ptr<Projectile> Projectile::clone() const {
     return std::make_unique<Projectile>(*this);
 }
 
-void Projectile::do_hit(std::vector<Enemy*> enemies){
+void Projectile::do_hit(std::vector<std::shared_ptr<Enemy>> enemies){
     int totalXp = 0;
-    for (auto* enemy : enemies) {
+    for (auto enemy : enemies) {
         if (enemy && enemy->isAlive() && (enemy->isFlying() == hit_flying_ || !enemy->isFlying() == hit_ground_)) {
             float effective_resistance = std::max(0.0f, enemy->getResistance() * (1.0f - armor_piercing_));
             float actual_damage = std::max(0.0f, damage_ - effective_resistance);
@@ -56,13 +56,13 @@ void Projectile::do_hit(std::vector<Enemy*> enemies){
     }
 }
 
-void Projectile::hit(std::vector<Enemy*> enemies){
-    for(auto* a : augments_) {
-        a->projectile_hit_prefix(enemies, *this);
+void Projectile::hit(std::vector<std::shared_ptr<Enemy>> enemies){
+    for(auto a : augments_) {
+        a->projectile_hit_prefix(enemies, *this);        
     }
     do_hit(enemies);
 
-    for(auto* a : augments_) {
+    for(auto a : augments_) {
         a->projectile_hit_postfix(enemies, *this);
     }
 }

@@ -12,24 +12,24 @@ Augment::~Augment() {}
 void Augment::onEquip(Tower& tower) {}
 void Augment::onUnequip(Tower& tower) {}
 
-void Augment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& projectile) {}
-void Augment::projectile_hit_postfix(std::vector<Enemy*> enemies, Projectile& projectile) {}
+void Augment::projectile_hit_prefix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& projectile) {}
+void Augment::projectile_hit_postfix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& projectile) {}
 
-void Augment::tower_shoot_prefix(Tower& tower, Enemy& target) {}
-void Augment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {}
+void Augment::tower_shoot_prefix(Tower& tower, std::shared_ptr<Enemy> target) {}
+void Augment::tower_shoot_postfix(Tower& tower, std::shared_ptr<Enemy> target, Projectile& p) {}
 
-void Augment::tower_rotate_prefix(Tower& tower, Enemy& target) {}
-void Augment::tower_rotate_postfix(Tower& tower, Enemy& target) {}
+void Augment::tower_rotate_prefix(Tower& tower, std::shared_ptr<Enemy> target) {}
+void Augment::tower_rotate_postfix(Tower& tower, std::shared_ptr<Enemy> target) {}
 
-void Augment::effect_apply_prefix(Effect& effect, Enemy& target) {}
-void Augment::effect_apply_postfix(Effect& effect, Enemy& target) {}
+void Augment::effect_apply_prefix(Effect& effect, std::shared_ptr<Enemy> target) {}
+void Augment::effect_apply_postfix(Effect& effect, std::shared_ptr<Enemy> target) {}
 
 // CritAugment
 
 CritAugment::CritAugment(float critChance, float critMultiplier) 
     : Augment("Critical Hit"), critChance_(critChance), critMultiplier_(critMultiplier), originalDamage_(0.0f), didCrit_(false) {}
 
-void CritAugment::tower_shoot_prefix(Tower& tower, Enemy& target) {
+void CritAugment::tower_shoot_prefix(Tower& tower, std::shared_ptr<Enemy> target) {
     float roll = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     if (roll <= critChance_) {
         didCrit_ = true;
@@ -41,7 +41,7 @@ void CritAugment::tower_shoot_prefix(Tower& tower, Enemy& target) {
     }
 }
 
-void CritAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) {
+void CritAugment::tower_shoot_postfix(Tower& tower, std::shared_ptr<Enemy> target, Projectile& p) {
     if (didCrit_) {
         tower.setDamage(originalDamage_);
     }
@@ -97,8 +97,8 @@ public:
 SlownessAugment::SlownessAugment(float amount)
     : Augment("Slowness"), slowAmount_(amount) {}
 
-void SlownessAugment::projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) {
-    for (auto* e : enemies) {
+void SlownessAugment::projectile_hit_prefix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& p) {
+    for (auto e : enemies) {
         if (!e || !e->isAlive()) continue;
 
         bool already_slowed = false;

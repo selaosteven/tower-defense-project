@@ -43,7 +43,7 @@ void QuadTree::subDivide(){
 
 }
 
-void QuadTree::insert(Enemy* e){
+void QuadTree::insert(std::shared_ptr<Enemy> e){
 
     Point point = e->getPosition();
     if(!boundary_.contains(point)){
@@ -74,9 +74,9 @@ void QuadTree::insert(Enemy* e){
 }
 
 // To see ennemies in range of a point
-std::vector<Enemy*> QuadTree::query(Point center, float range){
+std::vector<std::shared_ptr<Enemy>> QuadTree::query(Point center, float range){
     
-    std::vector<Enemy*> res;
+    std::vector<std::shared_ptr<Enemy>> res;
 
     if(!boundary_.checkOverlap(center,range)){ // Check if there is no intersecton between rectangle and circle
         return res; 
@@ -109,7 +109,7 @@ std::vector<Enemy*> QuadTree::query(Point center, float range){
     return res;
 }
 
-void QuadTree::remove(Enemy* e){
+void QuadTree::remove(std::shared_ptr<Enemy> e){
 
     // Search the ennemy in the current node
     auto find = std::find(lst_enemy_.begin(),lst_enemy_.end(),e);

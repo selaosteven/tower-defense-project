@@ -41,7 +41,7 @@ public:
      * @param enemies 
      * @param projectile 
      */
-    virtual void projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& projectile);
+    virtual void projectile_hit_prefix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& projectile);
 
     /**
      * @brief called after the creation of the projectile and apply effects
@@ -49,7 +49,7 @@ public:
      * @param enemies 
      * @param projectile 
      */
-    virtual void projectile_hit_postfix(std::vector<Enemy*> enemies, Projectile& projectile);
+    virtual void projectile_hit_postfix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& projectile);
 
     /**
      * @brief called before the tower fires at its target
@@ -57,7 +57,7 @@ public:
      * @param tower 
      * @param target 
      */
-    virtual void tower_shoot_prefix(Tower& tower, Enemy& target);
+    virtual void tower_shoot_prefix(Tower& tower, std::shared_ptr<Enemy> target);
 
     /**
      * @brief called after the tower fires and the projectile is created
@@ -66,7 +66,7 @@ public:
      * @param target 
      * @param p
      */
-    virtual void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p);
+    virtual void tower_shoot_postfix(Tower& tower, std::shared_ptr<Enemy> target, Projectile& p);
 
     /**
      * @brief  called before the tower rotates toward its target
@@ -75,7 +75,7 @@ public:
      * @param target 
      */
     
-    virtual void tower_rotate_prefix(Tower& tower, Enemy& target);
+    virtual void tower_rotate_prefix(Tower& tower, std::shared_ptr<Enemy> target);
     
     /**
      * @brief called after the tower rotates toward its target
@@ -83,7 +83,7 @@ public:
      * @param effect 
      * @param target 
      */
-    virtual void tower_rotate_postfix(Tower& tower, Enemy& target);
+    virtual void tower_rotate_postfix(Tower& tower, std::shared_ptr<Enemy> target);
 
     /**
      * @brief called before an effect is applied to an enemy
@@ -91,7 +91,7 @@ public:
      * @param effect 
      * @param target 
      */
-    virtual void effect_apply_prefix(Effect& effect, Enemy& target);
+    virtual void effect_apply_prefix(Effect& effect, std::shared_ptr<Enemy> target);
     
     /**
      * @brief called after an effect is applied to an enemy
@@ -99,7 +99,7 @@ public:
      * @param effect
      * @param target
      */
-    virtual void effect_apply_postfix(Effect& effect, Enemy& target);
+    virtual void effect_apply_postfix(Effect& effect, std::shared_ptr<Enemy> target);
     
 };
 
@@ -114,8 +114,8 @@ private:
 public:
     CritAugment(float critChance, float critMultiplier);
 
-    void tower_shoot_prefix(Tower& tower, Enemy& target) override;
-    void tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p) override;
+    void tower_shoot_prefix(Tower& tower, std::shared_ptr<Enemy> target) override;
+    void tower_shoot_postfix(Tower& tower, std::shared_ptr<Enemy> target, Projectile& p) override;
 };
 
 // RangeAugment Class
@@ -146,7 +146,7 @@ class SlownessAugment : public Augment {
 
     public:
         SlownessAugment(float amount);
-        void projectile_hit_prefix(std::vector<Enemy*> enemies, Projectile& p) override;
+        void projectile_hit_prefix(std::vector<std::shared_ptr<Enemy>> enemies, Projectile& p) override;
 };
 
 // DamageAugment Class

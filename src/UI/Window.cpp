@@ -323,7 +323,11 @@ void UI::Window::loop(){
         {
             std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             for(auto s : sprites_) s->draw(renderer_, delta_time_, camera_position_, scale_, 0);
-            for(auto e : entities_) e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+            for(auto we : entities_){
+                if(we.expired()) continue;
+                auto e = we.lock();
+                e->draw(renderer_, delta_time_, camera_position_, scale_, 0);
+            }
             
             drawSelection(renderer_);
             
@@ -390,15 +394,16 @@ void UI::Window::removeSprite(std::shared_ptr<Sprites::Sprite> sprite){
     }
 }
 
-void UI::Window::removeEntity(Entity *entity){
+void UI::Window::removeEntity(std::weak_ptr<Entity>entity){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(!entities_.empty()) {
-        entities_.remove(entity);
+        entities_.remove_if([&entity](const std::weak_ptr<Entity>& e) {
+            return e.lock() == entity.lock();
+        });
     }        
-    
 }
 
-void UI::Window::addEntity(Entity *entity){
+void UI::Window::addEntity(std::weak_ptr<Entity>entity){
     std::lock_guard<std::recursive_mutex> lock(render_mutex_);
     if(entities_.empty()) {
         entities_.push_front(entity);

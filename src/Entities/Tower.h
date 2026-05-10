@@ -54,8 +54,8 @@ private:
     std::vector<std::unique_ptr<Projectile>> spawned_projectiles_; // Projectile fired this frame
 
 protected:
-    std::vector<std::unique_ptr<Augment>> augments_; // Augments modifying tower
-    std::vector<std::unique_ptr<Augment>> detached_augments_; // Augments removed but kept alive for projectiles
+    std::vector<std::shared_ptr<Augment>> augments_; // Augments modifying tower
+    std::vector<std::shared_ptr<Augment>> detached_augments_; // Augments removed but kept alive for projectiles
     const UpgradeNode* currentUpgradeNode_ = nullptr; // Current upgrade node applied
 
 public:
@@ -65,15 +65,15 @@ public:
     Tower(float range, float damage, float as, float rs, float armor_piercing, Projectile& proj, std::string type,const std::vector<float>& shapes, int xp, int level); // Constructeur
 
 private:
-    void do_rotate(Enemy& target);
-    void do_shoot(Enemy& target);
+    void do_rotate(std::shared_ptr<Enemy> target);
+    void do_shoot(std::shared_ptr<Enemy> target);
     
     // Cone targeting helpers
-    Enemy* findBestTarget(const std::vector<Enemy*>& enemies);
-    float calculateAngleToTarget(const Enemy& target) const;
+    std::shared_ptr<Enemy> findBestTarget(const std::vector<std::shared_ptr<Enemy>>& enemies);
+    float calculateAngleToTarget(const std::shared_ptr<Enemy> target) const;
     float normalizeAngle(float angle) const;
     float getSmallestRotation(float from, float to) const;
-    bool isInCone(const Enemy& target) const;
+    bool isInCone(const std::shared_ptr<Enemy> target) const;
 public:
     /**
      * @brief Rotates the tower toward a target
@@ -81,7 +81,7 @@ public:
      *
      * @param target 
      */
-    void rotate(Enemy& target);
+    void rotate(std::shared_ptr<Enemy> target);
 
     /**
      * @brief Fires at a target
@@ -89,7 +89,7 @@ public:
      *
      * @param target 
      */
-    void shoot(Enemy& target);
+    void shoot(std::shared_ptr<Enemy> target);
 
     /**
      * @brief Update loop for the tower
@@ -98,7 +98,7 @@ public:
      * @param deltaTime 
      * @param enemies 
      */
-    void live(float deltaTime, const std::vector<Enemy*>& enemies);
+    void live(float deltaTime, const std::vector<std::shared_ptr<Enemy>>& enemies);
 
     /**
      * @brief Draw the tower , range , cone , cannon and level bar  
@@ -118,7 +118,7 @@ public:
      *
      * @param augment 
      */
-    void addAugment(std::unique_ptr<Augment> augment);
+    void addAugment(std::shared_ptr<Augment> augment);
     
     /**
      * @brief Remove an augment 

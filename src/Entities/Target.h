@@ -2,6 +2,7 @@
 #define TARGET_H
 #include "Entities/Entity.h"
 #include "QuadTree/Point.h"
+#include <memory>
 
 class Target
 {
@@ -23,11 +24,11 @@ public:
 
 class TargetEntity : public Target {
 private:
-    const Entity* entity_;
+    const std::weak_ptr<Entity> entity_;
 public:
-    TargetEntity(const Entity * target) : entity_{target} {} 
+    TargetEntity(const std::weak_ptr<Entity> target) : entity_{target} {} 
     inline Point getPosition() const override {
-        return entity_ ? entity_->getPosition() : Point{0,0};
+        return !entity_.expired() ? entity_.lock()->getPosition() : Point{0,0};
     }
 };
 

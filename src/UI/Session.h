@@ -57,7 +57,7 @@ private:
     std::vector<std::weak_ptr<EnemyBlueprint>> wave_spawns_;
     std::list<std::shared_ptr<Tower>> placed_towers_;
     std::list<std::shared_ptr<Tower>> sold_towers_;
-    std::list<std::unique_ptr<Projectile>> active_projectiles_;
+    std::list<std::shared_ptr<Projectile>> active_projectiles_;
     std::vector<std::shared_ptr<Sprites::Sprite>> active_ui_elements_;
     // ----------------------------
     // UI Layout Settings
@@ -84,7 +84,7 @@ public:
     void mainSession();
     void startNextWave();
 private:
-    void spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::unique_ptr<Enemy>>& el);
+    void spawnEnemy(float cellSize, Point spawningDirection, float baseX, float baseY, std::list<Point>& path, std::vector<std::shared_ptr<Enemy>>& el);
     void GameOverScreen();
     void checkAddAugmentedCellBonus();
 

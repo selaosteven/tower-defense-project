@@ -17,7 +17,7 @@ private:
     std::unique_ptr<QuadTree> topRightTree_; // Top-right quadrant
     std::unique_ptr<QuadTree> botLeftTree_;  // Bottom-left quadrant
     std::unique_ptr<QuadTree> botRightTree_; // Bottom-right quadrant
-    std::vector<Enemy*> lst_enemy_; // List of points stored in this cell
+    std::vector<std::shared_ptr<Enemy>> lst_enemy_; // List of points stored in this cell
 
     static const int capacity_ = 1; // Max number of points before subdivision
 
@@ -27,10 +27,10 @@ public:
 
     void subDivide();
     void clear();
-    void insert(Enemy* e);
-    void remove(Enemy* e);
+    void insert(std::shared_ptr<Enemy> e);
+    void remove(std::shared_ptr<Enemy> e);
     void print(int level = 0) const;
-    std::vector<Enemy*> query(Point center, float range);
+    std::vector<std::shared_ptr<Enemy>> query(Point center, float range);
     
 };
 
