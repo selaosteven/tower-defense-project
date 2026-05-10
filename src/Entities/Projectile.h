@@ -12,7 +12,7 @@ class Tower;
 class Projectile : public Entity {
 public:
     static std::vector<std::shared_ptr<Sprites::Sprite>> createSprites(SDL_Color color = {125,255,200,255});
-
+    static int xpFunction(float x);
 protected:
     float size_; // Aoe Damage | if 0 then single impact
     float ps_; // Projectile Speed

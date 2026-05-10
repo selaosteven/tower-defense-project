@@ -11,7 +11,7 @@
 
 // Sigmoid function, slow increase then exponential reach to the max
 // 117.6 (1 - ((1)/(1 + ℯ^(13.2 (x - 196.8) * 0.03 * ((1)/(13.2)))))) + 1
-int xpFunction(float x){
+int Projectile::xpFunction(float x){
     double exponent = 13.2 * (x - 196.8) * 0.03 * (1.0 / 13.2);
     return static_cast<int>(110 * (1 - (1.0 / (1.0 + exp(exponent)))) + 1);
 }
