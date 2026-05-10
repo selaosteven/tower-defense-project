@@ -5,9 +5,8 @@ project(TowerDefense VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Configuration Debug par défaut si non spécifiée
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choix du type de build" FORCE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choix du type de build" FORCE)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -21,21 +20,16 @@ endif()
 
 
 
-# Recherche de la librairie SDL2 (nécessaire pour l'affichage graphique)
 find_package(SDL2 REQUIRED)
 
-# Récupération de nlohmann_json (téléchargement automatique)
 include(FetchContent)
 FetchContent_Declare(json
     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
 )
 FetchContent_MakeAvailable(json)
 
-# Inclusion du dossier courant pour trouver les headers (.h)
 include_directories(${CMAKE_SOURCE_DIR})
 
-# Liste des fichiers sources
-# Note : main.cpp est attendu selon le README
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(TowerDefense ${SRC_FILES})
 
