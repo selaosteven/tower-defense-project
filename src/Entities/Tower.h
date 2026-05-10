@@ -182,6 +182,7 @@ public:
 
     inline int getXp() const {return xp_;}
     inline int getXpMax() const {return xpMax_;}
+    inline void addXp(int amount) { xp_ += amount; }
     inline int getLevel() const {return level_;}
     inline int getLevelMax() const {return levelMax_;}
 

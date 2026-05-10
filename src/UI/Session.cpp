@@ -1003,6 +1003,7 @@ void UI::Session::mainSession() {
                     tower->live(dt, nearby_enemies);
                     auto new_projs = tower->fetchSpawnedProjectiles();
                     for(auto& p : new_projs) {
+                        p->setSourceTower(weak_tower);
                         all_new_projs.push_back(std::move(p));
                     }
                 }

@@ -52,6 +52,7 @@ void CritAugment::tower_shoot_postfix(Tower& tower, Enemy& target, Projectile& p
 RangeAugment::RangeAugment(float bonusRange) : Augment("Range Boost"), bonusRange_(bonusRange) {}
 
 void RangeAugment::onEquip(Tower& tower) {
+    std::cout << "Tower get " << bonusRange_ << " for a total of " << tower.getRange() + bonusRange_ << std::endl;
     tower.setRange(tower.getRange() + bonusRange_);
 }
 
@@ -65,6 +66,7 @@ TargetingAugment::TargetingAugment(bool targetGround, bool targetFlying)
     : Augment("Targeting Modification"), targetGround_(targetGround), targetFlying_(targetFlying) {}
 
 void TargetingAugment::onEquip(Tower& tower) {
+    std::cout << "Tower now target Ground:" << targetGround_ << " | Target Flying:"  << targetFlying_ << std::endl;
     tower.setTargetGround(targetGround_);
     tower.setTargetFlying(targetFlying_);
 }
@@ -122,6 +124,7 @@ DamageAugment::DamageAugment() : Augment("Damage+") {}
 
 void DamageAugment::onEquip(Tower &tower){
     tower.setDamage(tower.getDamage()*2);
+    std::cout << "Equipped Damage+: Damage is now " << tower.getDamage() << std::endl;
 }
 
 void DamageAugment::onUnequip(Tower &tower){
@@ -134,6 +137,7 @@ AoeAugment::AoeAugment(float size) : Augment("Zone Buff"), size_incr_(size) {}
 
 void AoeAugment::onEquip(Tower& tower) {
     tower.getBaseProjectile().setSize(size_incr_);
+    std::cout << "Equipped Zone Buff: Projectile size increased by " << size_incr_ << std::endl;
 }
 
 void AoeAugment::onUnequip(Tower& tower) {
@@ -145,6 +149,7 @@ void AoeAugment::onUnequip(Tower& tower) {
 RotationSpeedAugment::RotationSpeedAugment(float amount) : Augment("Rotation Speed"), amount_(amount) {}
 void RotationSpeedAugment::onEquip(Tower& tower) {
     tower.setRs(tower.getRs() + amount_);
+    std::cout << "Equipped Rotation Speed: RS is now " << tower.getRs() << std::endl;
 }
 
 // AttackSpeedAugment
@@ -152,6 +157,7 @@ void RotationSpeedAugment::onEquip(Tower& tower) {
 AttackSpeedAugment::AttackSpeedAugment(float multiplier) : Augment("Attack Speed"), multiplier_(multiplier) {}
 void AttackSpeedAugment::onEquip(Tower& tower) {
     tower.setAs(tower.getAs() * multiplier_);
+    std::cout << "Equipped Attack Speed: AS is now " << tower.getAs() << std::endl;
 }
 
 // ProjectileSpeedAugment
@@ -159,6 +165,7 @@ void AttackSpeedAugment::onEquip(Tower& tower) {
 ProjectileSpeedAugment::ProjectileSpeedAugment(float multiplier) : Augment("Projectile Speed"), multiplier_(multiplier) {}
 void ProjectileSpeedAugment::onEquip(Tower& tower) {
     tower.getBaseProjectile().setPs(tower.getBaseProjectile().getVelocity() * multiplier_);
+    std::cout << "Equipped Projectile Speed: Speed multiplied by " << multiplier_ << std::endl;
 }
 
 // SplashRadiusAugment
@@ -168,6 +175,7 @@ void SplashRadiusAugment::onEquip(Tower& tower) {
     float baseSize = tower.getBaseProjectile().getSize();
     if(baseSize <= 0) baseSize = 0.01f;
     tower.getBaseProjectile().setSize(amount_*baseSize);
+    std::cout << "Equipped Splash Radius: Splash multiplied by " << amount_ << std::endl;
 }
 
 // ArmorPiercingAugment
@@ -175,6 +183,7 @@ void SplashRadiusAugment::onEquip(Tower& tower) {
 ArmorPiercingAugment::ArmorPiercingAugment(float amount) : Augment("Armor Piercing"), amount_(amount) {}
 void ArmorPiercingAugment::onEquip(Tower& tower) {
     tower.setArmorPiercing(tower.getArmorPiercing() + amount_);
+    std::cout << "Equipped Armor Piercing: AP is now " << tower.getArmorPiercing() << std::endl;
 }
 
 void ArmorPiercingAugment::onUnequip(Tower& tower) {
@@ -188,6 +197,7 @@ void CloseCombatAugment::onEquip(Tower& tower) {
     tower.setRs(tower.getRs() * 1.5f);
     tower.setDamage(tower.getDamage() * 1.5f);
     tower.setRange(tower.getRange() * 0.7f);
+    std::cout << "Equipped Close Combat: RS x1.5, DMG x1.5, Range x0.7" << std::endl;
 }
 void CloseCombatAugment::onUnequip(Tower& tower) {
     tower.setRs(tower.getRs() / 1.5f);
@@ -203,6 +213,7 @@ void SniperScopeAugment::onEquip(Tower& tower) {
     tower.setArmorPiercing(tower.getArmorPiercing() + 0.2f);
     tower.setAs(tower.getAs() * 0.7f);
     tower.setRs(tower.getRs() * 0.7f);
+    std::cout << "Equipped Sniper Scope: Range x1.5, AP +0.2, AS x0.7, RS x0.7" << std::endl;
 }
 void SniperScopeAugment::onUnequip(Tower& tower) {
     tower.setRange(tower.getRange() / 1.5f);
@@ -218,6 +229,7 @@ void OverclockedGearAugment::onEquip(Tower& tower) {
     tower.setAs(tower.getAs() * 2.0f);
     tower.setDamage(tower.getDamage() * 0.7f);
     tower.setRange(tower.getRange() * 0.8f);
+    std::cout << "Equipped Overclocked Gear: AS x2.0, DMG x0.7, Range x0.8" << std::endl;
 }
 void OverclockedGearAugment::onUnequip(Tower& tower) {
     tower.setAs(tower.getAs() / 2.0f);

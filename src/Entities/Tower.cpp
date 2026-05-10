@@ -97,9 +97,6 @@ void Tower::shoot(Enemy& target){
 
     do_shoot(target);
 
-    // Each bullet shoot => increase XP
-    xp_+=10;
-
     for(auto& a : augments_){
         a->tower_shoot_postfix(*this, target, proj_);
     }
@@ -261,30 +258,30 @@ void Tower::live(float deltaTime, const std::vector<Enemy*>& enemies) {
     }
 
     // Level Up Setup
-    if (level_ < levelMax_) {  
+    while (level_ < levelMax_ && xp_ >= xpMax_) {  
+        xp_ -= xpMax_;
+        level_++;
 
-        if (xp_ >= xpMax_) {
-            xp_ -= xpMax_;
-            level_++;
+        damage_ *= 1.05f;
+        range_  += 0.1f;
+        as_     += 0.02f;
+        rs_     += 1.0f;
 
-            damage_ += 0.5f;
-            range_  += 0.1f;
-            as_     += 0.02f;
-
-            // At each level threshold, we increase a stat
-            if(level_ == 4){
-                setAs(as_);
-            }
-            if(level_ == 7){
-                setAs(as_*2);
-            }
-            if(level_ == 11){
-                setAs(as_*2);
-            }
-
-            std::cout << "Tower " << id_ << " leveled up to " << level_ << "!\n";
+        // At each level threshold, we increase a stat
+        if(level_ == 4){
+            setAs(as_*1.1);
         }
-    } else { // Max Level Reach
+        if(level_ == 7){
+            setRs(1.25*rs_);
+        }
+        if(level_ == 11){
+            setRange(range_*1.25);
+        }
+
+        std::cout << "Tower " << id_ << " leveled up to " << level_ << "!\n";
+    }
+    
+    if (level_ >= levelMax_) { // Max Level Reach
         xp_ = xpMax_; 
     }
 }

@@ -7,6 +7,7 @@
 #include "Entities/Enemy.h"
 
 class Augment;
+class Tower;
 
 class Projectile : public Entity {
 public:
@@ -23,6 +24,7 @@ protected:
     bool hit_ground_;
     std::vector<Augment*> augments_; // Augments list 
     std::unique_ptr<Target> target_; // Target the projectile is moving toard
+    std::weak_ptr<Tower> source_tower_;
 
 public:
     Projectile(float size, float ps, float damage = 0.0f, float armor_piercing = 0.0f); 
@@ -74,6 +76,7 @@ public:
     inline void setHitGround(bool val) { hit_ground_ = val; }
     inline void setArmorPiercing(float ap) { armor_piercing_ = ap; }
     inline float getArmorPiercing() const { return armor_piercing_; }
+    inline void setSourceTower(std::weak_ptr<Tower> tower) { source_tower_ = tower; }
 
     std::unique_ptr<Projectile> clone() const;
 };
