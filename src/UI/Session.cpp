@@ -701,8 +701,8 @@ void UI::Session::startNextWave() {
                     wave_spawns_.push_back(bp);
                 }
             }
+
             // The wave is packed by type, we shuffle the list to get a mixed wave.
-            // Simple Fisher-Yates shuffle :: https://fr.wikipedia.org/wiki/M%C3%A9lange_de_Fisher-Yates
             for (int i = static_cast<int>(wave_spawns_.size()) - 1; i > 0; --i) {
                 int j = rand() % (i + 1);
                 std::swap(wave_spawns_[i], wave_spawns_[j]);
@@ -756,7 +756,7 @@ void UI::Session::spawnEnemy(float cellSize, Point spawningDirection, float base
     if (!blueprint) return;
     
     // Visually scale the enemy to fit within a tile
-    float enemySize = cellSize * 0.095f;
+    float enemySize = cellSize * 0.295f;
     el.push_back(blueprint->instantiateEnemy(spawnPosition, offsetSpawn, path.begin(), path.end(), enemySize, round_));
     addEntity(el.back().get());
     enemiesToSpawn_--;
