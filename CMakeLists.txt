@@ -40,5 +40,6 @@ target_include_directories(TowerDefense PRIVATE
 target_link_libraries(TowerDefense PRIVATE 
     ${SDL2_LIBRARIES}
     SDL2_ttf
+    SDL2_mixer
     nlohmann_json::nlohmann_json
 )

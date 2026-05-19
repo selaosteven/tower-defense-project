@@ -13,6 +13,7 @@
 #include "Entities/EnemyBlueprint.h"
 #include "Entities/Projectile.h"
 #include "QuadTree/QuadTree.h"
+#include "Sound/MusicController.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <algorithm>
@@ -715,6 +716,7 @@ void UI::Session::startNextWave() {
         
         spawnTimer_ = 0.0f;
         waveActive_ = true;
+        MusicController::getInstance().playMusic("wave", -1, 1000); // Fade into wave music
         std::cout << "Wave " << round_ << " starting! Enemies: " << enemiesToSpawn_ << "\n";
     }
 }
@@ -851,6 +853,20 @@ void UI::Session::mainSession() {
         std::this_thread::yield(); // wait for sdl to be ready
     }
 
+    // Load sounds and music after SDL audio device is initialized
+    MusicController::getInstance().loadSound("shoot", "../src/Ressources/Sounds/shoot.wav");
+    MusicController::getInstance().loadSound("hit", "../src/Ressources/Sounds/hit.wav");
+    MusicController::getInstance().loadSound("die", "../src/Ressources/Sounds/die.wav");
+    MusicController::getInstance().loadSound("walk", "../src/Ressources/Sounds/walk.wav");
+
+    // Example: Add variations to the pool by loading additional files to the same keys!
+    MusicController::getInstance().loadSound("shoot", "../src/Ressources/Sounds/shoot2.wav");
+    MusicController::getInstance().loadSound("shoot", "../src/Ressources/Sounds/shoot3.wav");
+    
+    MusicController::getInstance().loadMusic("background", "../src/Ressources/Music/background.ogg");
+
+    MusicController::getInstance().loadMusic("wave", "../src/Ressources/Music/wave.ogg");
+    MusicController::getInstance().playMusic("background", -1, 1000);  // Play looping with fade
     // we scale the game map based on the window and the map size.
     float cellWidth  = (getWinWidth()-300) / static_cast<float>(map_.getWidth());
     float cellHeight = getWinHeight() / static_cast<float>(map_.getHeight());
@@ -912,6 +928,10 @@ void UI::Session::mainSession() {
         float dt = std::chrono::duration<float>(now - lastTime).count();
         lastTime = now;
         dt *= game_speed_multiplier_;
+        
+        MusicController::getInstance().setListenerPosition(camera_position_.getX(), camera_position_.getY(), scale_, getWinWidth(), getWinHeight());
+        MusicController::getInstance().update(game_speed_multiplier_ == 0, game_speed_multiplier_);
+        
         if (money_ != last_money) {
             std::lock_guard<std::recursive_mutex> lock(render_mutex_);
             moneyText->setText("Money: " + std::to_string(money_) + "$");
@@ -939,10 +959,12 @@ void UI::Session::mainSession() {
                 if (enemy->hasReachedEnd()) {
                     hpSetter(hp_player_ - 1);
                     std::cout << "Player took damage! HP: " << hp_player_ << "\n";
+                    MusicController::getInstance().playSoundSpatial("hit", enemy->getPosition().getX(), enemy->getPosition().getY(), 1.0f, 0.2f);
                     enemy->kill();
                     removeEntity(enemy);
                 } else if (enemy->getLp() <= 0) {
                     moneySetter(money_ + 10);
+                    MusicController::getInstance().playSoundSpatial("die", enemy->getPosition().getX(), enemy->getPosition().getY(), 1.0f, 0.25f);
                     enemy->kill();
                     removeEntity(enemy);
                 }
@@ -1048,6 +1070,7 @@ void UI::Session::mainSession() {
                 }
                 
                 waveActive_ = false;
+                MusicController::getInstance().playMusic("background", -1, 1000); // Fade back to background music
                 std::cout << "Wave " << round_ << " clear! Waiting for next wave...\n";
             }
         }

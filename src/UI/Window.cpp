@@ -4,10 +4,12 @@
 #include <mutex>
 #include <thread>
 #include <SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "Window.h"
 #include "Sprites/Sprite.h"
 #include "Entities/Entity.h"
+#include "../Sound/MusicController.h"
 
 using namespace UI;
 
@@ -437,6 +439,10 @@ werrors UI::Window::init_sdl(Uint32 flags){
         }
         if (TTF_Init() == -1) {
             print_sdl_error("Failed to init TTF");
+            return SDL_INIT_FAILED;
+        }
+        if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+            print_sdl_error("Failed to init SDL_mixer");
             return SDL_INIT_FAILED;
         }
         sdl_initiated = true;

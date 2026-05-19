@@ -5,6 +5,7 @@
 #include "Entities/Tower.h"
 #include "Entities/Enemy.h"
 #include "Entities/TowerTree.h"
+#include "Sound/MusicController.h"
 
 int Tower::compteur_ = 0; // for the ID
 
@@ -163,6 +164,8 @@ void Tower::do_shoot(std::shared_ptr<Enemy> target) {
     proj->setHitFlying(target_flying_);
     proj->setHitGround(target_ground_);
     spawned_projectiles_.push_back(std::move(proj));
+    
+    MusicController::getInstance().playSoundSpatial("shoot", position_.getX(), position_.getY(), 1.0f, 0.15f);
 }
 
 void Tower::do_rotate(std::shared_ptr<Enemy> target) {

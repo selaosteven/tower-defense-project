@@ -22,7 +22,7 @@ namespace UI
 // Static - namespace wise
 void print_sdl_error(const char * msg);
 
-const Uint32 auto_flags_sdl_init = SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+const Uint32 auto_flags_sdl_init = SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO;
 const Uint32 auto_flags_sdl_window = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE;
 const Uint32 auto_flags_sdl_renderer = SDL_RENDERER_ACCELERATED;
 

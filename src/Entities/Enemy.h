@@ -28,6 +28,7 @@ public:
     float offset_;
     bool reached_end_ = false;
     bool alive_ = true;
+    float walk_timer_ = 0.0f;
    
 public:
     Enemy(float lp, float speed, float resistance, bool fly);
