@@ -6,17 +6,17 @@ This project is a Tower Defense game developed in C++ as part of an academic ass
 
 ## Implementation Overview
 
-### 💡 Idea behind the game
+###  Idea behind the game
 
 The game was designed from the start to be highly modular, allowing new behaviors, stats, or visual elements to be added easily without modifying the core engine. All gameplay entities such as towers and enemies load their configuration from JavaScript‑like data files, which define their statistics and upgrade trees. The map itself is read from an ASCII file, making level creation simple and flexible.
 
-### 🏯 Towers 
+###  Towers 
 For tower visuals, we implemented our own geometric primitives (circles, rectangles, triangles, octagons, etc.) generated through mathematical calculations and rendered using SDL. These primitives are combined to create unique tower designs, and their composition is defined through external configuration files.
 
-### 👾 Ennemies
+###  Ennemies
 Enemies are represented using ASCII characters, each corresponding to a small pixel‑art Pokémon drawing. They follow a predefined path extracted from the ASCII map, giving the game a unique and playful identity.
 
-### ⚡ Optimization
+###  Optimization
 To optimize performance, especially for tower targeting, we integrated a quadtree spatial partitioning system. Instead of checking every enemy on the map, each tower only queries enemies located in the relevant quadtree regions. This significantly reduces computation and keeps the game efficient even with many entities on screen.
 
 
